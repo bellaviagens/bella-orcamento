@@ -25,11 +25,7 @@ export function HotelForm() {
   const [amenities, setAmenities] = useState<string[]>([]);
   const [amenityInput, setAmenityInput] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
-  const [prices, setPrices] = useState({
-    basic: { total: 0, perPerson: 0 },
-    light: { total: 0, perPerson: 0 },
-    full: { total: 0, perPerson: 0 },
-  });
+  const [prices, setPrices] = useState<Record<string, { total: number; perPerson: number }>>({});
 
   const parseHotelMutation = trpc.parseHotelScreenshot.useMutation();
 
@@ -43,7 +39,7 @@ export function HotelForm() {
     setAmenities([]);
     setAmenityInput("");
     setPhotoUrl("");
-    setPrices({ basic: { total: 0, perPerson: 0 }, light: { total: 0, perPerson: 0 }, full: { total: 0, perPerson: 0 } });
+    setPrices({});
   };
 
   const handleSave = () => {
@@ -85,8 +81,11 @@ export function HotelForm() {
     }
   };
 
-  const handlePriceChange = (tier: "basic" | "light" | "full", field: "total" | "perPerson", value: number) => {
-    setPrices({ ...prices, [tier]: { ...prices[tier], [field]: value } });
+  const handlePriceChange = (tierId: string, field: "total" | "perPerson", value: number) => {
+    setPrices({
+      ...prices,
+      [tierId]: { ...prices[tierId], [field]: value },
+    });
   };
 
   const handleScreenshotUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -199,14 +198,26 @@ export function HotelForm() {
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-bold text-[#1a2e4a]">Novo Hotel</h4>
-            <Button variant="ghost" size="sm" onClick={() => { setShowForm(false); resetForm(); }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowForm(false);
+                resetForm();
+              }}
+            >
               Cancelar
             </Button>
           </div>
 
           <div>
             <Label className="text-xs">Nome do Hotel</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Holiday Inn Santiago" className="mt-1" />
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex: Holiday Inn Santiago"
+              className="mt-1"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -226,18 +237,34 @@ export function HotelForm() {
             </div>
             <div>
               <Label className="text-xs">URL da Foto (opcional)</Label>
-              <Input value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://..." className="mt-1" />
+              <Input
+                value={photoUrl}
+                onChange={(e) => setPhotoUrl(e.target.value)}
+                placeholder="https://..."
+                className="mt-1"
+              />
             </div>
           </div>
 
           <div>
             <Label className="text-xs">Endereço</Label>
-            <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Endereço completo" className="mt-1" />
+            <Input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Endereço completo"
+              className="mt-1"
+            />
           </div>
 
           <div>
             <Label className="text-xs">Descrição</Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Breve descrição do hotel" className="mt-1" rows={2} />
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Breve descrição do hotel"
+              className="mt-1"
+              rows={2}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -256,7 +283,12 @@ export function HotelForm() {
             </div>
             <div>
               <Label className="text-xs">Avaliação</Label>
-              <Input value={ratingLabel} onChange={(e) => setRatingLabel(e.target.value)} placeholder="Excelente" className="mt-1" />
+              <Input
+                value={ratingLabel}
+                onChange={(e) => setRatingLabel(e.target.value)}
+                placeholder="Excelente"
+                className="mt-1"
+              />
             </div>
           </div>
 
@@ -280,7 +312,10 @@ export function HotelForm() {
                 {amenities.map((a, i) => (
                   <span key={i} className="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded-full flex items-center gap-1">
                     {a}
-                    <button onClick={() => setAmenities(amenities.filter((_, idx) => idx !== i))} className="text-slate-400 hover:text-red-500">
+                    <button
+                      onClick={() => setAmenities(amenities.filter((_, idx) => idx !== i))}
+                      className="text-slate-400 hover:text-red-500"
+                    >
                       ×
                     </button>
                   </span>
@@ -290,40 +325,44 @@ export function HotelForm() {
           </div>
 
           {/* Prices by fare tier */}
-          <div className="border-t border-slate-200 pt-3">
-            <Label className="text-xs font-bold text-slate-600">Preços por Tarifa</Label>
-            <div className="grid grid-cols-3 gap-2 mt-2">
-              {(["basic", "light", "full"] as const).map((tier) => (
-                <div key={tier} className={`rounded-lg p-2 ${tier === "full" ? "bg-amber-100" : "bg-white border border-slate-200"}`}>
-                  <div className={`text-xs font-bold mb-2 ${tier === "full" ? "text-[#1a2e4a]" : "text-slate-500"}`}>
-                    {tier.toUpperCase()}
-                  </div>
-                  <div className="space-y-1">
-                    <div>
-                      <Label className="text-[10px] text-slate-500">Total (R$)</Label>
-                      <Input
-                        type="number"
-                        value={prices[tier].total || ""}
-                        onChange={(e) => handlePriceChange(tier, "total", parseFloat(e.target.value) || 0)}
-                        placeholder="0"
-                        className="h-8 text-xs"
-                      />
+          {budget.fareComparison.tiers.length > 0 && (
+            <div className="border-t border-slate-200 pt-3">
+              <Label className="text-xs font-bold text-slate-600">Preços por Tarifa</Label>
+              <div className="space-y-2 mt-2">
+                {budget.fareComparison.tiers.map((tier) => (
+                  <div key={tier.id} className="rounded-lg border border-slate-200 bg-white p-2">
+                    <div className="text-xs font-bold text-slate-600 mb-2">{tier.name}</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-[10px] text-slate-500">Total (R$)</Label>
+                        <Input
+                          type="number"
+                          value={prices[tier.id]?.total || ""}
+                          onChange={(e) =>
+                            handlePriceChange(tier.id, "total", parseFloat(e.target.value) || 0)
+                          }
+                          placeholder="0"
+                          className="h-8 text-xs mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] text-slate-500">Por pessoa (R$)</Label>
+                        <Input
+                          type="number"
+                          value={prices[tier.id]?.perPerson || ""}
+                          onChange={(e) =>
+                            handlePriceChange(tier.id, "perPerson", parseFloat(e.target.value) || 0)
+                          }
+                          placeholder="0"
+                          className="h-8 text-xs mt-1"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label className="text-[10px] text-slate-500">Por pessoa (R$)</Label>
-                      <Input
-                        type="number"
-                        value={prices[tier].perPerson || ""}
-                        onChange={(e) => handlePriceChange(tier, "perPerson", parseFloat(e.target.value) || 0)}
-                        placeholder="0"
-                        className="h-8 text-xs"
-                      />
-                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <Button onClick={handleSave} className="w-full">
             <Building2 className="h-4 w-4 mr-2" />

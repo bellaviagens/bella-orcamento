@@ -3,7 +3,8 @@ import { BudgetProvider, useBudget } from "@/contexts/BudgetContext";
 import { TripInfoForm } from "@/components/forms/TripInfoForm";
 import { FlightForm } from "@/components/forms/FlightForm";
 import { HotelForm } from "@/components/forms/HotelForm";
-import { FareBaggageForm } from "@/components/forms/FareBaggageForm";
+import { FareForm } from "@/components/forms/FareForm";
+import { BaggageForm } from "@/components/forms/BaggageForm";
 import { PdfPreview } from "@/components/pdf/PdfPreview";
 import { usePdfGenerator } from "@/hooks/usePdfGenerator";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,7 @@ function BuilderContent() {
               toast.loading("Gerando PDF...", { id: "pdf-gen" });
               try {
                 await generatePdf();
-                toast.success("PDF gerado com sucesso!", { id: "pdf-gen" });
+                toast.success("PDF gerado! Verifique a pasta Downloads do seu computador.", { id: "pdf-gen" });
               } catch {
                 toast.error("Erro ao gerar PDF. Tente novamente.", { id: "pdf-gen" });
               }
@@ -65,7 +66,7 @@ function BuilderContent() {
           <ScrollArea className="flex-1">
             <div className="p-6">
               <Tabs defaultValue="trip" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 mb-4">
+                <TabsList className="grid w-full grid-cols-5 mb-4">
                   <TabsTrigger value="trip" className="text-xs">
                     <FileText className="h-3.5 w-3.5 mr-1" />
                     Viagem
@@ -81,6 +82,10 @@ function BuilderContent() {
                   <TabsTrigger value="fares" className="text-xs">
                     <Settings className="h-3.5 w-3.5 mr-1" />
                     Tarifas
+                  </TabsTrigger>
+                  <TabsTrigger value="baggage" className="text-xs">
+                    <Settings className="h-3.5 w-3.5 mr-1" />
+                    Bagagens
                   </TabsTrigger>
                 </TabsList>
 
@@ -114,9 +119,21 @@ function BuilderContent() {
                 <TabsContent value="fares" className="mt-0">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
-                      Tarifas e Bagagens
+                      Tarifas
                     </h3>
-                    <FareBaggageForm />
+                    <p className="text-xs text-slate-500 mb-4">
+                      Adicione quantas tarifas quiser com nomes customizáveis. Você pode destacar uma para que apareça em destaque no orçamento.
+                    </p>
+                    <FareForm />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="baggage" className="mt-0">
+                  <div className="rounded-xl border border-slate-200 bg-white p-5">
+                    <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
+                      Bagagens
+                    </h3>
+                    <BaggageForm />
                   </div>
                 </TabsContent>
               </Tabs>
@@ -132,7 +149,7 @@ function BuilderContent() {
                 Preview do PDF
               </span>
               <span className="text-xs text-slate-400">
-                {budget.flights.length} voo(s) • {budget.hotels.length} hotel(is)
+                {budget.flights.length} voo(s) • {budget.hotels.length} hotel(is) • {budget.fareComparison.tiers.length} tarifa(s)
               </span>
             </div>
             <ScrollArea className="flex-1">

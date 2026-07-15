@@ -1,9 +1,10 @@
 import { MapPin, Star } from "lucide-react";
-import type { Hotel } from "@shared/budgetTypes";
+import type { Hotel, FareTier } from "@shared/budgetTypes";
 
 interface HotelCardProps {
   hotel: Hotel;
   index: number;
+  tiers: FareTier[];
 }
 
 function formatCurrency(value: number): string {
@@ -13,7 +14,7 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function HotelCard({ hotel, index }: HotelCardProps) {
+export function HotelCard({ hotel, index, tiers }: HotelCardProps) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
       {/* Photo */}
@@ -71,38 +72,39 @@ export function HotelCard({ hotel, index }: HotelCardProps) {
         )}
 
         {/* Prices */}
-        <div className="grid grid-cols-3 gap-2">
-          {/* BASIC */}
-          <div className="rounded-lg border border-slate-200 p-3 text-center">
-            <div className="text-xs font-bold text-slate-500 mb-1">BASIC</div>
-            <div className="text-sm font-bold text-[#1a2e4a]">
-              {formatCurrency(hotel.prices.basic.total)}
-            </div>
-            <div className="text-[10px] text-slate-400">
-              {formatCurrency(hotel.prices.basic.perPerson)} / pessoa
-            </div>
+        {tiers.length > 0 ? (
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${tiers.length}, 1fr)` }}>
+            {tiers.map((tier) => {
+              const price = hotel.prices[tier.id];
+              return (
+                <div
+                  key={tier.id}
+                  className={`rounded-lg border border-slate-200 p-3 text-center ${
+                    tier.highlighted ? "bg-amber-400" : ""
+                  }`}
+                >
+                  <div className={`text-xs font-bold mb-1 ${tier.highlighted ? "text-[#1a2e4a]" : "text-slate-500"}`}>
+                    {tier.name}
+                  </div>
+                  {price ? (
+                    <>
+                      <div className={`text-sm font-bold ${tier.highlighted ? "text-[#1a2e4a]" : "text-[#1a2e4a]"}`}>
+                        {formatCurrency(price.total)}
+                      </div>
+                      <div className={`text-[10px] ${tier.highlighted ? "text-[#1a2e4a]/70" : "text-slate-400"}`}>
+                        {formatCurrency(price.perPerson)} / pessoa
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-xs text-slate-400">-</div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          {/* LIGHT */}
-          <div className="rounded-lg border border-slate-200 p-3 text-center">
-            <div className="text-xs font-bold text-slate-500 mb-1">LIGHT</div>
-            <div className="text-sm font-bold text-[#1a2e4a]">
-              {formatCurrency(hotel.prices.light.total)}
-            </div>
-            <div className="text-[10px] text-slate-400">
-              {formatCurrency(hotel.prices.light.perPerson)} / pessoa
-            </div>
-          </div>
-          {/* FULL - highlighted */}
-          <div className="rounded-lg bg-amber-400 p-3 text-center">
-            <div className="text-xs font-bold text-[#1a2e4a] mb-1">FULL</div>
-            <div className="text-sm font-bold text-[#1a2e4a]">
-              {formatCurrency(hotel.prices.full.total)}
-            </div>
-            <div className="text-[10px] text-[#1a2e4a]/70">
-              {formatCurrency(hotel.prices.full.perPerson)} / pessoa
-            </div>
-          </div>
-        </div>
+        ) : (
+          <div className="text-xs text-slate-400 text-center py-4">Nenhuma tarifa adicionada</div>
+        )}
       </div>
     </div>
   );

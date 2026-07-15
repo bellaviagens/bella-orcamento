@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import { defaultBudgetData, type BudgetData, type Flight, type Hotel } from "@shared/budgetTypes";
+import { defaultBudgetData, type BudgetData, type Flight, type Hotel, type FareTier } from "@shared/budgetTypes";
+import { nanoid } from "nanoid";
 
 interface BudgetContextType {
   budget: BudgetData;
@@ -10,7 +11,9 @@ interface BudgetContextType {
   addHotel: (hotel: Hotel) => void;
   updateHotel: (id: string, hotel: Hotel) => void;
   removeHotel: (id: string) => void;
-  updateFareTier: (tier: "basic" | "light" | "full", field: string, value: boolean | number) => void;
+  addFareTier: (tier: Omit<FareTier, "id">) => void;
+  updateFareTier: (id: string, tier: Partial<FareTier>) => void;
+  removeFareTier: (id: string) => void;
   updateBaggage: (index: number, field: string, value: string | number) => void;
   resetBudget: () => void;
 }
@@ -69,18 +72,35 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const updateFareTier = useCallback(
-    (tier: "basic" | "light" | "full", field: string, value: boolean | number) => {
-      setBudget((prev) => ({
-        ...prev,
-        fareComparison: {
-          ...prev.fareComparison,
-          [tier]: { ...prev.fareComparison[tier], [field]: value },
-        },
-      }));
-    },
-    []
-  );
+  const addFareTier = useCallback((tier: Omit<FareTier, "id">) => {
+    setBudget((prev) => ({
+      ...prev,
+      fareComparison: {
+        ...prev.fareComparison,
+        tiers: [...prev.fareComparison.tiers, { ...tier, id: nanoid() }],
+      },
+    }));
+  }, []);
+
+  const updateFareTier = useCallback((id: string, updates: Partial<FareTier>) => {
+    setBudget((prev) => ({
+      ...prev,
+      fareComparison: {
+        ...prev.fareComparison,
+        tiers: prev.fareComparison.tiers.map((t) => (t.id === id ? { ...t, ...updates } : t)),
+      },
+    }));
+  }, []);
+
+  const removeFareTier = useCallback((id: string) => {
+    setBudget((prev) => ({
+      ...prev,
+      fareComparison: {
+        ...prev.fareComparison,
+        tiers: prev.fareComparison.tiers.filter((t) => t.id !== id),
+      },
+    }));
+  }, []);
 
   const updateBaggage = useCallback((index: number, field: string, value: string | number) => {
     setBudget((prev) => ({
@@ -104,7 +124,9 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         addHotel,
         updateHotel,
         removeHotel,
+        addFareTier,
         updateFareTier,
+        removeFareTier,
         updateBaggage,
         resetBudget,
       }}

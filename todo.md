@@ -16,3 +16,8 @@
 - [x] Página principal com layout split (formulário + preview)
 - [x] Funcionalidade: gerar PDF via print
 - [x] Testes vitest
+
+- [x] Refatorar tarifas: remover 3 opções fixas, permitir adicionar quantas quiser com nomes customizáveis
+- [x] Centralizar tarifas no preview quando houver menos de 3
+- [x] Corrigir scroll do preview para mostrar hotéis adicionados
+- [x] Melhorar feedback de PDF gerado (indicar pasta de downloads)

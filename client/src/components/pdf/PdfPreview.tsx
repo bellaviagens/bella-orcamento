@@ -96,39 +96,51 @@ export function PdfPreview({ data }: PdfPreviewProps) {
       )}
 
       {/* FARE COMPARISON TABLE */}
-      <div className="px-8 py-4">
-        <h3
-          className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
-          style={{ fontFamily: "Poppins, sans-serif" }}
-        >
-          Comparativo de Benefícios por Tarifa (Aéreo)
-        </h3>
-        <div className="grid grid-cols-4 gap-0 border border-slate-200 rounded-lg overflow-hidden">
-          {/* Header row */}
-          <div className="bg-slate-50 p-3 text-xs font-bold text-slate-500 uppercase">Benefício</div>
-          <div className="bg-slate-50 p-3 text-xs font-bold text-slate-500 uppercase text-center">BASIC</div>
-          <div className="bg-slate-50 p-3 text-xs font-bold text-slate-500 uppercase text-center">LIGHT</div>
-          <div className="bg-amber-400 p-3 text-xs font-bold text-[#1a2e4a] uppercase text-center">FULL</div>
+      {fareComparison.tiers.length > 0 && (
+        <div className="px-8 py-4">
+          <h3
+            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            Comparativo de Benefícios por Tarifa (Aéreo)
+          </h3>
+          <div className="flex justify-center">
+            <div className="grid gap-0 border border-slate-200 rounded-lg overflow-hidden" style={{ gridTemplateColumns: `1fr repeat(${fareComparison.tiers.length}, 1fr)` }}>
+            {/* Header row */}
+            <div className="bg-slate-50 p-3 text-xs font-bold text-slate-500 uppercase">Benefício</div>
+            {fareComparison.tiers.map((tier) => (
+              <div
+                key={tier.id}
+                className={`p-3 text-xs font-bold uppercase text-center ${
+                  tier.highlighted ? "bg-amber-400 text-[#1a2e4a]" : "bg-slate-50 text-slate-500"
+                }`}
+              >
+                {tier.name}
+              </div>
+            ))}
 
-          {/* Rows */}
-          <BenefitRow label="Mala de Mão" basic={fareComparison.basic.carryOn} light={fareComparison.light.carryOn} full={fareComparison.full.carryOn} />
-          <BenefitRow label="Mala Despachada" basic={fareComparison.basic.checkedBag} light={fareComparison.light.checkedBag} full={fareComparison.full.checkedBag} />
-          <BenefitRow label="Seleção de Assento" basic={fareComparison.basic.seatSelection} light={fareComparison.light.seatSelection} full={fareComparison.full.seatSelection} />
-          <BenefitRow label="Alterações e Reembolso" basic={fareComparison.basic.changes} light={fareComparison.light.changes} full={fareComparison.full.changes} />
+            {/* Benefit rows */}
+            <BenefitRow label="Mala de Mão" tiers={fareComparison.tiers} field="carryOn" />
+            <BenefitRow label="Mala Despachada" tiers={fareComparison.tiers} field="checkedBag" />
+            <BenefitRow label="Seleção de Assento" tiers={fareComparison.tiers} field="seatSelection" />
+            <BenefitRow label="Alterações e Reembolso" tiers={fareComparison.tiers} field="changes" />
 
-          {/* Price row */}
-          <div className="border-t border-slate-200 p-3 text-xs font-bold text-slate-600">Valor Total Voos</div>
-          <div className="border-t border-slate-200 p-3 text-center text-sm font-bold text-[#1a2e4a]">
-            {formatCurrency(fareComparison.basic.flightPrice)}
-          </div>
-          <div className="border-t border-slate-200 p-3 text-center text-sm font-bold text-[#1a2e4a]">
-            {formatCurrency(fareComparison.light.flightPrice)}
-          </div>
-          <div className="border-t border-slate-200 bg-amber-400 p-3 text-center text-sm font-bold text-[#1a2e4a]">
-            {formatCurrency(fareComparison.full.flightPrice)}
+            {/* Price row */}
+            <div className="border-t border-slate-200 p-3 text-xs font-bold text-slate-600">Valor Total Voos</div>
+            {fareComparison.tiers.map((tier) => (
+              <div
+                key={tier.id}
+                className={`border-t border-slate-200 p-3 text-center text-sm font-bold text-[#1a2e4a] ${
+                  tier.highlighted ? "bg-amber-400/10" : ""
+                }`}
+              >
+                {formatCurrency(tier.flightPrice)}
+              </div>
+            ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* BAGGAGE GUIDE */}
       {baggage.some((b) => b.priceAdvance > 0 || b.priceAirport > 0) && (
@@ -183,7 +195,7 @@ export function PdfPreview({ data }: PdfPreviewProps) {
           </h3>
           <div className="space-y-4">
             {hotels.map((hotel, idx) => (
-              <HotelCard key={hotel.id} hotel={hotel} index={idx} />
+              <HotelCard key={hotel.id} hotel={hotel} index={idx} tiers={fareComparison.tiers} />
             ))}
           </div>
         </div>
@@ -204,35 +216,30 @@ export function PdfPreview({ data }: PdfPreviewProps) {
 
 function BenefitRow({
   label,
-  basic,
-  light,
-  full,
+  tiers,
+  field,
 }: {
   label: string;
-  basic: boolean;
-  light: boolean;
-  full: boolean;
+  tiers: any[];
+  field: "carryOn" | "checkedBag" | "seatSelection" | "changes";
 }) {
-  const Cell = ({ included, highlight }: { included: boolean; highlight?: boolean }) => (
-    <div
-      className={`border-t border-slate-200 p-3 flex items-center justify-center ${
-        highlight ? "bg-amber-400/10" : ""
-      }`}
-    >
-      {included ? (
-        <Check className={`h-4 w-4 ${highlight ? "text-amber-600" : "text-green-600"}`} />
-      ) : (
-        <X className="h-4 w-4 text-slate-300" />
-      )}
-    </div>
-  );
-
   return (
     <>
       <div className="border-t border-slate-200 p-3 text-xs font-medium text-slate-600">{label}</div>
-      <Cell included={basic} />
-      <Cell included={light} />
-      <Cell included={full} highlight />
+      {tiers.map((tier) => (
+        <div
+          key={tier.id}
+          className={`border-t border-slate-200 p-3 flex items-center justify-center ${
+            tier.highlighted ? "bg-amber-400/10" : ""
+          }`}
+        >
+          {tier[field] ? (
+            <Check className={`h-4 w-4 ${tier.highlighted ? "text-amber-600" : "text-green-600"}`} />
+          ) : (
+            <X className="h-4 w-4 text-slate-300" />
+          )}
+        </div>
+      ))}
     </>
   );
 }
