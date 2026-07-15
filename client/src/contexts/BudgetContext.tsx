@@ -1,0 +1,121 @@
+import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { defaultBudgetData, type BudgetData, type Flight, type Hotel } from "@shared/budgetTypes";
+
+interface BudgetContextType {
+  budget: BudgetData;
+  updateTripInfo: (field: string, value: string) => void;
+  addFlight: (flight: Flight) => void;
+  updateFlight: (id: string, flight: Flight) => void;
+  removeFlight: (id: string) => void;
+  addHotel: (hotel: Hotel) => void;
+  updateHotel: (id: string, hotel: Hotel) => void;
+  removeHotel: (id: string) => void;
+  updateFareTier: (tier: "basic" | "light" | "full", field: string, value: boolean | number) => void;
+  updateBaggage: (index: number, field: string, value: string | number) => void;
+  resetBudget: () => void;
+}
+
+const BudgetContext = createContext<BudgetContextType | null>(null);
+
+export function BudgetProvider({ children }: { children: ReactNode }) {
+  const [budget, setBudget] = useState<BudgetData>(defaultBudgetData);
+
+  const updateTripInfo = useCallback((field: string, value: string) => {
+    setBudget((prev) => ({
+      ...prev,
+      tripInfo: { ...prev.tripInfo, [field]: value },
+    }));
+  }, []);
+
+  const addFlight = useCallback((flight: Flight) => {
+    setBudget((prev) => ({
+      ...prev,
+      flights: [...prev.flights, flight],
+    }));
+  }, []);
+
+  const updateFlight = useCallback((id: string, flight: Flight) => {
+    setBudget((prev) => ({
+      ...prev,
+      flights: prev.flights.map((f) => (f.id === id ? flight : f)),
+    }));
+  }, []);
+
+  const removeFlight = useCallback((id: string) => {
+    setBudget((prev) => ({
+      ...prev,
+      flights: prev.flights.filter((f) => f.id !== id),
+    }));
+  }, []);
+
+  const addHotel = useCallback((hotel: Hotel) => {
+    setBudget((prev) => ({
+      ...prev,
+      hotels: [...prev.hotels, hotel],
+    }));
+  }, []);
+
+  const updateHotel = useCallback((id: string, hotel: Hotel) => {
+    setBudget((prev) => ({
+      ...prev,
+      hotels: prev.hotels.map((h) => (h.id === id ? hotel : h)),
+    }));
+  }, []);
+
+  const removeHotel = useCallback((id: string) => {
+    setBudget((prev) => ({
+      ...prev,
+      hotels: prev.hotels.filter((h) => h.id !== id),
+    }));
+  }, []);
+
+  const updateFareTier = useCallback(
+    (tier: "basic" | "light" | "full", field: string, value: boolean | number) => {
+      setBudget((prev) => ({
+        ...prev,
+        fareComparison: {
+          ...prev.fareComparison,
+          [tier]: { ...prev.fareComparison[tier], [field]: value },
+        },
+      }));
+    },
+    []
+  );
+
+  const updateBaggage = useCallback((index: number, field: string, value: string | number) => {
+    setBudget((prev) => ({
+      ...prev,
+      baggage: prev.baggage.map((b, i) => (i === index ? { ...b, [field]: value } : b)),
+    }));
+  }, []);
+
+  const resetBudget = useCallback(() => {
+    setBudget(defaultBudgetData);
+  }, []);
+
+  return (
+    <BudgetContext.Provider
+      value={{
+        budget,
+        updateTripInfo,
+        addFlight,
+        updateFlight,
+        removeFlight,
+        addHotel,
+        updateHotel,
+        removeHotel,
+        updateFareTier,
+        updateBaggage,
+        resetBudget,
+      }}
+    >
+      {children}
+    </BudgetContext.Provider>
+  );
+}
+
+export function useBudget() {
+  const ctx = useContext(BudgetContext);
+  if (!ctx) throw new Error("useBudget must be used within BudgetProvider");
+  return ctx;
+}
