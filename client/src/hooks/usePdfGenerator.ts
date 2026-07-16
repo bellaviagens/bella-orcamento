@@ -30,7 +30,7 @@ export function usePdfGenerator() {
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
-        allowTaint: false,
+        allowTaint: true,
       });
 
       if (!canvas) {

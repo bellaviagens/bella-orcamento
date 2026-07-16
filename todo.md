@@ -48,5 +48,5 @@
 
 - [x] Debugar e corrigir erro de geração do PDF (remover imagens externas antes de capturar, adicionar crossOrigin)
 
-- [ ] Testar manualmente o download do PDF no navegador após correção
-- [ ] Implementar proxy server-side para imagens externas (para incluir fotos no PDF)
+- [ ] Validar manualmente no navegador o fluxo completo de download do PDF
+- [x] Implementar proxy server-side para imagens externas (endpoint criado, integrado com HotelCard)

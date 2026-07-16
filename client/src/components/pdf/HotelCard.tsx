@@ -1,5 +1,7 @@
 import { MapPin, Star, ExternalLink } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { Hotel, FareTier } from "@shared/budgetTypes";
+import { trpc } from "@/lib/trpc";
 
 interface HotelCardProps {
   hotel: Hotel;
@@ -17,12 +19,26 @@ function formatCurrency(value: number): string {
 }
 
 export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true }: HotelCardProps) {
+  const [proxiedPhotoUrl, setProxiedPhotoUrl] = useState<string | null>(hotel.photoUrl || null);
+  const imageProxyQuery = trpc.imageProxy.useQuery(
+    { url: hotel.photoUrl || "" },
+    {
+      enabled: !!(hotel.photoUrl && (hotel.photoUrl.includes("http") || hotel.photoUrl.includes("//"))),
+    }
+  );
+
+  useEffect(() => {
+    if (imageProxyQuery.data?.success && imageProxyQuery.data.data) {
+      setProxiedPhotoUrl(imageProxyQuery.data.data);
+    }
+  }, [imageProxyQuery.data]);
+
   return (
     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
       {/* Photo */}
       <div className="h-40 bg-slate-100 overflow-hidden flex items-center justify-center">
-        {hotel.photoUrl ? (
-          <img src={hotel.photoUrl} alt={hotel.name} className="w-full h-full object-cover" crossOrigin="anonymous" />
+        {proxiedPhotoUrl ? (
+          <img src={proxiedPhotoUrl} alt={hotel.name} className="w-full h-full object-cover" />
         ) : (
           <div className="text-slate-400 text-sm">Sem foto</div>
         )}
