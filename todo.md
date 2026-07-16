@@ -57,4 +57,5 @@
 - [ ] Validar manualmente o download do PDF no navegador após correção de erros
 
 - [x] Reduzir tamanho da seção de bagagens no PDF preview (inputs menores, cores mais sutis)
-- [ ] Debugar erro do PDF - "ERRO ao gerar PDF tente novamente"
+- [x] Corrigir erro do PDF - remover cores oklch que html2canvas não suporta
+- [x] Melhorar labels de bagagens: "Mala de mão 12kg", "Antecipada", "Aeroporto" (por inteiro)

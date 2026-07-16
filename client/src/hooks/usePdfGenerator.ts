@@ -14,8 +14,60 @@ export function usePdfGenerator() {
     const originalBg = element.style.backgroundColor;
     element.style.backgroundColor = "#ffffff";
 
+    // Remove oklch colors by cloning and converting to hex
+    const clonedElement = element.cloneNode(true) as HTMLElement;
+    
+    // Convert oklch colors to hex equivalents
+    const convertOklchToHex = (oklchColor: string): string => {
+      // Simple mapping of common oklch colors used in the app
+      const oklchMap: Record<string, string> = {
+        "oklch(0.184 0.077 262.1)": "#1a2e4a", // dark blue
+        "oklch(0.965 0.004 262.1)": "#f8fafc", // slate-50
+        "oklch(0.902 0.008 262.1)": "#f1f5f9", // slate-100
+        "oklch(0.835 0.013 262.1)": "#e2e8f0", // slate-200
+        "oklch(0.747 0.022 262.1)": "#cbd5e1", // slate-300
+        "oklch(0.664 0.033 262.1)": "#94a3b8", // slate-400
+        "oklch(0.577 0.045 262.1)": "#64748b", // slate-500
+        "oklch(0.506 0.053 262.1)": "#475569", // slate-600
+        "oklch(0.431 0.062 262.1)": "#334155", // slate-700
+        "oklch(0.353 0.069 262.1)": "#1e293b", // slate-800
+        "oklch(0.271 0.068 262.1)": "#0f172a", // slate-900
+      };
+
+      // Check if it's an oklch color
+      if (oklchColor.includes("oklch")) {
+        return oklchMap[oklchColor] || "#000000";
+      }
+      return oklchColor;
+    };
+
+    // Walk through all elements and convert oklch colors
+    const walkElements = (el: Element) => {
+      const style = window.getComputedStyle(el);
+      const bgColor = style.backgroundColor;
+      const textColor = style.color;
+      const borderColor = style.borderColor;
+
+      if (bgColor && bgColor.includes("oklch")) {
+        (el as HTMLElement).style.backgroundColor = convertOklchToHex(bgColor);
+      }
+      if (textColor && textColor.includes("oklch")) {
+        (el as HTMLElement).style.color = convertOklchToHex(textColor);
+      }
+      if (borderColor && borderColor.includes("oklch")) {
+        (el as HTMLElement).style.borderColor = convertOklchToHex(borderColor);
+      }
+
+      // Recursively process children
+      for (let i = 0; i < el.children.length; i++) {
+        walkElements(el.children[i]);
+      }
+    };
+
+    walkElements(clonedElement);
+
     // Hide external images temporarily to avoid CORS issues
-    const images = element.querySelectorAll("img");
+    const images = clonedElement.querySelectorAll("img");
     const originalDisplays = new Map<HTMLImageElement, string>();
     images.forEach((img) => {
       if (img.src && (img.src.includes("http") || img.src.includes("//"))) {
@@ -25,13 +77,24 @@ export function usePdfGenerator() {
     });
 
     try {
-      const canvas = await html2canvas(element, {
+      // Create a temporary container to hold the cloned element
+      const tempContainer = document.createElement("div");
+      tempContainer.style.position = "absolute";
+      tempContainer.style.left = "-9999px";
+      tempContainer.style.top = "-9999px";
+      tempContainer.appendChild(clonedElement);
+      document.body.appendChild(tempContainer);
+
+      const canvas = await html2canvas(clonedElement, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
         allowTaint: true,
       });
+
+      // Remove temporary container
+      document.body.removeChild(tempContainer);
 
       if (!canvas) {
         throw new Error("Falha ao gerar canvas do PDF");
@@ -90,10 +153,6 @@ export function usePdfGenerator() {
       throw new Error("Erro ao exportar PDF: " + String(err));
     } finally {
       element.style.backgroundColor = originalBg;
-      // Restore images
-      originalDisplays.forEach((display, img) => {
-        img.style.display = display;
-      });
     }
   }, []);
 
