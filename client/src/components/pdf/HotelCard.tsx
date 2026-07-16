@@ -6,6 +6,7 @@ interface HotelCardProps {
   index: number;
   tiers: FareTier[];
   passengers: number;
+  includeAirfare?: boolean;
 }
 
 function formatCurrency(value: number): string {
@@ -15,7 +16,7 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function HotelCard({ hotel, index, tiers, passengers }: HotelCardProps) {
+export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true }: HotelCardProps) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
       {/* Photo */}
@@ -93,8 +94,10 @@ export function HotelCard({ hotel, index, tiers, passengers }: HotelCardProps) {
         {tiers.length > 0 ? (
           <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(tiers.length, 3)}, 1fr)` }}>
             {tiers.map((tier) => {
-              const totalPrice = (hotel.totalPrice + tier.flightPrice) * passengers;
-              const perPersonPrice = hotel.totalPrice + tier.flightPrice;
+              const basePrice = includeAirfare ? hotel.totalPrice + tier.flightPrice : hotel.totalPrice;
+              const totalPrice = basePrice * passengers;
+              const perPersonPrice = basePrice;
+              const label = includeAirfare ? `Com Aéreo ${tier.name}` : tier.name;
 
               return (
                 <div
@@ -104,7 +107,7 @@ export function HotelCard({ hotel, index, tiers, passengers }: HotelCardProps) {
                   }`}
                 >
                   <div className={`text-[10px] font-bold mb-2 uppercase ${tier.highlighted ? "text-amber-700" : "text-slate-500"}`}>
-                    Com Aéreo {tier.name}
+                    {label}
                   </div>
                   <>
                     <div className={`text-sm font-bold ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>

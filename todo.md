@@ -36,3 +36,12 @@
 - [x] Cada hotel mostra preços por tarifa: "COM AÉREO BASIC", "COM AÉREO LIGHT", etc
 - [x] Remover scroll dos formulários (voltar ao layout simples)
 - [x] Validar que preço do aéreo é fixo para todas as tarifas
+
+- [x] Adicionar scroll no preview do PDF (página de resultado)
+- [x] Adicionar checkbox "Incluir Aéreo" para controlar se soma o aéreo ou mostra apenas hotel
+- [x] Corrigir download do PDF (usar html2canvas + jsPDF corretamente)
+- [x] Permitir orçamento só de hotel, só de aéreo, ou ambos
+
+- [ ] Ajustar usePdfGenerator para garantir download real do PDF no navegador
+- [ ] Permitir exibir preços de hotel mesmo sem tarifas cadastradas (para cotações somente de hospedagem)
+- [ ] Testar download de PDF em diferentes navegadores

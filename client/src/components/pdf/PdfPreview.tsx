@@ -5,6 +5,7 @@ import { HotelCard } from "./HotelCard";
 
 interface PdfPreviewProps {
   data: BudgetData;
+  includeAirfare?: boolean;
 }
 
 function formatCurrency(value: number): string {
@@ -14,7 +15,7 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function PdfPreview({ data }: PdfPreviewProps) {
+export function PdfPreview({ data, includeAirfare = true }: PdfPreviewProps) {
   const { tripInfo, flights, fareComparison, baggage, hotels } = data;
 
   return (
@@ -108,7 +109,7 @@ export function PdfPreview({ data }: PdfPreviewProps) {
             {hotels.map((hotel, idx) => {
               const passengerCount = parseInt(tripInfo.passengers) || 1;
               return (
-                <HotelCard key={hotel.id} hotel={hotel} index={idx} tiers={fareComparison.tiers} passengers={passengerCount} />
+                <HotelCard key={hotel.id} hotel={hotel} index={idx} tiers={fareComparison.tiers} passengers={passengerCount} includeAirfare={includeAirfare} />
               );
             })}
           </div>
