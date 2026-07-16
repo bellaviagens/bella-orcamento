@@ -89,7 +89,7 @@ function BuilderContent() {
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="trip" className="mt-0 max-h-96 overflow-y-auto">
+                <TabsContent value="trip" className="mt-0">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
                       Informações da Viagem
@@ -98,7 +98,7 @@ function BuilderContent() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="flights" className="mt-0 max-h-96 overflow-y-auto">
+                <TabsContent value="flights" className="mt-0">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
                       Voos
@@ -107,7 +107,7 @@ function BuilderContent() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="hotels" className="mt-0 max-h-96 overflow-y-auto">
+                <TabsContent value="hotels" className="mt-0">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
                       Hotéis
@@ -116,7 +116,7 @@ function BuilderContent() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="fares" className="mt-0 max-h-96 overflow-y-auto">
+                <TabsContent value="fares" className="mt-0">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
                       Tarifas
@@ -128,7 +128,7 @@ function BuilderContent() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="baggage" className="mt-0 max-h-96 overflow-y-auto">
+                <TabsContent value="baggage" className="mt-0">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
                       Bagagens

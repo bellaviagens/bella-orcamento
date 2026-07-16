@@ -5,6 +5,7 @@ interface HotelCardProps {
   hotel: Hotel;
   index: number;
   tiers: FareTier[];
+  passengers: number;
 }
 
 function formatCurrency(value: number): string {
@@ -14,7 +15,7 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function HotelCard({ hotel, index, tiers }: HotelCardProps) {
+export function HotelCard({ hotel, index, tiers, passengers }: HotelCardProps) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
       {/* Photo */}
@@ -88,11 +89,14 @@ export function HotelCard({ hotel, index, tiers }: HotelCardProps) {
           </div>
         )}
 
-        {/* Prices grid */}
+        {/* Prices grid - Total with flight included */}
         {tiers.length > 0 ? (
           <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(tiers.length, 3)}, 1fr)` }}>
             {tiers.map((tier) => {
-              const price = hotel.prices[tier.id];
+              const hotelPrice = hotel.prices[tier.id];
+              const totalPrice = hotelPrice ? (hotelPrice.total + tier.flightPrice) * passengers : 0;
+              const perPersonPrice = hotelPrice ? (hotelPrice.total + tier.flightPrice) : 0;
+
               return (
                 <div
                   key={tier.id}
@@ -100,16 +104,16 @@ export function HotelCard({ hotel, index, tiers }: HotelCardProps) {
                     tier.highlighted ? "bg-amber-50 border-amber-300" : ""
                   }`}
                 >
-                  <div className={`text-xs font-bold mb-2 ${tier.highlighted ? "text-amber-700" : "text-slate-500"}`}>
-                    {tier.name}
+                  <div className={`text-[10px] font-bold mb-2 uppercase ${tier.highlighted ? "text-amber-700" : "text-slate-500"}`}>
+                    Com Aéreo {tier.name}
                   </div>
-                  {price ? (
+                  {hotelPrice ? (
                     <>
                       <div className={`text-sm font-bold ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>
-                        {formatCurrency(price.total)}
+                        {formatCurrency(totalPrice)}
                       </div>
                       <div className={`text-[10px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-400"}`}>
-                        {formatCurrency(price.perPerson)} / pessoa
+                        {formatCurrency(perPersonPrice)} / pessoa
                       </div>
                     </>
                   ) : (

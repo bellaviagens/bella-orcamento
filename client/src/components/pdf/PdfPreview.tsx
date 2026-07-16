@@ -105,59 +105,17 @@ export function PdfPreview({ data }: PdfPreviewProps) {
             Opções de Hospedagem
           </h3>
           <div className="space-y-4">
-            {hotels.map((hotel, idx) => (
-              <HotelCard key={hotel.id} hotel={hotel} index={idx} tiers={fareComparison.tiers} />
-            ))}
+            {hotels.map((hotel, idx) => {
+              const passengerCount = parseInt(tripInfo.passengers) || 1;
+              return (
+                <HotelCard key={hotel.id} hotel={hotel} index={idx} tiers={fareComparison.tiers} passengers={passengerCount} />
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* FARE COMPARISON TABLE */}
-      {fareComparison.tiers.length > 0 && (
-        <div className="px-8 py-4">
-          <h3
-            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            Comparativo de Benefícios por Tarifa (Aéreo)
-          </h3>
-          <div className="flex justify-center">
-            <div className="grid gap-0 border border-slate-200 rounded-lg overflow-hidden" style={{ gridTemplateColumns: `1fr repeat(${fareComparison.tiers.length}, 1fr)` }}>
-            {/* Header row */}
-            <div className="bg-slate-50 p-3 text-xs font-bold text-slate-500 uppercase">Benefício</div>
-            {fareComparison.tiers.map((tier) => (
-              <div
-                key={tier.id}
-                className={`p-3 text-xs font-bold uppercase text-center ${
-                  tier.highlighted ? "bg-amber-400 text-[#1a2e4a]" : "bg-slate-50 text-slate-500"
-                }`}
-              >
-                {tier.name}
-              </div>
-            ))}
 
-            {/* Benefit rows */}
-            <BenefitRow label="Mala de Mão" tiers={fareComparison.tiers} field="carryOn" />
-            <BenefitRow label="Mala Despachada" tiers={fareComparison.tiers} field="checkedBag" />
-            <BenefitRow label="Seleção de Assento" tiers={fareComparison.tiers} field="seatSelection" />
-            <BenefitRow label="Alterações e Reembolso" tiers={fareComparison.tiers} field="changes" />
-
-            {/* Price row */}
-            <div className="border-t border-slate-200 p-3 text-xs font-bold text-slate-600">Valor Total Voos</div>
-            {fareComparison.tiers.map((tier) => (
-              <div
-                key={tier.id}
-                className={`border-t border-slate-200 p-3 text-center text-sm font-bold text-[#1a2e4a] ${
-                  tier.highlighted ? "bg-amber-400/10" : ""
-                }`}
-              >
-                {formatCurrency(tier.flightPrice)}
-              </div>
-            ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* BAGGAGE GUIDE */}
       {baggage.some((b) => b.priceAdvance > 0 || b.priceAirport > 0) && (

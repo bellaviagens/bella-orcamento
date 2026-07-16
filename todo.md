@@ -30,3 +30,9 @@
 - [x] Adicionar scroll nos formulários da esquerda
 - [x] Voltar preços dos hotéis para junto com as tarifas (layout original)
 - [x] Remover seção separada de "Opções de Hospedagem" e integrar com tarifas
+
+- [x] Refatorar cálculo de preços: cada hotel deve mostrar (hotel + aéreo) × passageiros
+- [x] Remover seção separada de tarifas do preview
+- [x] Cada hotel mostra preços por tarifa: "COM AÉREO BASIC", "COM AÉREO LIGHT", etc
+- [x] Remover scroll dos formulários (voltar ao layout simples)
+- [x] Validar que preço do aéreo é fixo para todas as tarifas
