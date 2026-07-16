@@ -122,7 +122,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                     tier.highlighted ? "bg-amber-50 border-amber-300" : ""
                   }`}
                 >
-                  <div className={`text-[10px] font-bold mb-2 uppercase ${tier.highlighted ? "text-amber-700" : "text-slate-500"}`}>
+                  <div className={`text-[10px] font-bold mb-1 uppercase ${tier.highlighted ? "text-amber-700" : "text-slate-500"}`}>
                     {label}
                   </div>
                   <>
@@ -132,6 +132,11 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                     <div className={`text-[10px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-400"}`}>
                       {formatCurrency(perPersonPrice)} / pessoa
                     </div>
+                    {tier.benefits && tier.benefits.length > 0 && (
+                      <div className="text-[8px] text-slate-400 mt-1 pt-1 border-t border-slate-200">
+                        {tier.benefits.join(", ")}
+                      </div>
+                    )}
                   </>
                 </div>
               );

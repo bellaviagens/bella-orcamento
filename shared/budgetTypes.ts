@@ -59,6 +59,7 @@ export interface FareTier {
   changes: boolean;
   flightPrice: number;
   highlighted?: boolean; // para destacar uma tarifa
+  benefits?: string[]; // benefícios da tarifa para exibir no orçamento
 }
 
 export interface FareComparison {

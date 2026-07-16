@@ -20,6 +20,15 @@ interface BudgetContextType {
 
 const BudgetContext = createContext<BudgetContextType | null>(null);
 
+function calculateBenefits(tier: FareTier): string[] {
+  const benefits = [];
+  if (tier.carryOn) benefits.push("Mala de Mão");
+  if (tier.checkedBag) benefits.push("Mala Despachada");
+  if (tier.seatSelection) benefits.push("Seleção de Assento");
+  if (tier.changes) benefits.push("Alterações/Reembolso");
+  return benefits;
+}
+
 export function BudgetProvider({ children }: { children: ReactNode }) {
   const [budget, setBudget] = useState<BudgetData>(defaultBudgetData);
 
@@ -87,7 +96,22 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       ...prev,
       fareComparison: {
         ...prev.fareComparison,
-        tiers: prev.fareComparison.tiers.map((t) => (t.id === id ? { ...t, ...updates } : t)),
+        tiers: prev.fareComparison.tiers.map((t) => {
+          if (t.id === id) {
+            const updated = { ...t, ...updates };
+            // Recalcular benefícios se algum checkbox foi alterado
+            if (
+              updates.carryOn !== undefined ||
+              updates.checkedBag !== undefined ||
+              updates.seatSelection !== undefined ||
+              updates.changes !== undefined
+            ) {
+              updated.benefits = calculateBenefits(updated);
+            }
+            return updated;
+          }
+          return t;
+        }),
       },
     }));
   }, []);

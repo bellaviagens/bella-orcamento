@@ -22,6 +22,16 @@ export function FareForm() {
   const [flightPrice, setFlightPrice] = useState(0);
   const [highlighted, setHighlighted] = useState(false);
 
+  // Gerar benefícios baseado nas checkboxes
+  const getBenefits = () => {
+    const benefits = [];
+    if (carryOn) benefits.push("Mala de Mão");
+    if (checkedBag) benefits.push("Mala Despachada");
+    if (seatSelection) benefits.push("Seleção de Assento");
+    if (changes) benefits.push("Alterações/Reembolso");
+    return benefits;
+  };
+
   const resetForm = () => {
     setName("");
     setCarryOn(false);
@@ -46,6 +56,7 @@ export function FareForm() {
       changes,
       flightPrice,
       highlighted,
+      benefits: getBenefits(),
     });
 
     toast.success("Tarifa adicionada com sucesso!");
