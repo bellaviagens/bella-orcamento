@@ -154,7 +154,7 @@ function BuilderContent() {
             </div>
             <ScrollArea className="flex-1">
               <div className="p-6 flex justify-center">
-                <div className="shadow-2xl">
+                <div className="shadow-2xl" style={{ minHeight: "100%" }}>
                   <PdfPreview data={budget} />
                 </div>
               </div>

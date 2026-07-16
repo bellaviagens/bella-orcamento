@@ -21,3 +21,4 @@
 - [x] Centralizar tarifas no preview quando houver menos de 3
 - [x] Corrigir scroll do preview para mostrar hotéis adicionados
 - [x] Melhorar feedback de PDF gerado (indicar pasta de downloads)
+- [x] Permitir scroll completo no preview para visualizar múltiplos hotéis
