@@ -171,7 +171,7 @@ function BuilderContent() {
             <div className="flex-1 overflow-y-auto">
               <div className="p-6 flex justify-center">
                 <div className="shadow-2xl w-full max-w-2xl">
-                  <PdfPreview data={budget} includeAirfare={includeAirfare} />
+                  <PdfPreview includeAirfare={includeAirfare} />
                 </div>
               </div>
             </div>

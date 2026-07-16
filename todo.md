@@ -55,3 +55,6 @@
 - [x] Adicionar campo benefits ao FareTier e renderizar no HotelCard
 - [x] Sincronizar benefícios ao editar tarifas existentes (recalcular quando checkboxes mudam)
 - [ ] Validar manualmente o download do PDF no navegador após correção de erros
+
+- [x] Reduzir tamanho da seção de bagagens no PDF preview (inputs menores, cores mais sutis)
+- [ ] Debugar erro do PDF - "ERRO ao gerar PDF tente novamente"
