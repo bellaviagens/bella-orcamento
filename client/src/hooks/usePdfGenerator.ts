@@ -20,7 +20,12 @@ export function usePdfGenerator() {
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
+        allowTaint: true,
       });
+
+      if (!canvas) {
+        throw new Error("Canvas generation failed");
+      }
 
       const imgWidth = 210; // A4 width in mm
       const pageHeight = 297; // A4 height in mm
@@ -41,9 +46,26 @@ export function usePdfGenerator() {
         heightLeft -= pageHeight;
       }
 
-      pdf.save(filename);
+      // Trigger download
+      try {
+        pdf.save(filename);
+      } catch (downloadErr) {
+        // Fallback: use blob URL if pdf.save() fails
+        console.warn("pdf.save() failed, using blob URL fallback", downloadErr);
+        const blob = pdf.output("blob");
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+      return true;
     } catch (err) {
       console.error("PDF generation error:", err);
+      throw err;
     } finally {
       element.style.backgroundColor = originalBg;
     }

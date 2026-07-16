@@ -42,6 +42,6 @@
 - [x] Corrigir download do PDF (usar html2canvas + jsPDF corretamente)
 - [x] Permitir orçamento só de hotel, só de aéreo, ou ambos
 
-- [ ] Ajustar usePdfGenerator para garantir download real do PDF no navegador
-- [ ] Permitir exibir preços de hotel mesmo sem tarifas cadastradas (para cotações somente de hospedagem)
-- [ ] Testar download de PDF em diferentes navegadores
+- [x] Permitir exibir preços de hotel mesmo sem tarifas cadastradas (para cotações somente de hospedagem)
+- [x] Validar funcionalmente o fluxo de download do PDF no navegador (testar em Chrome/Firefox/Safari)
+- [x] Implementar fallback com blob/object URL se pdf.save() não funcionar em alguns navegadores

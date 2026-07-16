@@ -121,6 +121,18 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
               );
             })}
           </div>
+        ) : hotel.totalPrice > 0 ? (
+          <div className="rounded-lg border border-slate-200 p-3 text-center bg-blue-50 border-blue-300">
+            <div className="text-[10px] font-bold mb-2 uppercase text-blue-700">
+              Preco do Hotel
+            </div>
+            <div className="text-sm font-bold text-blue-600">
+              {formatCurrency(hotel.totalPrice * passengers)}
+            </div>
+            <div className="text-[10px] text-blue-600/70">
+              {formatCurrency(hotel.totalPrice)} / pessoa
+            </div>
+          </div>
         ) : (
           <div className="text-xs text-slate-400 text-center py-4">Nenhuma tarifa adicionada</div>
         )}
