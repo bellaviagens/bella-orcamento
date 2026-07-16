@@ -37,6 +37,7 @@ export interface Hotel {
   ratingLabel: string;
   amenities: string[];
   photoUrl: string;
+  hotelUrl?: string; // Booking, Airbnb, etc
   prices: Record<string, HotelPriceByFare>; // tierId -> prices
 }
 

@@ -1,4 +1,4 @@
-import { MapPin, Star } from "lucide-react";
+import { MapPin, Star, ExternalLink } from "lucide-react";
 import type { Hotel, FareTier } from "@shared/budgetTypes";
 
 interface HotelCardProps {
@@ -18,11 +18,13 @@ export function HotelCard({ hotel, index, tiers }: HotelCardProps) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
       {/* Photo */}
-      {hotel.photoUrl && (
-        <div className="h-40 bg-slate-100 overflow-hidden">
+      <div className="h-40 bg-slate-100 overflow-hidden flex items-center justify-center">
+        {hotel.photoUrl ? (
           <img src={hotel.photoUrl} alt={hotel.name} className="w-full h-full object-cover" />
-        </div>
-      )}
+        ) : (
+          <div className="text-slate-400 text-sm">Sem foto</div>
+        )}
+      </div>
 
       <div className="p-5">
         {/* Header */}
@@ -39,7 +41,7 @@ export function HotelCard({ hotel, index, tiers }: HotelCardProps) {
             </div>
           </div>
           {hotel.rating > 0 && (
-            <div className="bg-[#1a2e4a] text-white px-3 py-1.5 rounded-lg text-center">
+            <div className="bg-[#1a2e4a] text-white px-3 py-1.5 rounded-lg text-center flex-shrink-0">
               <div className="text-sm font-bold">{hotel.rating.toFixed(1)} / 10</div>
               <div className="text-[10px] opacity-90">{hotel.ratingLabel}</div>
             </div>
@@ -51,6 +53,21 @@ export function HotelCard({ hotel, index, tiers }: HotelCardProps) {
           <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
           <span>{hotel.address}</span>
         </div>
+
+        {/* Hotel URL link */}
+        {hotel.hotelUrl && (
+          <div className="mb-3">
+            <a
+              href={hotel.hotelUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 underline"
+            >
+              Ver no site
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+        )}
 
         {/* Description */}
         {hotel.description && (
@@ -71,27 +88,27 @@ export function HotelCard({ hotel, index, tiers }: HotelCardProps) {
           </div>
         )}
 
-        {/* Prices */}
+        {/* Prices grid */}
         {tiers.length > 0 ? (
-          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${tiers.length}, 1fr)` }}>
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(tiers.length, 3)}, 1fr)` }}>
             {tiers.map((tier) => {
               const price = hotel.prices[tier.id];
               return (
                 <div
                   key={tier.id}
                   className={`rounded-lg border border-slate-200 p-3 text-center ${
-                    tier.highlighted ? "bg-amber-400" : ""
+                    tier.highlighted ? "bg-amber-50 border-amber-300" : ""
                   }`}
                 >
-                  <div className={`text-xs font-bold mb-1 ${tier.highlighted ? "text-[#1a2e4a]" : "text-slate-500"}`}>
+                  <div className={`text-xs font-bold mb-2 ${tier.highlighted ? "text-amber-700" : "text-slate-500"}`}>
                     {tier.name}
                   </div>
                   {price ? (
                     <>
-                      <div className={`text-sm font-bold ${tier.highlighted ? "text-[#1a2e4a]" : "text-[#1a2e4a]"}`}>
+                      <div className={`text-sm font-bold ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>
                         {formatCurrency(price.total)}
                       </div>
-                      <div className={`text-[10px] ${tier.highlighted ? "text-[#1a2e4a]/70" : "text-slate-400"}`}>
+                      <div className={`text-[10px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-400"}`}>
                         {formatCurrency(price.perPerson)} / pessoa
                       </div>
                     </>

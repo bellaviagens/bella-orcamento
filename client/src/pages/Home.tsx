@@ -89,7 +89,7 @@ function BuilderContent() {
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="trip" className="mt-0">
+                <TabsContent value="trip" className="mt-0 max-h-96 overflow-y-auto">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
                       Informações da Viagem
@@ -98,7 +98,7 @@ function BuilderContent() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="flights" className="mt-0">
+                <TabsContent value="flights" className="mt-0 max-h-96 overflow-y-auto">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
                       Voos
@@ -107,7 +107,7 @@ function BuilderContent() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="hotels" className="mt-0">
+                <TabsContent value="hotels" className="mt-0 max-h-96 overflow-y-auto">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
                       Hotéis
@@ -116,19 +116,19 @@ function BuilderContent() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="fares" className="mt-0">
+                <TabsContent value="fares" className="mt-0 max-h-96 overflow-y-auto">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
                       Tarifas
                     </h3>
                     <p className="text-xs text-slate-500 mb-4">
-                      Adicione quantas tarifas quiser com nomes customizáveis. Você pode destacar uma para que apareça em destaque no orçamento.
+                      Adicione quantas tarifas quiser com nomes customizáveis. Você pode destacar uma para que apaça em destaque no orçamento.
                     </p>
                     <FareForm />
                   </div>
                 </TabsContent>
 
-                <TabsContent value="baggage" className="mt-0">
+                <TabsContent value="baggage" className="mt-0 max-h-96 overflow-y-auto">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
                       Bagagens

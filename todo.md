@@ -22,3 +22,11 @@
 - [x] Corrigir scroll do preview para mostrar hotéis adicionados
 - [x] Melhorar feedback de PDF gerado (indicar pasta de downloads)
 - [x] Permitir scroll completo no preview para visualizar múltiplos hotéis
+
+- [x] Permitir edição de hotéis já adicionados (clique para editar)
+- [x] Adicionar campo de URL do hotel (Booking/Airbnb/etc)
+- [x] Buscar foto automaticamente do link do hotel
+- [x] Botão "Ver no site" para abrir link do hotel
+- [x] Adicionar scroll nos formulários da esquerda
+- [x] Voltar preços dos hotéis para junto com as tarifas (layout original)
+- [x] Remover seção separada de "Opções de Hospedagem" e integrar com tarifas

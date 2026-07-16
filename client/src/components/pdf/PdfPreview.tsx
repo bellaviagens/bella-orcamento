@@ -95,6 +95,23 @@ export function PdfPreview({ data }: PdfPreviewProps) {
         </div>
       )}
 
+      {/* HOTELS SECTION */}
+      {hotels.length > 0 && (
+        <div className="px-8 py-4">
+          <h3
+            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            Opções de Hospedagem
+          </h3>
+          <div className="space-y-4">
+            {hotels.map((hotel, idx) => (
+              <HotelCard key={hotel.id} hotel={hotel} index={idx} tiers={fareComparison.tiers} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* FARE COMPARISON TABLE */}
       {fareComparison.tiers.length > 0 && (
         <div className="px-8 py-4">
@@ -183,23 +200,6 @@ export function PdfPreview({ data }: PdfPreviewProps) {
           </p>
         </div>
       </div>
-
-      {/* HOTELS SECTION */}
-      {hotels.length > 0 && (
-        <div className="px-8 py-4">
-          <h3
-            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            Opções de Hospedagem
-          </h3>
-          <div className="space-y-4">
-            {hotels.map((hotel, idx) => (
-              <HotelCard key={hotel.id} hotel={hotel} index={idx} tiers={fareComparison.tiers} />
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* FOOTER */}
       <div className="bg-[#1a2e4a] text-white px-8 py-4 mt-8">
