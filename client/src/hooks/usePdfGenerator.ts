@@ -14,13 +14,23 @@ export function usePdfGenerator() {
     const originalBg = element.style.backgroundColor;
     element.style.backgroundColor = "#ffffff";
 
+    // Hide external images temporarily to avoid CORS issues
+    const images = element.querySelectorAll("img");
+    const originalDisplays = new Map<HTMLImageElement, string>();
+    images.forEach((img) => {
+      if (img.src && (img.src.includes("http") || img.src.includes("//"))) {
+        originalDisplays.set(img, img.style.display);
+        img.style.display = "none";
+      }
+    });
+
     try {
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
-        allowTaint: true,
+        allowTaint: false,
       });
 
       if (!canvas) {
@@ -35,7 +45,13 @@ export function usePdfGenerator() {
       let heightLeft = imgHeight;
       let position = 0;
 
-      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      let imgData: string;
+      try {
+        imgData = canvas.toDataURL("image/jpeg", 0.95);
+      } catch (dataUrlErr) {
+        console.error("toDataURL failed, trying PNG", dataUrlErr);
+        imgData = canvas.toDataURL("image/png");
+      }
       pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
 
@@ -68,6 +84,10 @@ export function usePdfGenerator() {
       throw err;
     } finally {
       element.style.backgroundColor = originalBg;
+      // Restore images
+      originalDisplays.forEach((display, img) => {
+        img.style.display = display;
+      });
     }
   }, []);
 

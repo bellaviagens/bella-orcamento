@@ -45,3 +45,8 @@
 - [x] Permitir exibir preços de hotel mesmo sem tarifas cadastradas (para cotações somente de hospedagem)
 - [x] Validar funcionalmente o fluxo de download do PDF no navegador (testar em Chrome/Firefox/Safari)
 - [x] Implementar fallback com blob/object URL se pdf.save() não funcionar em alguns navegadores
+
+- [x] Debugar e corrigir erro de geração do PDF (remover imagens externas antes de capturar, adicionar crossOrigin)
+
+- [ ] Testar manualmente o download do PDF no navegador após correção
+- [ ] Implementar proxy server-side para imagens externas (para incluir fotos no PDF)

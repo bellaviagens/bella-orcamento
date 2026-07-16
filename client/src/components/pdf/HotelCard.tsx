@@ -22,7 +22,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
       {/* Photo */}
       <div className="h-40 bg-slate-100 overflow-hidden flex items-center justify-center">
         {hotel.photoUrl ? (
-          <img src={hotel.photoUrl} alt={hotel.name} className="w-full h-full object-cover" />
+          <img src={hotel.photoUrl} alt={hotel.name} className="w-full h-full object-cover" crossOrigin="anonymous" />
         ) : (
           <div className="text-slate-400 text-sm">Sem foto</div>
         )}
