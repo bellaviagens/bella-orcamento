@@ -93,9 +93,8 @@ export function HotelCard({ hotel, index, tiers, passengers }: HotelCardProps) {
         {tiers.length > 0 ? (
           <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(tiers.length, 3)}, 1fr)` }}>
             {tiers.map((tier) => {
-              const hotelPrice = hotel.prices[tier.id];
-              const totalPrice = hotelPrice ? (hotelPrice.total + tier.flightPrice) * passengers : 0;
-              const perPersonPrice = hotelPrice ? (hotelPrice.total + tier.flightPrice) : 0;
+              const totalPrice = (hotel.totalPrice + tier.flightPrice) * passengers;
+              const perPersonPrice = hotel.totalPrice + tier.flightPrice;
 
               return (
                 <div
@@ -107,18 +106,14 @@ export function HotelCard({ hotel, index, tiers, passengers }: HotelCardProps) {
                   <div className={`text-[10px] font-bold mb-2 uppercase ${tier.highlighted ? "text-amber-700" : "text-slate-500"}`}>
                     Com Aéreo {tier.name}
                   </div>
-                  {hotelPrice ? (
-                    <>
-                      <div className={`text-sm font-bold ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>
-                        {formatCurrency(totalPrice)}
-                      </div>
-                      <div className={`text-[10px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-400"}`}>
-                        {formatCurrency(perPersonPrice)} / pessoa
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-xs text-slate-400">-</div>
-                  )}
+                  <>
+                    <div className={`text-sm font-bold ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>
+                      {formatCurrency(totalPrice)}
+                    </div>
+                    <div className={`text-[10px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-400"}`}>
+                      {formatCurrency(perPersonPrice)} / pessoa
+                    </div>
+                  </>
                 </div>
               );
             })}

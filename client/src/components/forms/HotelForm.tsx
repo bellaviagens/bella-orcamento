@@ -28,6 +28,7 @@ export function HotelForm() {
   const [amenityInput, setAmenityInput] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [hotelUrl, setHotelUrl] = useState("");
+  const [totalPrice, setTotalPrice] = useState(0);
   const [prices, setPrices] = useState<Record<string, { total: number; perPerson: number }>>({});
 
   const parseHotelMutation = trpc.parseHotelScreenshot.useMutation();
@@ -43,6 +44,7 @@ export function HotelForm() {
     setAmenityInput("");
     setPhotoUrl("");
     setHotelUrl("");
+    setTotalPrice(0);
     setPrices({});
     setEditingId(null);
   };
@@ -58,6 +60,7 @@ export function HotelForm() {
     setAmenities(hotel.amenities);
     setPhotoUrl(hotel.photoUrl);
     setHotelUrl(hotel.hotelUrl || "");
+    setTotalPrice(hotel.totalPrice);
     setPrices(hotel.prices);
     setShowForm(true);
   };
@@ -87,6 +90,7 @@ export function HotelForm() {
       amenities,
       photoUrl,
       hotelUrl,
+      totalPrice,
       prices,
     };
 
@@ -351,6 +355,20 @@ export function HotelForm() {
                 </Button>
               )}
             </div>
+          </div>
+
+          <div>
+            <Label className="text-xs">Preço Total do Hotel (R$)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              value={totalPrice || ""}
+              onChange={(e) => setTotalPrice(parseFloat(e.target.value) || 0)}
+              placeholder="Ex: 2500.00"
+              className="mt-1"
+            />
+            <p className="text-[10px] text-slate-500 mt-1">Preço total da hospedagem (será somado com o aéreo)</p>
           </div>
 
           <div>

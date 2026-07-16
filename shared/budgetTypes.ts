@@ -38,6 +38,7 @@ export interface Hotel {
   amenities: string[];
   photoUrl: string;
   hotelUrl?: string; // Booking, Airbnb, etc
+  totalPrice: number; // Preço total do hotel (para toda a hospedagem)
   prices: Record<string, HotelPriceByFare>; // tierId -> prices
 }
 
