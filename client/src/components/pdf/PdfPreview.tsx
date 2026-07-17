@@ -120,27 +120,26 @@ export function PdfPreview({ data, includeAirfare = true }: PdfPreviewProps) {
 
       {/* BAGGAGE GUIDE */}
       {baggage.some((b) => b.priceAdvance > 0 || b.priceAirport > 0) && (
-        <div className="px-8 py-4">
+        <div className="px-8 py-3">
           <h3
-            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
+            className="text-sm font-bold text-[#1a2e4a] mb-2 uppercase tracking-wide"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             Guia Prático de Bagagens (Avulsas)
           </h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             {baggage.map((b, i) => {
               const Icon = i === 0 ? Briefcase : i === 1 ? Luggage : Luggage;
               return (
-                <div key={i} className="rounded-xl border border-slate-200 p-4 text-center">
-                  <Icon className="h-8 w-8 text-[#1a2e4a] mx-auto mb-2" />
-                  <div className="text-sm font-bold text-[#1a2e4a]">{b.type}</div>
-                  <div className="text-xs text-slate-500 mb-3">{b.weight}</div>
-                  <div className="space-y-1">
-                    <div className="text-xs text-slate-500">
-                      Com antecedência: <span className="font-bold text-[#1a2e4a]">{formatCurrency(b.priceAdvance)}</span>
+                <div key={i} className="rounded-lg border border-slate-200 p-2 text-center">
+                  <Icon className="h-5 w-5 text-[#1a2e4a] mx-auto mb-1" />
+                  <div className="text-xs font-semibold text-[#1a2e4a]">{b.type} {b.weight}</div>
+                  <div className="space-y-0.5 mt-1">
+                    <div className="text-[10px] text-slate-600">
+                      Antecipado: <span className="font-bold text-[#1a2e4a]">{formatCurrency(b.priceAdvance)}</span>
                     </div>
-                    <div className="text-xs text-slate-500">
-                      No aeroporto: <span className="font-bold text-[#1a2e4a]">{formatCurrency(b.priceAirport)}</span>
+                    <div className="text-[10px] text-slate-600">
+                      Aeroporto: <span className="font-bold text-[#1a2e4a]">{formatCurrency(b.priceAirport)}</span>
                     </div>
                   </div>
                 </div>
