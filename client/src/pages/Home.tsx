@@ -3,12 +3,15 @@ import { BudgetProvider, useBudget } from "@/contexts/BudgetContext";
 import { TripInfoForm } from "@/components/forms/TripInfoForm";
 import { FlightForm } from "@/components/forms/FlightForm";
 import { HotelForm } from "@/components/forms/HotelForm";
-import { FareBaggageForm } from "@/components/forms/FareBaggageForm";
+import { FareForm } from "@/components/forms/FareForm";
+import { BaggageForm } from "@/components/forms/BaggageForm";
 import { PdfPreview } from "@/components/pdf/PdfPreview";
 import { usePdfGenerator } from "@/hooks/usePdfGenerator";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
@@ -16,6 +19,7 @@ function BuilderContent() {
   const { budget } = useBudget();
   const { generatePdf } = usePdfGenerator();
   const [showPreview, setShowPreview] = useState(true);
+  const [includeAirfare, setIncludeAirfare] = useState(true);
 
   return (
     <div className="h-screen flex flex-col bg-slate-50">
@@ -39,22 +43,35 @@ function BuilderContent() {
             {showPreview ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
             {showPreview ? "Ocultar Preview" : "Mostrar Preview"}
           </Button>
-          <Button
-            size="sm"
-            onClick={async () => {
-              toast.loading("Gerando PDF...", { id: "pdf-gen" });
-              try {
-                await generatePdf();
-                toast.success("PDF gerado com sucesso!", { id: "pdf-gen" });
-              } catch {
-                toast.error("Erro ao gerar PDF. Tente novamente.", { id: "pdf-gen" });
-              }
-            }}
-            className="bg-amber-400 text-[#1a2e4a] hover:bg-amber-300"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Gerar PDF
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="include-airfare"
+                checked={includeAirfare}
+                onCheckedChange={(checked) => setIncludeAirfare(checked as boolean)}
+              />
+              <Label htmlFor="include-airfare" className="text-xs text-white cursor-pointer">
+                Incluir Aéreo
+              </Label>
+            </div>
+            <Button
+              size="sm"
+              onClick={async () => {
+                toast.loading("Gerando PDF...", { id: "pdf-gen" });
+                try {
+                  await generatePdf();
+                  toast.success("PDF gerado! Verifique a pasta Downloads do seu computador.", { id: "pdf-gen" });
+                } catch (err) {
+                  console.error("PDF error:", err);
+                  toast.error("Erro ao gerar PDF. Tente novamente.", { id: "pdf-gen" });
+                }
+              }}
+              className="bg-amber-400 text-[#1a2e4a] hover:bg-amber-300"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Gerar PDF
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -65,7 +82,7 @@ function BuilderContent() {
           <ScrollArea className="flex-1">
             <div className="p-6">
               <Tabs defaultValue="trip" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 mb-4">
+                <TabsList className="grid w-full grid-cols-5 mb-4">
                   <TabsTrigger value="trip" className="text-xs">
                     <FileText className="h-3.5 w-3.5 mr-1" />
                     Viagem
@@ -81,6 +98,10 @@ function BuilderContent() {
                   <TabsTrigger value="fares" className="text-xs">
                     <Settings className="h-3.5 w-3.5 mr-1" />
                     Tarifas
+                  </TabsTrigger>
+                  <TabsTrigger value="baggage" className="text-xs">
+                    <Settings className="h-3.5 w-3.5 mr-1" />
+                    Bagagens
                   </TabsTrigger>
                 </TabsList>
 
@@ -114,9 +135,21 @@ function BuilderContent() {
                 <TabsContent value="fares" className="mt-0">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
-                      Tarifas e Bagagens
+                      Tarifas
                     </h3>
-                    <FareBaggageForm />
+                    <p className="text-xs text-slate-500 mb-4">
+                      Adicione quantas tarifas quiser com nomes customizáveis. Você pode destacar uma para que apaça em destaque no orçamento.
+                    </p>
+                    <FareForm />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="baggage" className="mt-0">
+                  <div className="rounded-xl border border-slate-200 bg-white p-5">
+                    <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
+                      Bagagens
+                    </h3>
+                    <BaggageForm />
                   </div>
                 </TabsContent>
               </Tabs>
@@ -132,16 +165,16 @@ function BuilderContent() {
                 Preview do PDF
               </span>
               <span className="text-xs text-slate-400">
-                {budget.flights.length} voo(s) • {budget.hotels.length} hotel(is)
+                {budget.flights.length} voo(s) • {budget.hotels.length} hotel(is) • {budget.fareComparison.tiers.length} tarifa(s)
               </span>
             </div>
-            <ScrollArea className="flex-1">
+            <div className="flex-1 overflow-y-auto">
               <div className="p-6 flex justify-center">
-                <div className="shadow-2xl">
-                  <PdfPreview data={budget} />
+                <div className="shadow-2xl w-full max-w-2xl">
+                  <PdfPreview data={budget} includeAirfare={includeAirfare} />
                 </div>
               </div>
-            </ScrollArea>
+            </div>
           </div>
         )}
       </div>

@@ -32,19 +32,22 @@ describe("budgetTypes defaults", () => {
     const { defaultBudgetData } = await import("../shared/budgetTypes");
     expect(defaultBudgetData.flights).toEqual([]);
     expect(defaultBudgetData.hotels).toEqual([]);
-    expect(defaultBudgetData.fareComparison.basic.name).toBe("BASIC");
-    expect(defaultBudgetData.fareComparison.light.name).toBe("LIGHT");
-    expect(defaultBudgetData.fareComparison.full.name).toBe("FULL");
+    expect(defaultBudgetData.fareComparison.tiers).toEqual([]);
     expect(defaultBudgetData.baggage).toHaveLength(3);
     expect(defaultBudgetData.tripInfo.introText).toContain("Prezadíssimos");
   });
 
-  it("fare tiers have correct default benefit flags", async () => {
+  it("baggage has correct default items", async () => {
     const { defaultBudgetData } = await import("../shared/budgetTypes");
-    expect(defaultBudgetData.fareComparison.basic.carryOn).toBe(false);
-    expect(defaultBudgetData.fareComparison.light.carryOn).toBe(true);
-    expect(defaultBudgetData.fareComparison.full.carryOn).toBe(true);
-    expect(defaultBudgetData.fareComparison.full.checkedBag).toBe(true);
-    expect(defaultBudgetData.fareComparison.basic.checkedBag).toBe(false);
+    expect(defaultBudgetData.baggage[0].type).toBe("Mala de Mão");
+    expect(defaultBudgetData.baggage[0].weight).toBe("12kg");
+    expect(defaultBudgetData.baggage[1].type).toBe("1ª Mala Despachada");
+    expect(defaultBudgetData.baggage[2].type).toBe("2ª Mala Despachada");
+  });
+
+  it("fare comparison tiers are empty by default", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    expect(Array.isArray(defaultBudgetData.fareComparison.tiers)).toBe(true);
+    expect(defaultBudgetData.fareComparison.tiers.length).toBe(0);
   });
 });

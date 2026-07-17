@@ -5,6 +5,7 @@ import { HotelCard } from "./HotelCard";
 
 interface PdfPreviewProps {
   data: BudgetData;
+  includeAirfare?: boolean;
 }
 
 function formatCurrency(value: number): string {
@@ -14,7 +15,7 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function PdfPreview({ data }: PdfPreviewProps) {
+export function PdfPreview({ data, includeAirfare = true }: PdfPreviewProps) {
   const { tripInfo, flights, fareComparison, baggage, hotels } = data;
 
   return (
@@ -95,40 +96,27 @@ export function PdfPreview({ data }: PdfPreviewProps) {
         </div>
       )}
 
-      {/* FARE COMPARISON TABLE */}
-      <div className="px-8 py-4">
-        <h3
-          className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
-          style={{ fontFamily: "Poppins, sans-serif" }}
-        >
-          Comparativo de Benefícios por Tarifa (Aéreo)
-        </h3>
-        <div className="grid grid-cols-4 gap-0 border border-slate-200 rounded-lg overflow-hidden">
-          {/* Header row */}
-          <div className="bg-slate-50 p-3 text-xs font-bold text-slate-500 uppercase">Benefício</div>
-          <div className="bg-slate-50 p-3 text-xs font-bold text-slate-500 uppercase text-center">BASIC</div>
-          <div className="bg-slate-50 p-3 text-xs font-bold text-slate-500 uppercase text-center">LIGHT</div>
-          <div className="bg-amber-400 p-3 text-xs font-bold text-[#1a2e4a] uppercase text-center">FULL</div>
-
-          {/* Rows */}
-          <BenefitRow label="Mala de Mão" basic={fareComparison.basic.carryOn} light={fareComparison.light.carryOn} full={fareComparison.full.carryOn} />
-          <BenefitRow label="Mala Despachada" basic={fareComparison.basic.checkedBag} light={fareComparison.light.checkedBag} full={fareComparison.full.checkedBag} />
-          <BenefitRow label="Seleção de Assento" basic={fareComparison.basic.seatSelection} light={fareComparison.light.seatSelection} full={fareComparison.full.seatSelection} />
-          <BenefitRow label="Alterações e Reembolso" basic={fareComparison.basic.changes} light={fareComparison.light.changes} full={fareComparison.full.changes} />
-
-          {/* Price row */}
-          <div className="border-t border-slate-200 p-3 text-xs font-bold text-slate-600">Valor Total Voos</div>
-          <div className="border-t border-slate-200 p-3 text-center text-sm font-bold text-[#1a2e4a]">
-            {formatCurrency(fareComparison.basic.flightPrice)}
-          </div>
-          <div className="border-t border-slate-200 p-3 text-center text-sm font-bold text-[#1a2e4a]">
-            {formatCurrency(fareComparison.light.flightPrice)}
-          </div>
-          <div className="border-t border-slate-200 bg-amber-400 p-3 text-center text-sm font-bold text-[#1a2e4a]">
-            {formatCurrency(fareComparison.full.flightPrice)}
+      {/* HOTELS SECTION */}
+      {hotels.length > 0 && (
+        <div className="px-8 py-4">
+          <h3
+            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            Opções de Hospedagem
+          </h3>
+          <div className="space-y-4">
+            {hotels.map((hotel, idx) => {
+              const passengerCount = parseInt(tripInfo.passengers) || 1;
+              return (
+                <HotelCard key={hotel.id} hotel={hotel} index={idx} tiers={fareComparison.tiers} passengers={passengerCount} includeAirfare={includeAirfare} />
+              );
+            })}
           </div>
         </div>
-      </div>
+      )}
+
+
 
       {/* BAGGAGE GUIDE */}
       {baggage.some((b) => b.priceAdvance > 0 || b.priceAirport > 0) && (
@@ -172,23 +160,6 @@ export function PdfPreview({ data }: PdfPreviewProps) {
         </div>
       </div>
 
-      {/* HOTELS SECTION */}
-      {hotels.length > 0 && (
-        <div className="px-8 py-4">
-          <h3
-            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            Opções de Hospedagem
-          </h3>
-          <div className="space-y-4">
-            {hotels.map((hotel, idx) => (
-              <HotelCard key={hotel.id} hotel={hotel} index={idx} />
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* FOOTER */}
       <div className="bg-[#1a2e4a] text-white px-8 py-4 mt-8">
         <div className="flex items-center justify-between">
@@ -204,35 +175,30 @@ export function PdfPreview({ data }: PdfPreviewProps) {
 
 function BenefitRow({
   label,
-  basic,
-  light,
-  full,
+  tiers,
+  field,
 }: {
   label: string;
-  basic: boolean;
-  light: boolean;
-  full: boolean;
+  tiers: any[];
+  field: "carryOn" | "checkedBag" | "seatSelection" | "changes";
 }) {
-  const Cell = ({ included, highlight }: { included: boolean; highlight?: boolean }) => (
-    <div
-      className={`border-t border-slate-200 p-3 flex items-center justify-center ${
-        highlight ? "bg-amber-400/10" : ""
-      }`}
-    >
-      {included ? (
-        <Check className={`h-4 w-4 ${highlight ? "text-amber-600" : "text-green-600"}`} />
-      ) : (
-        <X className="h-4 w-4 text-slate-300" />
-      )}
-    </div>
-  );
-
   return (
     <>
       <div className="border-t border-slate-200 p-3 text-xs font-medium text-slate-600">{label}</div>
-      <Cell included={basic} />
-      <Cell included={light} />
-      <Cell included={full} highlight />
+      {tiers.map((tier) => (
+        <div
+          key={tier.id}
+          className={`border-t border-slate-200 p-3 flex items-center justify-center ${
+            tier.highlighted ? "bg-amber-400/10" : ""
+          }`}
+        >
+          {tier[field] ? (
+            <Check className={`h-4 w-4 ${tier.highlighted ? "text-amber-600" : "text-green-600"}`} />
+          ) : (
+            <X className="h-4 w-4 text-slate-300" />
+          )}
+        </div>
+      ))}
     </>
   );
 }

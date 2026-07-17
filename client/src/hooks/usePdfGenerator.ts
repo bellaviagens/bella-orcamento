@@ -7,12 +7,22 @@ export function usePdfGenerator() {
     const element = document.getElementById("pdf-document");
     if (!element) {
       console.error("PDF document element not found");
-      return;
+      throw new Error("Elemento do PDF não encontrado");
     }
 
     // Set background to white for capture
     const originalBg = element.style.backgroundColor;
     element.style.backgroundColor = "#ffffff";
+
+    // Hide external images temporarily to avoid CORS issues
+    const images = element.querySelectorAll("img");
+    const originalDisplays = new Map<HTMLImageElement, string>();
+    images.forEach((img) => {
+      if (img.src && (img.src.includes("http") || img.src.includes("//"))) {
+        originalDisplays.set(img, img.style.display);
+        img.style.display = "none";
+      }
+    });
 
     try {
       const canvas = await html2canvas(element, {
@@ -20,7 +30,12 @@ export function usePdfGenerator() {
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
+        allowTaint: true,
       });
+
+      if (!canvas) {
+        throw new Error("Falha ao gerar canvas do PDF");
+      }
 
       const imgWidth = 210; // A4 width in mm
       const pageHeight = 297; // A4 height in mm
@@ -30,7 +45,14 @@ export function usePdfGenerator() {
       let heightLeft = imgHeight;
       let position = 0;
 
-      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      let imgData: string;
+      try {
+        imgData = canvas.toDataURL("image/jpeg", 0.95);
+      } catch (dataUrlErr) {
+        console.error("toDataURL JPEG falhou, tentando PNG", dataUrlErr);
+        imgData = canvas.toDataURL("image/png");
+      }
+
       pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
 
@@ -41,11 +63,37 @@ export function usePdfGenerator() {
         heightLeft -= pageHeight;
       }
 
-      pdf.save(filename);
+      // Trigger download
+      try {
+        pdf.save(filename);
+      } catch (downloadErr) {
+        // Fallback: use blob URL if pdf.save() fails
+        console.warn("pdf.save() falhou, usando blob URL", downloadErr);
+        try {
+          const blob = pdf.output("blob");
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        } catch (blobErr) {
+          console.error("Blob fallback também falhou", blobErr);
+          throw new Error("Erro ao exportar PDF: " + String(blobErr));
+        }
+      }
+      return true;
     } catch (err) {
-      console.error("PDF generation error:", err);
+      console.error("Erro na geração do PDF:", err);
+      throw new Error("Erro ao exportar PDF: " + String(err));
     } finally {
       element.style.backgroundColor = originalBg;
+      // Restore images
+      originalDisplays.forEach((display, img) => {
+        img.style.display = display;
+      });
     }
   }, []);
 

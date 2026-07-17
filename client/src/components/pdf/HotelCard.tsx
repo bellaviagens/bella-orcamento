@@ -1,9 +1,14 @@
-import { MapPin, Star } from "lucide-react";
-import type { Hotel } from "@shared/budgetTypes";
+import { MapPin, Star, ExternalLink } from "lucide-react";
+import { useEffect, useState } from "react";
+import type { Hotel, FareTier } from "@shared/budgetTypes";
+import { trpc } from "@/lib/trpc";
 
 interface HotelCardProps {
   hotel: Hotel;
   index: number;
+  tiers: FareTier[];
+  passengers: number;
+  includeAirfare?: boolean;
 }
 
 function formatCurrency(value: number): string {
@@ -13,15 +18,31 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function HotelCard({ hotel, index }: HotelCardProps) {
+export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true }: HotelCardProps) {
+  const [proxiedPhotoUrl, setProxiedPhotoUrl] = useState<string | null>(hotel.photoUrl || null);
+  const imageProxyQuery = trpc.imageProxy.useQuery(
+    { url: hotel.photoUrl || "" },
+    {
+      enabled: !!(hotel.photoUrl && (hotel.photoUrl.includes("http") || hotel.photoUrl.includes("//"))),
+    }
+  );
+
+  useEffect(() => {
+    if (imageProxyQuery.data?.success && imageProxyQuery.data.data) {
+      setProxiedPhotoUrl(imageProxyQuery.data.data);
+    }
+  }, [imageProxyQuery.data]);
+
   return (
     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
       {/* Photo */}
-      {hotel.photoUrl && (
-        <div className="h-40 bg-slate-100 overflow-hidden">
-          <img src={hotel.photoUrl} alt={hotel.name} className="w-full h-full object-cover" />
-        </div>
-      )}
+      <div className="h-40 bg-slate-100 overflow-hidden flex items-center justify-center">
+        {proxiedPhotoUrl ? (
+          <img src={proxiedPhotoUrl} alt={hotel.name} className="w-full h-full object-cover" />
+        ) : (
+          <div className="text-slate-400 text-sm">Sem foto</div>
+        )}
+      </div>
 
       <div className="p-5">
         {/* Header */}
@@ -38,7 +59,7 @@ export function HotelCard({ hotel, index }: HotelCardProps) {
             </div>
           </div>
           {hotel.rating > 0 && (
-            <div className="bg-[#1a2e4a] text-white px-3 py-1.5 rounded-lg text-center">
+            <div className="bg-[#1a2e4a] text-white px-3 py-1.5 rounded-lg text-center flex-shrink-0">
               <div className="text-sm font-bold">{hotel.rating.toFixed(1)} / 10</div>
               <div className="text-[10px] opacity-90">{hotel.ratingLabel}</div>
             </div>
@@ -50,6 +71,21 @@ export function HotelCard({ hotel, index }: HotelCardProps) {
           <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
           <span>{hotel.address}</span>
         </div>
+
+        {/* Hotel URL link */}
+        {hotel.hotelUrl && (
+          <div className="mb-3">
+            <a
+              href={hotel.hotelUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 underline"
+            >
+              Ver no site
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+        )}
 
         {/* Description */}
         {hotel.description && (
@@ -70,39 +106,57 @@ export function HotelCard({ hotel, index }: HotelCardProps) {
           </div>
         )}
 
-        {/* Prices */}
-        <div className="grid grid-cols-3 gap-2">
-          {/* BASIC */}
-          <div className="rounded-lg border border-slate-200 p-3 text-center">
-            <div className="text-xs font-bold text-slate-500 mb-1">BASIC</div>
-            <div className="text-sm font-bold text-[#1a2e4a]">
-              {formatCurrency(hotel.prices.basic.total)}
+        {/* Prices grid - Total with flight included */}
+        {tiers.length > 0 ? (
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(tiers.length, 3)}, 1fr)` }}>
+            {tiers.map((tier) => {
+              const basePrice = includeAirfare ? hotel.totalPrice + tier.flightPrice : hotel.totalPrice;
+              const totalPrice = basePrice * passengers;
+              const perPersonPrice = basePrice;
+              const label = includeAirfare ? `Com Aéreo ${tier.name}` : tier.name;
+
+              return (
+                <div
+                  key={tier.id}
+                  className={`rounded-lg border border-slate-200 p-3 text-center ${
+                    tier.highlighted ? "bg-amber-50 border-amber-300" : ""
+                  }`}
+                >
+                  <div className={`text-[10px] font-bold mb-1 uppercase ${tier.highlighted ? "text-amber-700" : "text-slate-500"}`}>
+                    {label}
+                  </div>
+                  <>
+                    <div className={`text-sm font-bold ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>
+                      {formatCurrency(totalPrice)}
+                    </div>
+                    <div className={`text-[10px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-400"}`}>
+                      {formatCurrency(perPersonPrice)} / pessoa
+                    </div>
+                    {tier.benefits && tier.benefits.length > 0 && (
+                      <div className="text-[8px] text-slate-400 mt-1 pt-1 border-t border-slate-200">
+                        {tier.benefits.join(", ")}
+                      </div>
+                    )}
+                  </>
+                </div>
+              );
+            })}
+          </div>
+        ) : hotel.totalPrice > 0 ? (
+          <div className="rounded-lg border border-slate-200 p-3 text-center bg-blue-50 border-blue-300">
+            <div className="text-[10px] font-bold mb-2 uppercase text-blue-700">
+              Preco do Hotel
             </div>
-            <div className="text-[10px] text-slate-400">
-              {formatCurrency(hotel.prices.basic.perPerson)} / pessoa
+            <div className="text-sm font-bold text-blue-600">
+              {formatCurrency(hotel.totalPrice * passengers)}
+            </div>
+            <div className="text-[10px] text-blue-600/70">
+              {formatCurrency(hotel.totalPrice)} / pessoa
             </div>
           </div>
-          {/* LIGHT */}
-          <div className="rounded-lg border border-slate-200 p-3 text-center">
-            <div className="text-xs font-bold text-slate-500 mb-1">LIGHT</div>
-            <div className="text-sm font-bold text-[#1a2e4a]">
-              {formatCurrency(hotel.prices.light.total)}
-            </div>
-            <div className="text-[10px] text-slate-400">
-              {formatCurrency(hotel.prices.light.perPerson)} / pessoa
-            </div>
-          </div>
-          {/* FULL - highlighted */}
-          <div className="rounded-lg bg-amber-400 p-3 text-center">
-            <div className="text-xs font-bold text-[#1a2e4a] mb-1">FULL</div>
-            <div className="text-sm font-bold text-[#1a2e4a]">
-              {formatCurrency(hotel.prices.full.total)}
-            </div>
-            <div className="text-[10px] text-[#1a2e4a]/70">
-              {formatCurrency(hotel.prices.full.perPerson)} / pessoa
-            </div>
-          </div>
-        </div>
+        ) : (
+          <div className="text-xs text-slate-400 text-center py-4">Nenhuma tarifa adicionada</div>
+        )}
       </div>
     </div>
   );

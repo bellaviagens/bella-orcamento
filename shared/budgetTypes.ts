@@ -37,11 +37,9 @@ export interface Hotel {
   ratingLabel: string;
   amenities: string[];
   photoUrl: string;
-  prices: {
-    basic: HotelPriceByFare;
-    light: HotelPriceByFare;
-    full: HotelPriceByFare;
-  };
+  hotelUrl?: string; // Booking, Airbnb, etc
+  totalPrice: number; // Preço total do hotel (para toda a hospedagem)
+  prices: Record<string, HotelPriceByFare>; // tierId -> prices
 }
 
 export interface TripInfo {
@@ -53,18 +51,19 @@ export interface TripInfo {
 }
 
 export interface FareTier {
+  id: string;
   name: string;
   carryOn: boolean;
   checkedBag: boolean;
   seatSelection: boolean;
   changes: boolean;
   flightPrice: number;
+  highlighted?: boolean; // para destacar uma tarifa
+  benefits?: string[]; // benefícios da tarifa para exibir no orçamento
 }
 
 export interface FareComparison {
-  basic: FareTier;
-  light: FareTier;
-  full: FareTier;
+  tiers: FareTier[];
 }
 
 export interface BaggageItem {
@@ -93,30 +92,7 @@ export const defaultBudgetData: BudgetData = {
   },
   flights: [],
   fareComparison: {
-    basic: {
-      name: "BASIC",
-      carryOn: false,
-      checkedBag: false,
-      seatSelection: false,
-      changes: false,
-      flightPrice: 0,
-    },
-    light: {
-      name: "LIGHT",
-      carryOn: true,
-      checkedBag: false,
-      seatSelection: false,
-      changes: false,
-      flightPrice: 0,
-    },
-    full: {
-      name: "FULL",
-      carryOn: true,
-      checkedBag: true,
-      seatSelection: true,
-      changes: true,
-      flightPrice: 0,
-    },
+    tiers: [],
   },
   baggage: [
     { type: "Mala de Mão", weight: "12kg", priceAdvance: 0, priceAirport: 0 },
