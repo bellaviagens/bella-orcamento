@@ -2,58 +2,6 @@ import { useCallback } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-function removeOklabOklchFromElement(element: HTMLElement): void {
-  // Remover atributos style que contenham oklab/oklch
-  const allElements = element.querySelectorAll("*");
-  
-  allElements.forEach((el) => {
-    const htmlEl = el as HTMLElement;
-    const style = htmlEl.getAttribute("style");
-    
-    if (style && (style.includes("oklab") || style.includes("oklch"))) {
-      // Remover o atributo style se contiver oklab/oklch
-      htmlEl.removeAttribute("style");
-    }
-  });
-  
-  // Também remover do elemento raiz
-  const rootStyle = element.getAttribute("style");
-  if (rootStyle && (rootStyle.includes("oklab") || rootStyle.includes("oklch"))) {
-    element.removeAttribute("style");
-  }
-}
-
-function createCleanStylesheet(): HTMLStyleElement {
-  // Criar um novo stylesheet que copia apenas as regras sem oklab/oklch
-  const style = document.createElement("style");
-  let cssText = "";
-  
-  const stylesheets = document.styleSheets;
-  
-  for (let i = 0; i < stylesheets.length; i++) {
-    try {
-      const sheet = stylesheets[i] as CSSStyleSheet;
-      const rules = sheet.cssRules || sheet.rules;
-      
-      for (let j = 0; j < rules.length; j++) {
-        const rule = rules[j];
-        
-        if (rule instanceof CSSStyleRule) {
-          const cssRule = rule.cssText;
-          if (!cssRule.includes("oklab") && !cssRule.includes("oklch")) {
-            cssText += cssRule + "\n";
-          }
-        }
-      }
-    } catch (e) {
-      // Ignorar erros de CORS ou acesso negado
-    }
-  }
-  
-  style.textContent = cssText;
-  return style;
-}
-
 export function usePdfGenerator() {
   const generatePdf = useCallback(async (filename: string = "orcamento-bella-viagens.pdf") => {
     const element = document.getElementById("pdf-document");
@@ -69,24 +17,9 @@ export function usePdfGenerator() {
     clonedElement.style.top = "-9999px";
     document.body.appendChild(clonedElement);
 
-    // Criar um container para o clone com estilos limpos
-    const container = document.createElement("div");
-    container.style.position = "absolute";
-    container.style.left = "-9999px";
-    container.style.top = "-9999px";
-    container.appendChild(clonedElement);
-    document.body.appendChild(container);
-
-    // Adicionar stylesheet limpo ao container
-    const cleanStyle = createCleanStylesheet();
-    container.appendChild(cleanStyle);
-
     // Set background to white for capture
     const originalBg = clonedElement.style.backgroundColor;
     clonedElement.style.backgroundColor = "#ffffff";
-
-    // Remover atributos style com oklab/oklch do clone
-    removeOklabOklchFromElement(clonedElement);
 
     // Hide external images temporarily to avoid CORS issues
     const images = clonedElement.querySelectorAll("img");
@@ -168,8 +101,8 @@ export function usePdfGenerator() {
       originalDisplays.forEach((display, img) => {
         img.style.display = display;
       });
-      // Remove container com clone
-      document.body.removeChild(container);
+      // Remove cloned element
+      document.body.removeChild(clonedElement);
     }
   }, []);
 
