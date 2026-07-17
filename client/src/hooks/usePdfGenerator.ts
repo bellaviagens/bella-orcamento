@@ -2,8 +2,32 @@ import { useCallback } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-function removeOklabOklchFromStylesheets(): void {
-  // Remove todas as regras CSS que contêm oklab ou oklch
+function removeOklabOklchFromElement(element: HTMLElement): void {
+  // Remover atributos style que contenham oklab/oklch
+  const allElements = element.querySelectorAll("*");
+  
+  allElements.forEach((el) => {
+    const htmlEl = el as HTMLElement;
+    const style = htmlEl.getAttribute("style");
+    
+    if (style && (style.includes("oklab") || style.includes("oklch"))) {
+      // Remover o atributo style se contiver oklab/oklch
+      htmlEl.removeAttribute("style");
+    }
+  });
+  
+  // Também remover do elemento raiz
+  const rootStyle = element.getAttribute("style");
+  if (rootStyle && (rootStyle.includes("oklab") || rootStyle.includes("oklch"))) {
+    element.removeAttribute("style");
+  }
+}
+
+function createCleanStylesheet(): HTMLStyleElement {
+  // Criar um novo stylesheet que copia apenas as regras sem oklab/oklch
+  const style = document.createElement("style");
+  let cssText = "";
+  
   const stylesheets = document.styleSheets;
   
   for (let i = 0; i < stylesheets.length; i++) {
@@ -11,37 +35,23 @@ function removeOklabOklchFromStylesheets(): void {
       const sheet = stylesheets[i] as CSSStyleSheet;
       const rules = sheet.cssRules || sheet.rules;
       
-      // Iterar de trás para frente para evitar problemas de índice
-      for (let j = rules.length - 1; j >= 0; j--) {
+      for (let j = 0; j < rules.length; j++) {
         const rule = rules[j];
         
-        // Verificar se é uma regra de estilo
         if (rule instanceof CSSStyleRule) {
-          const style = rule.style.cssText;
-          if (style.includes("oklab") || style.includes("oklch")) {
-            // Remover a regra
-            sheet.deleteRule(j);
-          }
-        }
-        // Verificar se é uma media query ou outra regra de grupo
-        else if (rule instanceof CSSGroupingRule) {
-          const groupRules = rule.cssRules || [];
-          for (let k = groupRules.length - 1; k >= 0; k--) {
-            const groupRule = groupRules[k];
-            if (groupRule instanceof CSSStyleRule) {
-              const style = groupRule.style.cssText;
-              if (style.includes("oklab") || style.includes("oklch")) {
-                rule.deleteRule(k);
-              }
-            }
+          const cssRule = rule.cssText;
+          if (!cssRule.includes("oklab") && !cssRule.includes("oklch")) {
+            cssText += cssRule + "\n";
           }
         }
       }
     } catch (e) {
       // Ignorar erros de CORS ou acesso negado
-      console.warn("Não foi possível acessar stylesheet:", e);
     }
   }
+  
+  style.textContent = cssText;
+  return style;
 }
 
 export function usePdfGenerator() {
@@ -52,18 +62,31 @@ export function usePdfGenerator() {
       throw new Error("Elemento do PDF não encontrado");
     }
 
-    // Remover regras CSS com oklab/oklch antes de clonar
-    removeOklabOklchFromStylesheets();
-
     // Clonar elemento para não alterar o original
     const clonedElement = element.cloneNode(true) as HTMLElement;
     clonedElement.style.position = "absolute";
     clonedElement.style.left = "-9999px";
+    clonedElement.style.top = "-9999px";
     document.body.appendChild(clonedElement);
+
+    // Criar um container para o clone com estilos limpos
+    const container = document.createElement("div");
+    container.style.position = "absolute";
+    container.style.left = "-9999px";
+    container.style.top = "-9999px";
+    container.appendChild(clonedElement);
+    document.body.appendChild(container);
+
+    // Adicionar stylesheet limpo ao container
+    const cleanStyle = createCleanStylesheet();
+    container.appendChild(cleanStyle);
 
     // Set background to white for capture
     const originalBg = clonedElement.style.backgroundColor;
     clonedElement.style.backgroundColor = "#ffffff";
+
+    // Remover atributos style com oklab/oklch do clone
+    removeOklabOklchFromElement(clonedElement);
 
     // Hide external images temporarily to avoid CORS issues
     const images = clonedElement.querySelectorAll("img");
@@ -145,8 +168,8 @@ export function usePdfGenerator() {
       originalDisplays.forEach((display, img) => {
         img.style.display = display;
       });
-      // Remove cloned element
-      document.body.removeChild(clonedElement);
+      // Remove container com clone
+      document.body.removeChild(container);
     }
   }, []);
 
