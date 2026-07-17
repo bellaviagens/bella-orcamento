@@ -166,37 +166,6 @@ export const appRouter = router({
       }
       throw new Error("Resposta inválida do servidor de IA.");
     }),
-
-  imageProxy: publicProcedure
-    .input(z.object({ url: z.string().url() }))
-    .query(async ({ input }) => {
-      try {
-        const response = await fetch(input.url, {
-          headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const buffer = await response.arrayBuffer();
-        const base64 = Buffer.from(buffer).toString("base64");
-        const contentType = response.headers.get("content-type") || "image/jpeg";
-
-        return {
-          success: true,
-          data: `data:${contentType};base64,${base64}`,
-        };
-      } catch (err) {
-        console.error("Image proxy error:", err);
-        return {
-          success: false,
-          error: "Failed to fetch image",
-        };
-      }
-    }),
 });
 
 export type AppRouter = typeof appRouter;

@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import { defaultBudgetData, type BudgetData, type Flight, type Hotel, type FareTier } from "@shared/budgetTypes";
-import { nanoid } from "nanoid";
+import { defaultBudgetData, type BudgetData, type Flight, type Hotel } from "@shared/budgetTypes";
 
 interface BudgetContextType {
   budget: BudgetData;
@@ -11,23 +10,12 @@ interface BudgetContextType {
   addHotel: (hotel: Hotel) => void;
   updateHotel: (id: string, hotel: Hotel) => void;
   removeHotel: (id: string) => void;
-  addFareTier: (tier: Omit<FareTier, "id">) => void;
-  updateFareTier: (id: string, tier: Partial<FareTier>) => void;
-  removeFareTier: (id: string) => void;
+  updateFareTier: (tier: "basic" | "light" | "full", field: string, value: boolean | number) => void;
   updateBaggage: (index: number, field: string, value: string | number) => void;
   resetBudget: () => void;
 }
 
 const BudgetContext = createContext<BudgetContextType | null>(null);
-
-function calculateBenefits(tier: FareTier): string[] {
-  const benefits = [];
-  if (tier.carryOn) benefits.push("Mala de Mão");
-  if (tier.checkedBag) benefits.push("Mala Despachada");
-  if (tier.seatSelection) benefits.push("Seleção de Assento");
-  if (tier.changes) benefits.push("Alterações/Reembolso");
-  return benefits;
-}
 
 export function BudgetProvider({ children }: { children: ReactNode }) {
   const [budget, setBudget] = useState<BudgetData>(defaultBudgetData);
@@ -81,50 +69,18 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const addFareTier = useCallback((tier: Omit<FareTier, "id">) => {
-    setBudget((prev) => ({
-      ...prev,
-      fareComparison: {
-        ...prev.fareComparison,
-        tiers: [...prev.fareComparison.tiers, { ...tier, id: nanoid() }],
-      },
-    }));
-  }, []);
-
-  const updateFareTier = useCallback((id: string, updates: Partial<FareTier>) => {
-    setBudget((prev) => ({
-      ...prev,
-      fareComparison: {
-        ...prev.fareComparison,
-        tiers: prev.fareComparison.tiers.map((t) => {
-          if (t.id === id) {
-            const updated = { ...t, ...updates };
-            // Recalcular benefícios se algum checkbox foi alterado
-            if (
-              updates.carryOn !== undefined ||
-              updates.checkedBag !== undefined ||
-              updates.seatSelection !== undefined ||
-              updates.changes !== undefined
-            ) {
-              updated.benefits = calculateBenefits(updated);
-            }
-            return updated;
-          }
-          return t;
-        }),
-      },
-    }));
-  }, []);
-
-  const removeFareTier = useCallback((id: string) => {
-    setBudget((prev) => ({
-      ...prev,
-      fareComparison: {
-        ...prev.fareComparison,
-        tiers: prev.fareComparison.tiers.filter((t) => t.id !== id),
-      },
-    }));
-  }, []);
+  const updateFareTier = useCallback(
+    (tier: "basic" | "light" | "full", field: string, value: boolean | number) => {
+      setBudget((prev) => ({
+        ...prev,
+        fareComparison: {
+          ...prev.fareComparison,
+          [tier]: { ...prev.fareComparison[tier], [field]: value },
+        },
+      }));
+    },
+    []
+  );
 
   const updateBaggage = useCallback((index: number, field: string, value: string | number) => {
     setBudget((prev) => ({
@@ -148,9 +104,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         addHotel,
         updateHotel,
         removeHotel,
-        addFareTier,
         updateFareTier,
-        removeFareTier,
         updateBaggage,
         resetBudget,
       }}
