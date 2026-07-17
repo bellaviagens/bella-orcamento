@@ -159,13 +159,14 @@ export function PdfPreview({ includeAirfare }: { includeAirfare: boolean }) {
               return (
                 <div key={i} className="rounded border border-slate-100 bg-slate-50 p-2 text-center">
                   <Icon className="h-5 w-5 text-slate-600 mx-auto mb-1" />
-                  <div className="text-[10px] font-semibold text-slate-700">{b.type} {b.weight}</div>
-                  <div className="space-y-0.5 mt-1">
+                  <div className="text-[10px] font-semibold text-slate-700">{b.type}</div>
+                  <div className="text-[8px] text-slate-500 mb-1">{b.weight}</div>
+                  <div className="space-y-0.5">
                     <div className="text-[8px] text-slate-500">
-                      Antecipada: <span className="font-semibold text-slate-700">{formatCurrency(b.priceAdvance)}</span>
+                      Antec.: <span className="font-semibold text-slate-700">{formatCurrency(b.priceAdvance)}</span>
                     </div>
                     <div className="text-[8px] text-slate-500">
-                      Aeroporto: <span className="font-semibold text-slate-700">{formatCurrency(b.priceAirport)}</span>
+                      Aero.: <span className="font-semibold text-slate-700">{formatCurrency(b.priceAirport)}</span>
                     </div>
                   </div>
                 </div>

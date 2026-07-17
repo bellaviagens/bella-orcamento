@@ -54,8 +54,7 @@
 - [x] Reduzir tamanho e destaque da seção de bagagens
 - [x] Adicionar campo benefits ao FareTier e renderizar no HotelCard
 - [x] Sincronizar benefícios ao editar tarifas existentes (recalcular quando checkboxes mudam)
-- [x] Converter todas as cores oklch para HEX no index.css para compatibilidade com html2canvas
+- [ ] Validar manualmente o download do PDF no navegador após correção de erros
 
 - [x] Reduzir tamanho da seção de bagagens no PDF preview (inputs menores, cores mais sutis)
-- [x] Corrigir erro do PDF - remover cores oklch que html2canvas não suporta
-- [x] Melhorar labels de bagagens: "Mala de mão 12kg", "Antecipada", "Aeroporto" (por inteiro)
+- [ ] Debugar erro do PDF - "ERRO ao gerar PDF tente novamente"
