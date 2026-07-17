@@ -2,85 +2,46 @@ import { useCallback } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-// Mapa de conversão de cores oklch para HEX (extraído do Tailwind 4 padrão)
-const OKLCH_TO_HEX: Record<string, string> = {
-  "oklch(93.6% .032 17.717)": "#f5f3f0",
-  "oklch(63.7% .237 25.331)": "#ea580c",
-  "oklch(50.5% .213 27.518)": "#c2410c",
-  "oklch(98.7% .022 95.277)": "#fafaf9",
-  "oklch(92.4% .12 95.746)": "#f3f1ed",
-  "oklch(87.9% .169 91.605)": "#e5e5e5",
-  "oklch(82.8% .189 84.429)": "#d4d4d8",
-  "oklch(66.6% .179 58.318)": "#a1a1aa",
-  "oklch(55.5% .163 48.998)": "#71717a",
-  "oklch(62.7% .194 149.214)": "#22c55e",
-  "oklch(97% .014 254.604)": "#f0f9ff",
-  "oklch(80.9% .105 251.813)": "#bfdbfe",
-  "oklch(62.3% .214 259.815)": "#3b82f6",
-  "oklch(54.6% .245 262.881)": "#1d4ed8",
-  "oklch(48.8% .243 264.376)": "#1e40af",
-  "oklch(42.4% .199 265.638)": "#1e3a8a",
-  "oklch(98.4% .003 247.858)": "#fef2f2",
-  "oklch(96.8% .007 247.896)": "#fee2e2",
-  "oklch(92.9% .013 255.508)": "#fecaca",
-  "oklch(86.9% .022 252.894)": "#fca5a5",
-  "oklch(70.4% .04 256.788)": "#f87171",
-  "oklch(55.4% .046 257.417)": "#ef4444",
-  "oklch(44.6% .043 257.281)": "#dc2626",
-  "oklch(37.2% .044 257.287)": "#b91c1c",
-  "oklch(20.8% .042 265.755)": "#7f1d1d",
-};
-
-function convertOklchToHex(value: string): string {
-  // Se for uma cor oklch conhecida, retorna o HEX
-  if (OKLCH_TO_HEX[value]) {
-    return OKLCH_TO_HEX[value];
-  }
+function removeOklabOklchFromStylesheets(): void {
+  // Remove todas as regras CSS que contêm oklab ou oklch
+  const stylesheets = document.styleSheets;
   
-  // Se não for oklch, retorna o valor original
-  if (!value.includes("oklch")) {
-    return value;
-  }
-  
-  // Fallback: retorna uma cor neutra se não conseguir converter
-  return "#000000";
-}
-
-function convertColorsInElement(element: HTMLElement): void {
-  // Converter cores em estilos computados (CSS variables)
-  const style = window.getComputedStyle(element);
-  
-  // Converter background-color
-  if (style.backgroundColor && style.backgroundColor.includes("oklch")) {
-    element.style.backgroundColor = convertOklchToHex(style.backgroundColor);
-  }
-  
-  // Converter color (text color)
-  if (style.color && style.color.includes("oklch")) {
-    element.style.color = convertOklchToHex(style.color);
-  }
-  
-  // Converter border colors
-  if (style.borderColor && style.borderColor.includes("oklch")) {
-    element.style.borderColor = convertOklchToHex(style.borderColor);
-  }
-  
-  // Recursivamente converter cores de elementos filhos
-  element.querySelectorAll("*").forEach((child) => {
-    const childStyle = window.getComputedStyle(child as HTMLElement);
-    
-    if (childStyle.backgroundColor && childStyle.backgroundColor.includes("oklch")) {
-      (child as HTMLElement).style.backgroundColor = convertOklchToHex(childStyle.backgroundColor);
+  for (let i = 0; i < stylesheets.length; i++) {
+    try {
+      const sheet = stylesheets[i] as CSSStyleSheet;
+      const rules = sheet.cssRules || sheet.rules;
+      
+      // Iterar de trás para frente para evitar problemas de índice
+      for (let j = rules.length - 1; j >= 0; j--) {
+        const rule = rules[j];
+        
+        // Verificar se é uma regra de estilo
+        if (rule instanceof CSSStyleRule) {
+          const style = rule.style.cssText;
+          if (style.includes("oklab") || style.includes("oklch")) {
+            // Remover a regra
+            sheet.deleteRule(j);
+          }
+        }
+        // Verificar se é uma media query ou outra regra de grupo
+        else if (rule instanceof CSSGroupingRule) {
+          const groupRules = rule.cssRules || [];
+          for (let k = groupRules.length - 1; k >= 0; k--) {
+            const groupRule = groupRules[k];
+            if (groupRule instanceof CSSStyleRule) {
+              const style = groupRule.style.cssText;
+              if (style.includes("oklab") || style.includes("oklch")) {
+                rule.deleteRule(k);
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Ignorar erros de CORS ou acesso negado
+      console.warn("Não foi possível acessar stylesheet:", e);
     }
-    
-    if (childStyle.color && childStyle.color.includes("oklch")) {
-      (child as HTMLElement).style.color = convertOklchToHex(childStyle.color);
-    }
-    
-    if (childStyle.borderColor && childStyle.borderColor.includes("oklch")) {
-      (child as HTMLElement).style.borderColor = convertOklchToHex(childStyle.borderColor);
-    }
-  });
+  }
 }
 
 export function usePdfGenerator() {
@@ -91,6 +52,9 @@ export function usePdfGenerator() {
       throw new Error("Elemento do PDF não encontrado");
     }
 
+    // Remover regras CSS com oklab/oklch antes de clonar
+    removeOklabOklchFromStylesheets();
+
     // Clonar elemento para não alterar o original
     const clonedElement = element.cloneNode(true) as HTMLElement;
     clonedElement.style.position = "absolute";
@@ -100,9 +64,6 @@ export function usePdfGenerator() {
     // Set background to white for capture
     const originalBg = clonedElement.style.backgroundColor;
     clonedElement.style.backgroundColor = "#ffffff";
-
-    // Converter cores oklch para HEX no clone
-    convertColorsInElement(clonedElement);
 
     // Hide external images temporarily to avoid CORS issues
     const images = clonedElement.querySelectorAll("img");
