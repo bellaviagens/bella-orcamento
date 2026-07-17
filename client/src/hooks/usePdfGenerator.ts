@@ -10,19 +10,12 @@ export function usePdfGenerator() {
       throw new Error("Elemento do PDF não encontrado");
     }
 
-    // Clonar elemento para não alterar o original
-    const clonedElement = element.cloneNode(true) as HTMLElement;
-    clonedElement.style.position = "absolute";
-    clonedElement.style.left = "-9999px";
-    clonedElement.style.top = "-9999px";
-    document.body.appendChild(clonedElement);
-
     // Set background to white for capture
-    const originalBg = clonedElement.style.backgroundColor;
-    clonedElement.style.backgroundColor = "#ffffff";
+    const originalBg = element.style.backgroundColor;
+    element.style.backgroundColor = "#ffffff";
 
     // Hide external images temporarily to avoid CORS issues
-    const images = clonedElement.querySelectorAll("img");
+    const images = element.querySelectorAll("img");
     const originalDisplays = new Map<HTMLImageElement, string>();
     images.forEach((img) => {
       if (img.src && (img.src.includes("http") || img.src.includes("//"))) {
@@ -32,12 +25,35 @@ export function usePdfGenerator() {
     });
 
     try {
-      const canvas = await html2canvas(clonedElement, {
+      const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
         allowTaint: true,
+        onclone: (clonedDoc) => {
+          // Forçar conversão de cores antes de capturar
+          const allElements = clonedDoc.querySelectorAll("*");
+          allElements.forEach((el) => {
+            const htmlEl = el as HTMLElement;
+            const style = window.getComputedStyle(htmlEl);
+            
+            // Converter color (text color)
+            if (style.color) {
+              htmlEl.style.color = style.color;
+            }
+            
+            // Converter background-color
+            if (style.backgroundColor) {
+              htmlEl.style.backgroundColor = style.backgroundColor;
+            }
+            
+            // Converter border-color
+            if (style.borderColor) {
+              htmlEl.style.borderColor = style.borderColor;
+            }
+          });
+        },
       });
 
       if (!canvas) {
@@ -96,13 +112,11 @@ export function usePdfGenerator() {
       console.error("Erro na geração do PDF:", err);
       throw new Error("Erro ao exportar PDF: " + String(err));
     } finally {
-      clonedElement.style.backgroundColor = originalBg;
+      element.style.backgroundColor = originalBg;
       // Restore images
       originalDisplays.forEach((display, img) => {
         img.style.display = display;
       });
-      // Remove cloned element
-      document.body.removeChild(clonedElement);
     }
   }, []);
 

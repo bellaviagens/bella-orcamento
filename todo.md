@@ -48,10 +48,13 @@
 
 - [x] Debugar e corrigir erro de geração do PDF (remover imagens externas antes de capturar, adicionar crossOrigin)
 
-- [ ] Validar manualmente no navegador o fluxo completo de download do PDF
+- [x] Validar manualmente no navegador o fluxo completo de download do PDF
 - [x] Implementar proxy server-side para imagens externas (endpoint criado, integrado com HotelCard)
 
 - [x] Reduzir tamanho e destaque da seção de bagagens
 - [x] Adicionar campo benefits ao FareTier e renderizar no HotelCard
 - [x] Sincronizar benefícios ao editar tarifas existentes (recalcular quando checkboxes mudam)
-- [ ] Validar manualmente o download do PDF no navegador após correção de erros
+- [x] Validar manualmente o download do PDF no navegador após correção de erros
+
+- [ ] Validar manualmente no navegador o fluxo completo de download do PDF após remover oklab do Tailwind
+- [ ] Confirmar que o arquivo PDF baixa corretamente sem quebrar o layout da aplicação
