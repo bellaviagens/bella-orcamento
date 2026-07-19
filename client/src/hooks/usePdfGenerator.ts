@@ -2,35 +2,6 @@ import { useCallback } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-function stripOklabFromStylesheets(): void {
-  // Remover todas as regras CSS que contêm oklch ou oklab
-  const stylesheets = Array.from(document.styleSheets);
-  
-  for (const sheet of stylesheets) {
-    try {
-      const rules = Array.from(sheet.cssRules || []);
-      
-      // Iterar de trás para frente para evitar problemas de índice
-      for (let i = rules.length - 1; i >= 0; i--) {
-        const rule = rules[i];
-        
-        if (rule instanceof CSSStyleRule) {
-          const cssText = rule.cssText;
-          if (cssText.includes("oklch") || cssText.includes("oklab")) {
-            try {
-              sheet.deleteRule(i);
-            } catch (e) {
-              // Ignorar erros ao deletar
-            }
-          }
-        }
-      }
-    } catch (e) {
-      // Ignorar erros de CORS ou acesso negado
-    }
-  }
-}
-
 export function usePdfGenerator() {
   const generatePdf = useCallback(async (filename: string = "orcamento-bella-viagens.pdf") => {
     const element = document.getElementById("pdf-document");
@@ -39,15 +10,58 @@ export function usePdfGenerator() {
       throw new Error("Elemento do PDF não encontrado");
     }
 
-    // Remover regras CSS com oklch/oklab ANTES de capturar
-    stripOklabFromStylesheets();
+    // Clonar elemento para não alterar o original
+    const clonedElement = element.cloneNode(true) as HTMLElement;
+    clonedElement.style.position = "absolute";
+    clonedElement.style.left = "-9999px";
+    clonedElement.style.top = "-9999px";
+    document.body.appendChild(clonedElement);
+
+    // Criar um container para o clone
+    const container = document.createElement("div");
+    container.style.position = "absolute";
+    container.style.left = "-9999px";
+    container.style.top = "-9999px";
+    document.body.appendChild(container);
+
+    // Remover o clone do body e adicionar ao container
+    document.body.removeChild(clonedElement);
+    container.appendChild(clonedElement);
+
+    // Criar um novo stylesheet limpo (sem oklch/oklab)
+    const cleanStyle = document.createElement("style");
+    cleanStyle.textContent = `
+      * { 
+        margin: 0; 
+        padding: 0; 
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #1c222b;
+        background: #ffffff;
+      }
+      h1, h2, h3, h4, h5, h6 {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+      }
+      button, input, select, textarea {
+        font-family: inherit;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+      }
+    `;
+    container.appendChild(cleanStyle);
 
     // Set background to white for capture
-    const originalBg = element.style.backgroundColor;
-    element.style.backgroundColor = "#ffffff";
+    const originalBg = clonedElement.style.backgroundColor;
+    clonedElement.style.backgroundColor = "#ffffff";
 
     // Hide external images temporarily to avoid CORS issues
-    const images = element.querySelectorAll("img");
+    const images = clonedElement.querySelectorAll("img");
     const originalDisplays = new Map<HTMLImageElement, string>();
     images.forEach((img) => {
       if (img.src && (img.src.includes("http") || img.src.includes("//"))) {
@@ -57,12 +71,13 @@ export function usePdfGenerator() {
     });
 
     try {
-      const canvas = await html2canvas(element, {
+      const canvas = await html2canvas(clonedElement, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
         allowTaint: true,
+        removeContainer: false,
       });
 
       if (!canvas) {
@@ -121,11 +136,13 @@ export function usePdfGenerator() {
       console.error("Erro na geração do PDF:", err);
       throw new Error("Erro ao exportar PDF: " + String(err));
     } finally {
-      element.style.backgroundColor = originalBg;
+      clonedElement.style.backgroundColor = originalBg;
       // Restore images
       originalDisplays.forEach((display, img) => {
         img.style.display = display;
       });
+      // Remove container
+      document.body.removeChild(container);
     }
   }, []);
 
