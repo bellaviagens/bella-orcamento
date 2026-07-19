@@ -2,6 +2,35 @@ import { useCallback } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
+function stripOklabFromStylesheets(): void {
+  // Remover todas as regras CSS que contêm oklch ou oklab
+  const stylesheets = Array.from(document.styleSheets);
+  
+  for (const sheet of stylesheets) {
+    try {
+      const rules = Array.from(sheet.cssRules || []);
+      
+      // Iterar de trás para frente para evitar problemas de índice
+      for (let i = rules.length - 1; i >= 0; i--) {
+        const rule = rules[i];
+        
+        if (rule instanceof CSSStyleRule) {
+          const cssText = rule.cssText;
+          if (cssText.includes("oklch") || cssText.includes("oklab")) {
+            try {
+              sheet.deleteRule(i);
+            } catch (e) {
+              // Ignorar erros ao deletar
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Ignorar erros de CORS ou acesso negado
+    }
+  }
+}
+
 export function usePdfGenerator() {
   const generatePdf = useCallback(async (filename: string = "orcamento-bella-viagens.pdf") => {
     const element = document.getElementById("pdf-document");
@@ -9,6 +38,9 @@ export function usePdfGenerator() {
       console.error("PDF document element not found");
       throw new Error("Elemento do PDF não encontrado");
     }
+
+    // Remover regras CSS com oklch/oklab ANTES de capturar
+    stripOklabFromStylesheets();
 
     // Set background to white for capture
     const originalBg = element.style.backgroundColor;
@@ -31,29 +63,6 @@ export function usePdfGenerator() {
         logging: false,
         backgroundColor: "#ffffff",
         allowTaint: true,
-        onclone: (clonedDoc) => {
-          // Forçar conversão de cores antes de capturar
-          const allElements = clonedDoc.querySelectorAll("*");
-          allElements.forEach((el) => {
-            const htmlEl = el as HTMLElement;
-            const style = window.getComputedStyle(htmlEl);
-            
-            // Converter color (text color)
-            if (style.color) {
-              htmlEl.style.color = style.color;
-            }
-            
-            // Converter background-color
-            if (style.backgroundColor) {
-              htmlEl.style.backgroundColor = style.backgroundColor;
-            }
-            
-            // Converter border-color
-            if (style.borderColor) {
-              htmlEl.style.borderColor = style.borderColor;
-            }
-          });
-        },
       });
 
       if (!canvas) {
