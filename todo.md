@@ -56,5 +56,5 @@
 - [x] Sincronizar benefícios ao editar tarifas existentes (recalcular quando checkboxes mudam)
 - [x] Validar manualmente o download do PDF no navegador após correção de erros
 
-- [x] Validar manualmente no navegador o fluxo completo de download do PDF após remover oklab do Tailwind
-- [x] Confirmar que o arquivo PDF baixa corretamente sem quebrar o layout da aplicação
+- [ ] Validar manualmente no navegador o fluxo completo de download do PDF após remover oklab do Tailwind
+- [ ] Confirmar que o arquivo PDF baixa corretamente sem quebrar o layout da aplicação
