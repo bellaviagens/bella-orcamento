@@ -25,9 +25,9 @@ export function FareForm() {
   // Gerar benefícios baseado nas checkboxes
   const getBenefits = () => {
     const benefits = [];
-    if (carryOn) benefits.push("Mala de Mão");
-    if (checkedBag) benefits.push("Mala Despachada");
-    if (seatSelection) benefits.push("Seleção de Assento");
+    if (carryOn) benefits.push("Antecipado");
+    if (checkedBag) benefits.push("Mala Despachada 12kg");
+    if (seatSelection) benefits.push("Aeroporto");
     if (changes) benefits.push("Alterações/Reembolso");
     return benefits;
   };
@@ -99,7 +99,7 @@ export function FareForm() {
                       updateFareTier(tier.id, { carryOn: checked === true })
                     }
                   />
-                  <span className="text-slate-600">Mala de Mão</span>
+                  <span className="text-slate-600">Antecipado</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Checkbox
@@ -108,7 +108,7 @@ export function FareForm() {
                       updateFareTier(tier.id, { checkedBag: checked === true })
                     }
                   />
-                  <span className="text-slate-600">Mala Despachada</span>
+                  <span className="text-slate-600">Mala Despachada 12kg</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Checkbox
@@ -117,7 +117,7 @@ export function FareForm() {
                       updateFareTier(tier.id, { seatSelection: checked === true })
                     }
                   />
-                  <span className="text-slate-600">Seleção de Assento</span>
+                  <span className="text-slate-600">Aeroporto</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Checkbox
@@ -199,15 +199,15 @@ export function FareForm() {
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
                 <Checkbox checked={carryOn} onCheckedChange={(c) => setCarryOn(c === true)} />
-                <span className="text-xs text-slate-600">Mala de Mão</span>
+                <span className="text-xs text-slate-600">Antecipado</span>
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox checked={checkedBag} onCheckedChange={(c) => setCheckedBag(c === true)} />
-                <span className="text-xs text-slate-600">Mala Despachada</span>
+                <span className="text-xs text-slate-600">Mala Despachada 12kg</span>
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox checked={seatSelection} onCheckedChange={(c) => setSeatSelection(c === true)} />
-                <span className="text-xs text-slate-600">Seleção de Assento</span>
+                <span className="text-xs text-slate-600">Aeroporto</span>
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox checked={changes} onCheckedChange={(c) => setChanges(c === true)} />
