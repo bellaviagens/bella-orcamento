@@ -39,9 +39,9 @@ describe("budgetTypes defaults", () => {
 
   it("baggage has correct default items", async () => {
     const { defaultBudgetData } = await import("../shared/budgetTypes");
-    expect(defaultBudgetData.baggage[0].type).toBe("Mala de Mão");
-    expect(defaultBudgetData.baggage[0].weight).toBe("12kg");
-    expect(defaultBudgetData.baggage[1].type).toBe("1ª Mala Despachada");
+    expect(defaultBudgetData.baggage[0].type).toBe("Mala de Mão 12kg");
+    expect(defaultBudgetData.baggage[0].weight).toBe("");
+    expect(defaultBudgetData.baggage[1].type).toBe("Mala Despachada 23kg");
     expect(defaultBudgetData.baggage[2].type).toBe("2ª Mala Despachada");
   });
 

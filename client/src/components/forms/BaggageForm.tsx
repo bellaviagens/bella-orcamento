@@ -29,7 +29,7 @@ export function BaggageForm() {
               />
             </div>
             <div>
-              <Label className="text-[9px] text-slate-400">Antec. (R$)</Label>
+              <Label className="text-[9px] text-slate-400">Antecipado (R$)</Label>
               <Input
                 type="number"
                 value={b.priceAdvance || ""}
@@ -39,7 +39,7 @@ export function BaggageForm() {
               />
             </div>
             <div>
-              <Label className="text-[9px] text-slate-400">Aero. (R$)</Label>
+              <Label className="text-[9px] text-slate-400">Aeroporto (R$)</Label>
               <Input
                 type="number"
                 value={b.priceAirport || ""}
