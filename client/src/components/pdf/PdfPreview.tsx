@@ -150,6 +150,33 @@ export function PdfPreview({ data, includeAirfare = true }: PdfPreviewProps) {
         </div>
       )}
 
+      {/* INSTALLMENTS SECTION */}
+      {(data.installments?.flight || data.installments?.hotel) && (
+        <div className="px-8 py-4">
+          <h3 className="text-xs font-bold text-[#1a2e4a] mb-3 uppercase tracking-wide">Formas de Pagamento</h3>
+          <div className="space-y-2 text-xs text-slate-600">
+            {data.installments?.combined ? (
+              <p>
+                <span className="font-semibold">Parcelamento Total:</span> Aéreo + Hotel parcelado em até {data.installments.flight || data.installments.hotel}x
+              </p>
+            ) : (
+              <>
+                {data.installments?.flight && (
+                  <p>
+                    <span className="font-semibold">Aéreo:</span> Até {data.installments.flight}x
+                  </p>
+                )}
+                {data.installments?.hotel && (
+                  <p>
+                    <span className="font-semibold">Hotel:</span> Até {data.installments.hotel}x
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* AVAILABILITY NOTE */}
       <div className="px-8 py-4">
         <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 flex items-start gap-3">

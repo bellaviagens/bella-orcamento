@@ -58,4 +58,4 @@
 
 - [x] Adicionar campos de parcelamento numéricos (aéreo e hotel)
 - [x] Adicionar opção de "Parcelar tudo junto"
-- [ ] Mostrar parcelamento no PDF preview
+- [x] Mostrar parcelamento no PDF preview
