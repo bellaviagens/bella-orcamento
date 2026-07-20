@@ -1,6 +1,4 @@
 import { useCallback } from "react";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 
 export function usePdfGenerator() {
   const generatePdf = useCallback(async (filename: string = "orcamento-bella-viagens.pdf") => {
@@ -11,154 +9,73 @@ export function usePdfGenerator() {
     }
 
     try {
-      // Step 1: Clone the element to avoid modifying the original
+      // Clone the element
       const clonedElement = element.cloneNode(true) as HTMLElement;
-      
-      // Step 2: Create a temporary container
-      const tempContainer = document.createElement("div");
-      tempContainer.style.position = "absolute";
-      tempContainer.style.left = "-9999px";
-      tempContainer.style.top = "-9999px";
-      tempContainer.style.width = element.offsetWidth + "px";
-      tempContainer.appendChild(clonedElement);
-      document.body.appendChild(tempContainer);
 
-      // Step 3: Get all elements and apply computed styles as inline styles
-      // This ensures html2canvas only sees RGB/HEX colors, not oklch/oklab
-      const allElements = clonedElement.querySelectorAll("*");
-      allElements.forEach((el) => {
-        const htmlEl = el as HTMLElement;
-        const computedStyle = window.getComputedStyle(htmlEl);
-        
-        // Copy ALL computed styles to inline styles to bypass stylesheets
-        // This is the key: html2canvas will use inline styles, not CSS rules
-        for (let i = 0; i < computedStyle.length; i++) {
-          const propName = computedStyle[i];
-          const propValue = computedStyle.getPropertyValue(propName);
-          
-          // Skip if it contains oklch/oklab/color-mix
-          if (propValue && (propValue.includes("oklch") || propValue.includes("oklab") || propValue.includes("color-mix"))) {
-            // Replace with a safe fallback
-            if (propName.includes("color") || propName.includes("background")) {
-              htmlEl.style.setProperty(propName, "rgb(0, 0, 0)", "important");
-            }
-          } else if (propValue) {
-            // Apply the computed style as inline
-            try {
-              htmlEl.style.setProperty(propName, propValue, "important");
-            } catch (e) {
-              // Some properties can't be set, that's OK
-            }
-          }
-        }
-        
-        // Force outline to none
-        htmlEl.style.outline = "none";
-        htmlEl.style.outlineColor = "transparent";
-      });
-
-      console.log("✓ Applied all computed styles as inline styles");
-
-      // Step 4: Remove all stylesheets to prevent html2canvas from parsing them
-      // Store references to re-enable later
-      const disabledSheets: CSSStyleSheet[] = [];
-      for (let i = document.styleSheets.length - 1; i >= 0; i--) {
-        const sheet = document.styleSheets[i];
+      // Create a complete HTML document with all stylesheets
+      const htmlContent = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orçamento - Bella Viagens</title>
+  <style>
+    ${Array.from(document.styleSheets)
+      .map((sheet) => {
         try {
-          sheet.disabled = true;
-          disabledSheets.push(sheet);
+          return Array.from(sheet.cssRules)
+            .map((rule) => rule.cssText)
+            .join("\n");
         } catch (e) {
-          // Some sheets can't be disabled (cross-origin), that's OK
+          // Cross-origin stylesheets can't be accessed
+          return "";
         }
-      }
-      console.log(`Disabled ${disabledSheets.length} stylesheets`);
+      })
+      .join("\n")}
+  </style>
+</head>
+<body>
+  ${clonedElement.outerHTML}
+</body>
+</html>`;
 
-      // Step 5: Capture the cloned element with html2canvas
-      // With all styles as inline and no stylesheets, html2canvas should only see RGB/HEX
-      const canvas = await html2canvas(clonedElement, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-        allowTaint: true,
-        foreignObjectRendering: false,
+      console.log("✓ Enviando HTML para servidor para gerar PDF");
+
+      // Send HTML to server for PDF generation
+      const response = await fetch("/api/pdf/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          html: htmlContent,
+          filename: filename,
+        }),
       });
 
-      if (!canvas) {
-        throw new Error("Falha ao gerar canvas do PDF");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Falha ao gerar PDF no servidor");
       }
 
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      // Get the PDF blob
+      const blob = await response.blob();
 
-      const pdf = new jsPDF("p", "mm", "a4");
-      let heightLeft = imgHeight;
-      let position = 0;
+      // Create a download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
 
-      let imgData: string;
-      try {
-        imgData = canvas.toDataURL("image/jpeg", 0.95);
-      } catch (dataUrlErr) {
-        console.error("toDataURL JPEG falhou, tentando PNG", dataUrlErr);
-        imgData = canvas.toDataURL("image/png");
-      }
-
-      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position -= pageHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      // Step 6: Trigger download
-      try {
-        pdf.save(filename);
-      } catch (downloadErr) {
-        // Fallback: use blob URL if pdf.save() fails
-        console.warn("pdf.save() falhou, usando blob URL", downloadErr);
-        try {
-          const blob = pdf.output("blob");
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        } catch (blobErr) {
-          console.error("Blob fallback também falhou", blobErr);
-          throw new Error("Erro ao exportar PDF: " + String(blobErr));
-        }
-      }
-      
       console.log("✓ PDF gerado com sucesso!");
       return true;
     } catch (err) {
       console.error("Erro na geração do PDF:", err);
       throw new Error("Erro ao exportar PDF: " + String(err));
-    } finally {
-      // Step 7: Cleanup - remove temporary container and re-enable stylesheets
-      const tempContainer = document.querySelector("div[style*='left: -9999px']");
-      if (tempContainer) {
-        document.body.removeChild(tempContainer);
-      }
-
-      // Re-enable all disabled stylesheets
-      for (let i = 0; i < document.styleSheets.length; i++) {
-        const sheet = document.styleSheets[i];
-        if (sheet.disabled) {
-          try {
-            sheet.disabled = false;
-          } catch (e) {
-            // Ignore errors
-          }
-        }
-      }
     }
   }, []);
 

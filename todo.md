@@ -59,3 +59,8 @@
 - [x] Adicionar campos de parcelamento numéricos (aéreo e hotel)
 - [x] Adicionar opção de "Parcelar tudo junto"
 - [x] Mostrar parcelamento no PDF preview
+
+- [x] CORRIGIDO: Erro de oklch/oklab no PDF - Estratégia agressiva de inline styles
+- [x] Testado PDF com dados vazios - Sucesso!
+- [x] Testado PDF com voo real (GRU → SCL) - Sucesso!
+- [x] Validado em múltiplos navegadores - Funciona!
