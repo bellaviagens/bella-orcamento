@@ -2,47 +2,6 @@ import { useCallback } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-// Remove all CSS rules containing oklch, oklab, or color-mix
-function removeOklabOklchRules() {
-  const stylesheets = Array.from(document.styleSheets);
-  const removedRules: Array<{ sheet: CSSStyleSheet; index: number; rule: string }> = [];
-
-  stylesheets.forEach((sheet) => {
-    try {
-      const rules = Array.from(sheet.cssRules || []);
-      for (let i = rules.length - 1; i >= 0; i--) {
-        const rule = rules[i];
-        if (rule instanceof CSSStyleRule) {
-          const cssText = rule.style.cssText;
-          if (cssText.includes("oklch") || cssText.includes("oklab") || cssText.includes("color-mix")) {
-            removedRules.push({ sheet, index: i, rule: rule.selectorText });
-            try {
-              sheet.deleteRule(i);
-            } catch (e) {
-              console.warn("Could not delete rule:", rule.selectorText, e);
-            }
-          }
-        }
-      }
-    } catch (e) {
-      // Ignore CORS errors
-    }
-  });
-
-  return removedRules;
-}
-
-// Restore removed CSS rules
-function restoreOklabOklchRules(removedRules: Array<{ sheet: CSSStyleSheet; index: number; rule: string }>) {
-  removedRules.forEach(({ sheet, index, rule }) => {
-    try {
-      // Rules are restored by reloading the stylesheet (handled by browser)
-    } catch (e) {
-      console.warn("Could not restore rule:", rule, e);
-    }
-  });
-}
-
 export function usePdfGenerator() {
   const generatePdf = useCallback(async (filename: string = "orcamento-bella-viagens.pdf") => {
     const element = document.getElementById("pdf-document");
@@ -51,30 +10,55 @@ export function usePdfGenerator() {
       throw new Error("Elemento do PDF não encontrado");
     }
 
-    // Remove oklch/oklab rules before PDF generation
-    const removedRules = removeOklabOklchRules();
-
-    // Set background to white for capture
-    const originalBg = element.style.backgroundColor;
-    element.style.backgroundColor = "#ffffff";
-
-    // Hide external images temporarily to avoid CORS issues
-    const images = element.querySelectorAll("img");
-    const originalDisplays = new Map<HTMLImageElement, string>();
-    images.forEach((img) => {
-      if (img.src && (img.src.includes("http") || img.src.includes("//"))) {
-        originalDisplays.set(img, img.style.display);
-        img.style.display = "none";
-      }
-    });
-
     try {
-      const canvas = await html2canvas(element, {
+      // Clone the element to avoid modifying the original
+      const clonedElement = element.cloneNode(true) as HTMLElement;
+      
+      // Create a temporary container
+      const tempContainer = document.createElement("div");
+      tempContainer.style.position = "absolute";
+      tempContainer.style.left = "-9999px";
+      tempContainer.style.top = "-9999px";
+      tempContainer.style.width = element.offsetWidth + "px";
+      tempContainer.appendChild(clonedElement);
+      document.body.appendChild(tempContainer);
+
+      // Remove all style attributes that might contain oklch
+      const allElements = clonedElement.querySelectorAll("*");
+      allElements.forEach((el) => {
+        const element = el as HTMLElement;
+        const style = element.getAttribute("style");
+        if (style && (style.includes("oklch") || style.includes("oklab") || style.includes("color-mix"))) {
+          element.removeAttribute("style");
+        }
+      });
+
+      // Create a clean stylesheet without oklch/oklab/color-mix
+      const cleanStyle = document.createElement("style");
+      cleanStyle.textContent = `
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+          background: white;
+          color: #000;
+        }
+        .dark { color-scheme: light; }
+        button, input, select, textarea { font-family: inherit; }
+      `;
+      clonedElement.appendChild(cleanStyle);
+
+      // Capture the cloned element
+      const canvas = await html2canvas(clonedElement, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
         allowTaint: true,
+        foreignObjectRendering: false,
       });
 
       if (!canvas) {
@@ -133,13 +117,11 @@ export function usePdfGenerator() {
       console.error("Erro na geração do PDF:", err);
       throw new Error("Erro ao exportar PDF: " + String(err));
     } finally {
-      element.style.backgroundColor = originalBg;
-      // Restore images
-      originalDisplays.forEach((display, img) => {
-        img.style.display = display;
-      });
-      // Restore oklch/oklab rules
-      restoreOklabOklchRules(removedRules);
+      // Remove temporary container
+      const tempContainer = document.querySelector("div[style*='left: -9999px']");
+      if (tempContainer) {
+        document.body.removeChild(tempContainer);
+      }
     }
   }, []);
 
