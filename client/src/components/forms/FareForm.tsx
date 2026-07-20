@@ -15,31 +15,54 @@ export function FareForm() {
 
   // Form state
   const [name, setName] = useState("");
-  const [carryOn, setCarryOn] = useState(false);
-  const [checkedBag, setCheckedBag] = useState(false);
-  const [seatSelection, setSeatSelection] = useState(false);
-  const [changes, setChanges] = useState(false);
+  const [bagageType, setBagageType] = useState("");
+  const [checkInType, setCheckInType] = useState("");
+  const [changes, setChanges] = useState("");
   const [flightPrice, setFlightPrice] = useState(0);
   const [highlighted, setHighlighted] = useState(false);
+  const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
+  const [installments, setInstallments] = useState(1);
 
-  // Gerar benefícios baseado nas checkboxes
+  const bagageOptions = [
+    "Bagagem de mão",
+    "Bagagem de 10 kg",
+    "Bagagem de 23 kg",
+  ];
+
+  const checkInOptions = [
+    "Embarque prioritário",
+    "Check-in prioritário",
+  ];
+
+  const changesOptions = [
+    "Alteração/Reembolso sem taxa",
+    "Alteração/Reembolso com taxa",
+  ];
+
+  const paymentOptions = [
+    "Cartão",
+    "Dinheiro",
+    "PIX",
+  ];
+
+  // Gerar benefícios baseado nas seleções
   const getBenefits = () => {
     const benefits = [];
-    if (carryOn) benefits.push("Antecipado");
-    if (checkedBag) benefits.push("Mala Despachada 12kg");
-    if (seatSelection) benefits.push("Aeroporto");
-    if (changes) benefits.push("Alterações/Reembolso");
+    if (bagageType) benefits.push(bagageType);
+    if (checkInType) benefits.push(checkInType);
+    if (changes) benefits.push(changes);
     return benefits;
   };
 
   const resetForm = () => {
     setName("");
-    setCarryOn(false);
-    setCheckedBag(false);
-    setSeatSelection(false);
-    setChanges(false);
+    setBagageType("");
+    setCheckInType("");
+    setChanges("");
     setFlightPrice(0);
     setHighlighted(false);
+    setPaymentMethods([]);
+    setInstallments(1);
   };
 
   const handleSave = () => {
@@ -50,12 +73,13 @@ export function FareForm() {
 
     addFareTier({
       name: name.trim(),
-      carryOn,
-      checkedBag,
-      seatSelection,
+      bagageType,
+      checkInType,
       changes,
       flightPrice,
       highlighted,
+      paymentMethods,
+      installments,
       benefits: getBenefits(),
     });
 
@@ -91,42 +115,45 @@ export function FareForm() {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs mb-2">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={tier.carryOn}
-                    onCheckedChange={(checked) =>
-                      updateFareTier(tier.id, { carryOn: checked === true })
-                    }
-                  />
-                  <span className="text-slate-600">Antecipado</span>
+              <div className="space-y-2 text-xs mb-2">
+                <div>
+                  <Label className="text-[10px] text-slate-500">Bagagem</Label>
+                  <select
+                    value={tier.bagageType || ""}
+                    onChange={(e) => updateFareTier(tier.id, { bagageType: e.target.value })}
+                    className="w-full h-8 text-xs border border-slate-200 rounded px-2 mt-1"
+                  >
+                    <option value="">Selecionar...</option>
+                    {bagageOptions.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={tier.checkedBag}
-                    onCheckedChange={(checked) =>
-                      updateFareTier(tier.id, { checkedBag: checked === true })
-                    }
-                  />
-                  <span className="text-slate-600">Mala Despachada 12kg</span>
+                <div>
+                  <Label className="text-[10px] text-slate-500">Check-in</Label>
+                  <select
+                    value={tier.checkInType || ""}
+                    onChange={(e) => updateFareTier(tier.id, { checkInType: e.target.value })}
+                    className="w-full h-8 text-xs border border-slate-200 rounded px-2 mt-1"
+                  >
+                    <option value="">Selecionar...</option>
+                    {checkInOptions.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={tier.seatSelection}
-                    onCheckedChange={(checked) =>
-                      updateFareTier(tier.id, { seatSelection: checked === true })
-                    }
-                  />
-                  <span className="text-slate-600">Aeroporto</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={tier.changes}
-                    onCheckedChange={(checked) =>
-                      updateFareTier(tier.id, { changes: checked === true })
-                    }
-                  />
-                  <span className="text-slate-600">Alterações/Reembolso</span>
+                <div>
+                  <Label className="text-[10px] text-slate-500">Alterações/Reembolso</Label>
+                  <select
+                    value={tier.changes || ""}
+                    onChange={(e) => updateFareTier(tier.id, { changes: e.target.value })}
+                    className="w-full h-8 text-xs border border-slate-200 rounded px-2 mt-1"
+                  >
+                    <option value="">Selecionar...</option>
+                    {changesOptions.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -196,22 +223,45 @@ export function FareForm() {
 
           <div className="space-y-2">
             <Label className="text-xs font-semibold">Benefícios</Label>
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <Checkbox checked={carryOn} onCheckedChange={(c) => setCarryOn(c === true)} />
-                <span className="text-xs text-slate-600">Antecipado</span>
+            <div className="space-y-2">
+              <div>
+                <Label className="text-xs">Bagagem</Label>
+                <select
+                  value={bagageType}
+                  onChange={(e) => setBagageType(e.target.value)}
+                  className="w-full h-8 text-xs border border-slate-200 rounded px-2 mt-1"
+                >
+                  <option value="">Selecionar...</option>
+                  {bagageOptions.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
               </div>
-              <div className="flex items-center gap-2">
-                <Checkbox checked={checkedBag} onCheckedChange={(c) => setCheckedBag(c === true)} />
-                <span className="text-xs text-slate-600">Mala Despachada 12kg</span>
+              <div>
+                <Label className="text-xs">Check-in</Label>
+                <select
+                  value={checkInType}
+                  onChange={(e) => setCheckInType(e.target.value)}
+                  className="w-full h-8 text-xs border border-slate-200 rounded px-2 mt-1"
+                >
+                  <option value="">Selecionar...</option>
+                  {checkInOptions.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
               </div>
-              <div className="flex items-center gap-2">
-                <Checkbox checked={seatSelection} onCheckedChange={(c) => setSeatSelection(c === true)} />
-                <span className="text-xs text-slate-600">Aeroporto</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox checked={changes} onCheckedChange={(c) => setChanges(c === true)} />
-                <span className="text-xs text-slate-600">Alterações / Reembolso</span>
+              <div>
+                <Label className="text-xs">Alterações/Reembolso</Label>
+                <select
+                  value={changes}
+                  onChange={(e) => setChanges(e.target.value)}
+                  className="w-full h-8 text-xs border border-slate-200 rounded px-2 mt-1"
+                >
+                  <option value="">Selecionar...</option>
+                  {changesOptions.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
@@ -223,6 +273,40 @@ export function FareForm() {
               value={flightPrice || ""}
               onChange={(e) => setFlightPrice(parseFloat(e.target.value) || 0)}
               placeholder="0"
+              className="mt-1"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold">Forma de Pagamento</Label>
+            <div className="space-y-1.5">
+              {paymentOptions.map((method) => (
+                <div key={method} className="flex items-center gap-2">
+                  <Checkbox
+                    checked={paymentMethods.includes(method)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setPaymentMethods([...paymentMethods, method]);
+                      } else {
+                        setPaymentMethods(paymentMethods.filter((m) => m !== method));
+                      }
+                    }}
+                  />
+                  <span className="text-xs text-slate-600">{method}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-xs">Parcelamento (vezes)</Label>
+            <Input
+              type="number"
+              min="1"
+              max="12"
+              value={installments || 1}
+              onChange={(e) => setInstallments(parseInt(e.target.value) || 1)}
+              placeholder="1"
               className="mt-1"
             />
           </div>
