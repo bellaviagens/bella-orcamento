@@ -11,51 +11,10 @@ export function usePdfGenerator() {
     }
 
     try {
-      // Debug: Scan all elements for oklch/oklab in computed styles
-      const allElements = element.querySelectorAll("*");
-      const problematicElements: Array<{
-        element: string;
-        tag: string;
-        id: string;
-        classes: string;
-        property: string;
-        value: string;
-      }> = [];
-
-      allElements.forEach((el) => {
-        const computedStyle = window.getComputedStyle(el);
-        
-        // Check all CSS properties
-        for (let i = 0; i < computedStyle.length; i++) {
-          const propName = computedStyle[i];
-          const propValue = computedStyle.getPropertyValue(propName);
-          
-          if (propValue && (propValue.includes("oklch") || propValue.includes("oklab") || propValue.includes("color-mix"))) {
-            problematicElements.push({
-              element: el.outerHTML.substring(0, 100),
-              tag: el.tagName,
-              id: (el as HTMLElement).id || "N/A",
-              classes: (el as HTMLElement).className || "N/A",
-              property: propName,
-              value: propValue,
-            });
-            
-            console.warn(`Found oklch/oklab in ${el.tagName}#${(el as HTMLElement).id}.${(el as HTMLElement).className}:`, propName, "=", propValue);
-          }
-        }
-      });
-
-      if (problematicElements.length > 0) {
-        console.error("PROBLEMATIC ELEMENTS FOUND:", problematicElements);
-        throw new Error(`Encontrados ${problematicElements.length} elementos com oklch/oklab: ${JSON.stringify(problematicElements)}`);
-      }
-
-      console.log("✓ Nenhum elemento com oklch/oklab encontrado");
-
-      // Clone the element to avoid modifying the original
+      // Step 1: Clone the element to avoid modifying the original
       const clonedElement = element.cloneNode(true) as HTMLElement;
       
-      // Create a temporary container
+      // Step 2: Create a temporary container
       const tempContainer = document.createElement("div");
       tempContainer.style.position = "absolute";
       tempContainer.style.left = "-9999px";
@@ -64,30 +23,58 @@ export function usePdfGenerator() {
       tempContainer.appendChild(clonedElement);
       document.body.appendChild(tempContainer);
 
-      // Override all computed colors to HEX values
-      const allClonedElements = clonedElement.querySelectorAll("*");
-      allClonedElements.forEach((el) => {
+      // Step 3: Get all elements and apply computed styles as inline styles
+      // This ensures html2canvas only sees RGB/HEX colors, not oklch/oklab
+      const allElements = clonedElement.querySelectorAll("*");
+      allElements.forEach((el) => {
         const htmlEl = el as HTMLElement;
         const computedStyle = window.getComputedStyle(htmlEl);
         
-        // Get computed color values
-        const color = computedStyle.color;
-        const backgroundColor = computedStyle.backgroundColor;
-        const borderColor = computedStyle.borderColor;
+        // Copy ALL computed styles to inline styles to bypass stylesheets
+        // This is the key: html2canvas will use inline styles, not CSS rules
+        for (let i = 0; i < computedStyle.length; i++) {
+          const propName = computedStyle[i];
+          const propValue = computedStyle.getPropertyValue(propName);
+          
+          // Skip if it contains oklch/oklab/color-mix
+          if (propValue && (propValue.includes("oklch") || propValue.includes("oklab") || propValue.includes("color-mix"))) {
+            // Replace with a safe fallback
+            if (propName.includes("color") || propName.includes("background")) {
+              htmlEl.style.setProperty(propName, "rgb(0, 0, 0)", "important");
+            }
+          } else if (propValue) {
+            // Apply the computed style as inline
+            try {
+              htmlEl.style.setProperty(propName, propValue, "important");
+            } catch (e) {
+              // Some properties can't be set, that's OK
+            }
+          }
+        }
         
-        // Apply inline styles to override any oklch
-        if (color && color !== "rgba(0, 0, 0, 0)") {
-          htmlEl.style.color = color;
-        }
-        if (backgroundColor && backgroundColor !== "rgba(0, 0, 0, 0)") {
-          htmlEl.style.backgroundColor = backgroundColor;
-        }
-        if (borderColor && borderColor !== "rgba(0, 0, 0, 0)") {
-          htmlEl.style.borderColor = borderColor;
-        }
+        // Force outline to none
+        htmlEl.style.outline = "none";
+        htmlEl.style.outlineColor = "transparent";
       });
 
-      // Capture the cloned element
+      console.log("✓ Applied all computed styles as inline styles");
+
+      // Step 4: Remove all stylesheets to prevent html2canvas from parsing them
+      // Store references to re-enable later
+      const disabledSheets: CSSStyleSheet[] = [];
+      for (let i = document.styleSheets.length - 1; i >= 0; i--) {
+        const sheet = document.styleSheets[i];
+        try {
+          sheet.disabled = true;
+          disabledSheets.push(sheet);
+        } catch (e) {
+          // Some sheets can't be disabled (cross-origin), that's OK
+        }
+      }
+      console.log(`Disabled ${disabledSheets.length} stylesheets`);
+
+      // Step 5: Capture the cloned element with html2canvas
+      // With all styles as inline and no stylesheets, html2canvas should only see RGB/HEX
       const canvas = await html2canvas(clonedElement, {
         scale: 2,
         useCORS: true,
@@ -127,7 +114,7 @@ export function usePdfGenerator() {
         heightLeft -= pageHeight;
       }
 
-      // Trigger download
+      // Step 6: Trigger download
       try {
         pdf.save(filename);
       } catch (downloadErr) {
@@ -148,15 +135,29 @@ export function usePdfGenerator() {
           throw new Error("Erro ao exportar PDF: " + String(blobErr));
         }
       }
+      
+      console.log("✓ PDF gerado com sucesso!");
       return true;
     } catch (err) {
       console.error("Erro na geração do PDF:", err);
       throw new Error("Erro ao exportar PDF: " + String(err));
     } finally {
-      // Remove temporary container
+      // Step 7: Cleanup - remove temporary container and re-enable stylesheets
       const tempContainer = document.querySelector("div[style*='left: -9999px']");
       if (tempContainer) {
         document.body.removeChild(tempContainer);
+      }
+
+      // Re-enable all disabled stylesheets
+      for (let i = 0; i < document.styleSheets.length; i++) {
+        const sheet = document.styleSheets[i];
+        if (sheet.disabled) {
+          try {
+            sheet.disabled = false;
+          } catch (e) {
+            // Ignore errors
+          }
+        }
       }
     }
   }, []);
