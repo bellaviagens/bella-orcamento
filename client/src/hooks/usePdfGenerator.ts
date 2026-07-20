@@ -11,6 +11,47 @@ export function usePdfGenerator() {
     }
 
     try {
+      // Debug: Scan all elements for oklch/oklab in computed styles
+      const allElements = element.querySelectorAll("*");
+      const problematicElements: Array<{
+        element: string;
+        tag: string;
+        id: string;
+        classes: string;
+        property: string;
+        value: string;
+      }> = [];
+
+      allElements.forEach((el) => {
+        const computedStyle = window.getComputedStyle(el);
+        
+        // Check all CSS properties
+        for (let i = 0; i < computedStyle.length; i++) {
+          const propName = computedStyle[i];
+          const propValue = computedStyle.getPropertyValue(propName);
+          
+          if (propValue && (propValue.includes("oklch") || propValue.includes("oklab") || propValue.includes("color-mix"))) {
+            problematicElements.push({
+              element: el.outerHTML.substring(0, 100),
+              tag: el.tagName,
+              id: (el as HTMLElement).id || "N/A",
+              classes: (el as HTMLElement).className || "N/A",
+              property: propName,
+              value: propValue,
+            });
+            
+            console.warn(`Found oklch/oklab in ${el.tagName}#${(el as HTMLElement).id}.${(el as HTMLElement).className}:`, propName, "=", propValue);
+          }
+        }
+      });
+
+      if (problematicElements.length > 0) {
+        console.error("PROBLEMATIC ELEMENTS FOUND:", problematicElements);
+        throw new Error(`Encontrados ${problematicElements.length} elementos com oklch/oklab: ${JSON.stringify(problematicElements)}`);
+      }
+
+      console.log("✓ Nenhum elemento com oklch/oklab encontrado");
+
       // Clone the element to avoid modifying the original
       const clonedElement = element.cloneNode(true) as HTMLElement;
       
@@ -23,33 +64,28 @@ export function usePdfGenerator() {
       tempContainer.appendChild(clonedElement);
       document.body.appendChild(tempContainer);
 
-      // Remove all style attributes that might contain oklch
-      const allElements = clonedElement.querySelectorAll("*");
-      allElements.forEach((el) => {
-        const element = el as HTMLElement;
-        const style = element.getAttribute("style");
-        if (style && (style.includes("oklch") || style.includes("oklab") || style.includes("color-mix"))) {
-          element.removeAttribute("style");
+      // Override all computed colors to HEX values
+      const allClonedElements = clonedElement.querySelectorAll("*");
+      allClonedElements.forEach((el) => {
+        const htmlEl = el as HTMLElement;
+        const computedStyle = window.getComputedStyle(htmlEl);
+        
+        // Get computed color values
+        const color = computedStyle.color;
+        const backgroundColor = computedStyle.backgroundColor;
+        const borderColor = computedStyle.borderColor;
+        
+        // Apply inline styles to override any oklch
+        if (color && color !== "rgba(0, 0, 0, 0)") {
+          htmlEl.style.color = color;
+        }
+        if (backgroundColor && backgroundColor !== "rgba(0, 0, 0, 0)") {
+          htmlEl.style.backgroundColor = backgroundColor;
+        }
+        if (borderColor && borderColor !== "rgba(0, 0, 0, 0)") {
+          htmlEl.style.borderColor = borderColor;
         }
       });
-
-      // Create a clean stylesheet without oklch/oklab/color-mix
-      const cleanStyle = document.createElement("style");
-      cleanStyle.textContent = `
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-        body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-          background: white;
-          color: #000;
-        }
-        .dark { color-scheme: light; }
-        button, input, select, textarea { font-family: inherit; }
-      `;
-      clonedElement.appendChild(cleanStyle);
 
       // Capture the cloned element
       const canvas = await html2canvas(clonedElement, {
