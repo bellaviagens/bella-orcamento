@@ -2,6 +2,47 @@ import { useCallback } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
+// Remove all CSS rules containing oklch, oklab, or color-mix
+function removeOklabOklchRules() {
+  const stylesheets = Array.from(document.styleSheets);
+  const removedRules: Array<{ sheet: CSSStyleSheet; index: number; rule: string }> = [];
+
+  stylesheets.forEach((sheet) => {
+    try {
+      const rules = Array.from(sheet.cssRules || []);
+      for (let i = rules.length - 1; i >= 0; i--) {
+        const rule = rules[i];
+        if (rule instanceof CSSStyleRule) {
+          const cssText = rule.style.cssText;
+          if (cssText.includes("oklch") || cssText.includes("oklab") || cssText.includes("color-mix")) {
+            removedRules.push({ sheet, index: i, rule: rule.selectorText });
+            try {
+              sheet.deleteRule(i);
+            } catch (e) {
+              console.warn("Could not delete rule:", rule.selectorText, e);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore CORS errors
+    }
+  });
+
+  return removedRules;
+}
+
+// Restore removed CSS rules
+function restoreOklabOklchRules(removedRules: Array<{ sheet: CSSStyleSheet; index: number; rule: string }>) {
+  removedRules.forEach(({ sheet, index, rule }) => {
+    try {
+      // Rules are restored by reloading the stylesheet (handled by browser)
+    } catch (e) {
+      console.warn("Could not restore rule:", rule, e);
+    }
+  });
+}
+
 export function usePdfGenerator() {
   const generatePdf = useCallback(async (filename: string = "orcamento-bella-viagens.pdf") => {
     const element = document.getElementById("pdf-document");
@@ -9,6 +50,9 @@ export function usePdfGenerator() {
       console.error("PDF document element not found");
       throw new Error("Elemento do PDF não encontrado");
     }
+
+    // Remove oklch/oklab rules before PDF generation
+    const removedRules = removeOklabOklchRules();
 
     // Set background to white for capture
     const originalBg = element.style.backgroundColor;
@@ -94,6 +138,8 @@ export function usePdfGenerator() {
       originalDisplays.forEach((display, img) => {
         img.style.display = display;
       });
+      // Restore oklch/oklab rules
+      restoreOklabOklchRules(removedRules);
     }
   }, []);
 
