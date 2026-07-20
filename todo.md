@@ -55,3 +55,7 @@
 - [x] Adicionar campo benefits ao FareTier e renderizar no HotelCard
 - [x] Sincronizar benefícios ao editar tarifas existentes (recalcular quando checkboxes mudam)
 - [ ] Validar manualmente o download do PDF no navegador após correção de erros
+
+- [x] Adicionar campos de parcelamento numéricos (aéreo e hotel)
+- [x] Adicionar opção de "Parcelar tudo junto"
+- [ ] Mostrar parcelamento no PDF preview

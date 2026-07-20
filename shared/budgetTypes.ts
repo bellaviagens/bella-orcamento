@@ -86,6 +86,11 @@ export interface BudgetData {
   fareComparison: FareComparison;
   baggage: BaggageItem[];
   hotels: Hotel[];
+  installments?: {
+    flight?: number; // Parcelamento do aéreo
+    hotel?: number; // Parcelamento do hotel
+    combined?: boolean; // Se true, soma aéreo + hotel e divide pelas parcelas
+  };
 }
 
 export const defaultBudgetData: BudgetData = {

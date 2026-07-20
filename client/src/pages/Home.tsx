@@ -5,6 +5,7 @@ import { FlightForm } from "@/components/forms/FlightForm";
 import { HotelForm } from "@/components/forms/HotelForm";
 import { FareForm } from "@/components/forms/FareForm";
 import { BaggageForm } from "@/components/forms/BaggageForm";
+import { InstallmentsForm } from "@/components/forms/InstallmentsForm";
 import { PdfPreview } from "@/components/pdf/PdfPreview";
 import { usePdfGenerator } from "@/hooks/usePdfGenerator";
 import { Button } from "@/components/ui/button";
@@ -82,7 +83,7 @@ function BuilderContent() {
           <ScrollArea className="flex-1">
             <div className="p-6">
               <Tabs defaultValue="trip" className="w-full">
-                <TabsList className="grid w-full grid-cols-5 mb-4">
+                <TabsList className="grid w-full grid-cols-6 mb-4">
                   <TabsTrigger value="trip" className="text-xs">
                     <FileText className="h-3.5 w-3.5 mr-1" />
                     Viagem
@@ -102,6 +103,10 @@ function BuilderContent() {
                   <TabsTrigger value="baggage" className="text-xs">
                     <Settings className="h-3.5 w-3.5 mr-1" />
                     Bagagens
+                  </TabsTrigger>
+                  <TabsTrigger value="installments" className="text-xs">
+                    <Settings className="h-3.5 w-3.5 mr-1" />
+                    Parcelamento
                   </TabsTrigger>
                 </TabsList>
 
@@ -150,6 +155,15 @@ function BuilderContent() {
                       Bagagens
                     </h3>
                     <BaggageForm />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="installments" className="mt-0">
+                  <div className="rounded-xl border border-slate-200 bg-white p-5">
+                    <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
+                      Parcelamento
+                    </h3>
+                    <InstallmentsForm />
                   </div>
                 </TabsContent>
               </Tabs>
