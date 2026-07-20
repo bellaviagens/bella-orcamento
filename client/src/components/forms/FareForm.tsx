@@ -15,9 +15,9 @@ export function FareForm() {
 
   // Form state
   const [name, setName] = useState("");
-  const [bagageType, setBagageType] = useState("");
-  const [checkInType, setCheckInType] = useState("");
-  const [changes, setChanges] = useState("");
+  const [bagages, setBagages] = useState<string[]>([]);
+  const [checkIns, setCheckIns] = useState<string[]>([]);
+  const [changes, setChanges] = useState<string[]>([]);
   const [flightPrice, setFlightPrice] = useState(0);
   const [highlighted, setHighlighted] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
@@ -47,18 +47,38 @@ export function FareForm() {
 
   // Gerar benefícios baseado nas seleções
   const getBenefits = () => {
-    const benefits = [];
-    if (bagageType) benefits.push(bagageType);
-    if (checkInType) benefits.push(checkInType);
-    if (changes) benefits.push(changes);
-    return benefits;
+    return [...bagages, ...checkIns, ...changes];
+  };
+
+  const toggleBagage = (bagage: string) => {
+    setBagages((prev) =>
+      prev.includes(bagage) ? prev.filter((b) => b !== bagage) : [...prev, bagage]
+    );
+  };
+
+  const toggleCheckIn = (checkIn: string) => {
+    setCheckIns((prev) =>
+      prev.includes(checkIn) ? prev.filter((c) => c !== checkIn) : [...prev, checkIn]
+    );
+  };
+
+  const toggleChange = (change: string) => {
+    setChanges((prev) =>
+      prev.includes(change) ? prev.filter((c) => c !== change) : [...prev, change]
+    );
+  };
+
+  const togglePayment = (payment: string) => {
+    setPaymentMethods((prev) =>
+      prev.includes(payment) ? prev.filter((p) => p !== payment) : [...prev, payment]
+    );
   };
 
   const resetForm = () => {
     setName("");
-    setBagageType("");
-    setCheckInType("");
-    setChanges("");
+    setBagages([]);
+    setCheckIns([]);
+    setChanges([]);
     setFlightPrice(0);
     setHighlighted(false);
     setPaymentMethods([]);
@@ -73,8 +93,8 @@ export function FareForm() {
 
     addFareTier({
       name: name.trim(),
-      bagageType,
-      checkInType,
+      bagages,
+      checkIns,
       changes,
       flightPrice,
       highlighted,
@@ -117,43 +137,63 @@ export function FareForm() {
 
               <div className="space-y-2 text-xs mb-2">
                 <div>
-                  <Label className="text-[10px] text-slate-500">Bagagem</Label>
-                  <select
-                    value={tier.bagageType || ""}
-                    onChange={(e) => updateFareTier(tier.id, { bagageType: e.target.value })}
-                    className="w-full h-8 text-xs border border-slate-200 rounded px-2 mt-1"
-                  >
-                    <option value="">Selecionar...</option>
+                  <Label className="text-[10px] text-slate-500 font-semibold">Bagagem</Label>
+                  <div className="space-y-1 mt-1">
                     {bagageOptions.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
+                      <div key={opt} className="flex items-center gap-2">
+                        <Checkbox
+                          checked={(tier.bagages || []).includes(opt)}
+                          onCheckedChange={(checked) => {
+                            const newBagages = checked
+                              ? [...(tier.bagages || []), opt]
+                              : (tier.bagages || []).filter((b) => b !== opt);
+                            updateFareTier(tier.id, { bagages: newBagages });
+                          }}
+                        />
+                        <span className="text-slate-600">{opt}</span>
+                      </div>
                     ))}
-                  </select>
+                  </div>
                 </div>
+
                 <div>
-                  <Label className="text-[10px] text-slate-500">Check-in</Label>
-                  <select
-                    value={tier.checkInType || ""}
-                    onChange={(e) => updateFareTier(tier.id, { checkInType: e.target.value })}
-                    className="w-full h-8 text-xs border border-slate-200 rounded px-2 mt-1"
-                  >
-                    <option value="">Selecionar...</option>
+                  <Label className="text-[10px] text-slate-500 font-semibold">Check-in</Label>
+                  <div className="space-y-1 mt-1">
                     {checkInOptions.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
+                      <div key={opt} className="flex items-center gap-2">
+                        <Checkbox
+                          checked={(tier.checkIns || []).includes(opt)}
+                          onCheckedChange={(checked) => {
+                            const newCheckIns = checked
+                              ? [...(tier.checkIns || []), opt]
+                              : (tier.checkIns || []).filter((c) => c !== opt);
+                            updateFareTier(tier.id, { checkIns: newCheckIns });
+                          }}
+                        />
+                        <span className="text-slate-600">{opt}</span>
+                      </div>
                     ))}
-                  </select>
+                  </div>
                 </div>
+
                 <div>
-                  <Label className="text-[10px] text-slate-500">Alterações/Reembolso</Label>
-                  <select
-                    value={tier.changes || ""}
-                    onChange={(e) => updateFareTier(tier.id, { changes: e.target.value })}
-                    className="w-full h-8 text-xs border border-slate-200 rounded px-2 mt-1"
-                  >
-                    <option value="">Selecionar...</option>
+                  <Label className="text-[10px] text-slate-500 font-semibold">Alterações/Reembolso</Label>
+                  <div className="space-y-1 mt-1">
                     {changesOptions.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
+                      <div key={opt} className="flex items-center gap-2">
+                        <Checkbox
+                          checked={(tier.changes || []).includes(opt)}
+                          onCheckedChange={(checked) => {
+                            const newChanges = checked
+                              ? [...(tier.changes || []), opt]
+                              : (tier.changes || []).filter((c) => c !== opt);
+                            updateFareTier(tier.id, { changes: newChanges });
+                          }}
+                        />
+                        <span className="text-slate-600">{opt}</span>
+                      </div>
                     ))}
-                  </select>
+                  </div>
                 </div>
               </div>
 
@@ -222,47 +262,47 @@ export function FareForm() {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs font-semibold">Benefícios</Label>
-            <div className="space-y-2">
-              <div>
-                <Label className="text-xs">Bagagem</Label>
-                <select
-                  value={bagageType}
-                  onChange={(e) => setBagageType(e.target.value)}
-                  className="w-full h-8 text-xs border border-slate-200 rounded px-2 mt-1"
-                >
-                  <option value="">Selecionar...</option>
-                  {bagageOptions.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <Label className="text-xs">Check-in</Label>
-                <select
-                  value={checkInType}
-                  onChange={(e) => setCheckInType(e.target.value)}
-                  className="w-full h-8 text-xs border border-slate-200 rounded px-2 mt-1"
-                >
-                  <option value="">Selecionar...</option>
-                  {checkInOptions.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <Label className="text-xs">Alterações/Reembolso</Label>
-                <select
-                  value={changes}
-                  onChange={(e) => setChanges(e.target.value)}
-                  className="w-full h-8 text-xs border border-slate-200 rounded px-2 mt-1"
-                >
-                  <option value="">Selecionar...</option>
-                  {changesOptions.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
-              </div>
+            <Label className="text-xs font-semibold">Bagagem</Label>
+            <div className="space-y-1.5">
+              {bagageOptions.map((opt) => (
+                <div key={opt} className="flex items-center gap-2">
+                  <Checkbox
+                    checked={bagages.includes(opt)}
+                    onCheckedChange={() => toggleBagage(opt)}
+                  />
+                  <span className="text-xs text-slate-600">{opt}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold">Check-in</Label>
+            <div className="space-y-1.5">
+              {checkInOptions.map((opt) => (
+                <div key={opt} className="flex items-center gap-2">
+                  <Checkbox
+                    checked={checkIns.includes(opt)}
+                    onCheckedChange={() => toggleCheckIn(opt)}
+                  />
+                  <span className="text-xs text-slate-600">{opt}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold">Alterações/Reembolso</Label>
+            <div className="space-y-1.5">
+              {changesOptions.map((opt) => (
+                <div key={opt} className="flex items-center gap-2">
+                  <Checkbox
+                    checked={changes.includes(opt)}
+                    onCheckedChange={() => toggleChange(opt)}
+                  />
+                  <span className="text-xs text-slate-600">{opt}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -284,13 +324,7 @@ export function FareForm() {
                 <div key={method} className="flex items-center gap-2">
                   <Checkbox
                     checked={paymentMethods.includes(method)}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setPaymentMethods([...paymentMethods, method]);
-                      } else {
-                        setPaymentMethods(paymentMethods.filter((m) => m !== method));
-                      }
-                    }}
+                    onCheckedChange={() => togglePayment(method)}
                   />
                   <span className="text-xs text-slate-600">{method}</span>
                 </div>

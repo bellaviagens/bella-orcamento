@@ -53,9 +53,9 @@ export interface TripInfo {
 export interface FareTier {
   id: string;
   name: string;
-  bagageType?: string; // Bagagem de mão, 10kg, 23kg
-  checkInType?: string; // Embarque prioritário, Check-in prioritário
-  changes?: string; // Alteração/Reembolso sem taxa, com taxa
+  bagages?: string[]; // Múltiplas opções de bagagem
+  checkIns?: string[]; // Múltiplas opções de check-in
+  changes?: string[]; // Múltiplas opções de alteração/reembolso
   flightPrice: number;
   highlighted?: boolean; // para destacar uma tarifa
   paymentMethods?: string[]; // Cartão, Dinheiro, PIX
@@ -65,6 +65,8 @@ export interface FareTier {
   carryOn?: boolean;
   checkedBag?: boolean;
   seatSelection?: boolean;
+  bagageType?: string;
+  checkInType?: string;
 }
 
 export interface FareComparison {
