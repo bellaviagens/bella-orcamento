@@ -137,10 +137,10 @@ export function PdfPreview({ data, includeAirfare = true }: PdfPreviewProps) {
                   <div className="text-xs text-slate-500 mb-3">{b.weight}</div>
                   <div className="space-y-1">
                     <div className="text-xs text-slate-500">
-                      Com antecedência: <span className="font-bold text-[#1a2e4a]">{formatCurrency(b.priceAdvance)}</span>
+                      Antecipado: <span className="font-bold text-[#1a2e4a]">{formatCurrency(b.priceAdvance)}</span>
                     </div>
                     <div className="text-xs text-slate-500">
-                      No aeroporto: <span className="font-bold text-[#1a2e4a]">{formatCurrency(b.priceAirport)}</span>
+                      Aeroporto: <span className="font-bold text-[#1a2e4a]">{formatCurrency(b.priceAirport)}</span>
                     </div>
                   </div>
                 </div>
