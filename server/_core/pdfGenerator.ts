@@ -21,16 +21,24 @@ export function registerPdfRoutes(app: Express) {
       try {
         // Write HTML to temporary file
         writeFileSync(tempHtmlPath, html, "utf-8");
+        console.log(`[PDF] HTML written to ${tempHtmlPath}`);
 
         // Use WeasyPrint to generate PDF
         // WeasyPrint supports modern CSS including oklch/oklab
-        execSync(`weasyprint "${tempHtmlPath}" "${tempPdfPath}"`, {
-          stdio: "pipe",
-          timeout: 30000,
-        });
+        try {
+          execSync(`weasyprint "${tempHtmlPath}" "${tempPdfPath}"`, {
+            stdio: "pipe",
+            timeout: 30000,
+          });
+          console.log(`[PDF] PDF generated at ${tempPdfPath}`);
+        } catch (execError) {
+          console.error(`[PDF] WeasyPrint execution failed:`, execError);
+          throw new Error(`WeasyPrint failed: ${execError instanceof Error ? execError.message : String(execError)}`);
+        }
 
         // Read the generated PDF
         const pdfBuffer = readFileSync(tempPdfPath);
+        console.log(`[PDF] PDF read successfully, size: ${pdfBuffer.length} bytes`);
 
         // Send PDF to client
         res.setHeader("Content-Type", "application/pdf");
@@ -50,10 +58,13 @@ export function registerPdfRoutes(app: Express) {
         }
       }
     } catch (error) {
-      console.error("PDF generation error:", error);
+      console.error("[PDF] Generation error:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : "";
+      console.error("[PDF] Stack:", errorStack);
       res.status(500).json({
         error: "Failed to generate PDF",
-        details: error instanceof Error ? error.message : String(error),
+        details: errorMessage,
       });
     }
   });
