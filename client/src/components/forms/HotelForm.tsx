@@ -6,9 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Star, MapPin, Upload, Loader2, Building2, Edit2, ExternalLink } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { Hotel } from "@shared/budgetTypes";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
+}
 
 export function HotelForm() {
   const { budget, addHotel, updateHotel, removeHotel } = useBudget();
@@ -29,6 +37,10 @@ export function HotelForm() {
   const [photoUrl, setPhotoUrl] = useState("");
   const [hotelUrl, setHotelUrl] = useState("");
   const [totalPrice, setTotalPrice] = useState(0);
+  const [priceMode, setPriceMode] = useState<"total" | "daily">("total");
+  const [dailyPrice, setDailyPrice] = useState(0);
+  const [nights, setNights] = useState(0);
+  const [startOnNewPage, setStartOnNewPage] = useState(false);
   const [prices, setPrices] = useState<Record<string, { total: number; perPerson: number }>>({});
 
   const parseHotelMutation = trpc.parseHotelScreenshot.useMutation();
@@ -45,6 +57,10 @@ export function HotelForm() {
     setPhotoUrl("");
     setHotelUrl("");
     setTotalPrice(0);
+    setPriceMode("total");
+    setDailyPrice(0);
+    setNights(0);
+    setStartOnNewPage(false);
     setPrices({});
     setEditingId(null);
   };
@@ -61,6 +77,10 @@ export function HotelForm() {
     setPhotoUrl(hotel.photoUrl);
     setHotelUrl(hotel.hotelUrl || "");
     setTotalPrice(hotel.totalPrice);
+    setPriceMode(hotel.priceMode || "total");
+    setDailyPrice(hotel.dailyPrice || 0);
+    setNights(hotel.nights || 0);
+    setStartOnNewPage(hotel.startOnNewPage || false);
     setPrices(hotel.prices);
     setShowForm(true);
   };
@@ -91,6 +111,10 @@ export function HotelForm() {
       photoUrl,
       hotelUrl,
       totalPrice,
+      priceMode,
+      dailyPrice,
+      nights,
+      startOnNewPage,
       prices,
     };
 
@@ -357,19 +381,78 @@ export function HotelForm() {
             </div>
           </div>
 
+          {/* Price Mode Selector */}
           <div>
-            <Label className="text-xs">Preço Total do Hotel (R$)</Label>
-            <Input
-              type="number"
-              step="0.01"
-              min="0"
-              value={totalPrice || ""}
-              onChange={(e) => setTotalPrice(parseFloat(e.target.value) || 0)}
-              placeholder="Ex: 2500.00"
-              className="mt-1"
-            />
-            <p className="text-[10px] text-slate-500 mt-1">Preço total da hospedagem (será somado com o aéreo)</p>
+            <Label className="text-xs font-bold text-slate-600">Tipo de Preço</Label>
+            <div className="flex items-center gap-3 mt-2">
+              <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+                <input
+                  type="radio"
+                  checked={priceMode === "total"}
+                  onChange={() => setPriceMode("total")}
+                  className="h-3 w-3"
+                />
+                Valor Total
+              </label>
+              <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+                <input
+                  type="radio"
+                  checked={priceMode === "daily"}
+                  onChange={() => setPriceMode("daily")}
+                  className="h-3 w-3"
+                />
+                Por Diária
+              </label>
+            </div>
           </div>
+
+          {/* Price inputs based on mode */}
+          {priceMode === "total" ? (
+            <div>
+              <Label className="text-xs">Preço Total do Hotel (R$)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                value={totalPrice || ""}
+                onChange={(e) => setTotalPrice(parseFloat(e.target.value) || 0)}
+                placeholder="Ex: 2500.00"
+                className="mt-1"
+              />
+              <p className="text-[10px] text-slate-500 mt-1">Preço total da hospedagem (será somado com o aéreo)</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Valor da Diária (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={dailyPrice || ""}
+                  onChange={(e) => setDailyPrice(parseFloat(e.target.value) || 0)}
+                  placeholder="Ex: 500.00"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Nº de Diárias</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={nights || ""}
+                  onChange={(e) => setNights(parseInt(e.target.value) || 0)}
+                  placeholder="Ex: 7"
+                  className="mt-1"
+                />
+              </div>
+              {dailyPrice > 0 && nights > 0 && (
+                <div className="col-span-2 text-[10px] text-slate-500">
+                  Total calculado: <span className="font-bold text-[#1a2e4a]">{formatCurrency(dailyPrice * nights)}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           <div>
             <Label className="text-xs">URL da Foto</Label>
@@ -490,6 +573,18 @@ export function HotelForm() {
               </div>
             </div>
           )}
+
+          {/* Page break option */}
+          <div className="flex items-center gap-2 border-t border-slate-200 pt-3">
+            <Checkbox
+              id="hotel-new-page"
+              checked={startOnNewPage}
+              onCheckedChange={(checked) => setStartOnNewPage(checked as boolean)}
+            />
+            <Label htmlFor="hotel-new-page" className="text-xs cursor-pointer">
+              Começar em nova página no PDF
+            </Label>
+          </div>
 
           <Button onClick={handleSave} className="w-full">
             <Building2 className="h-4 w-4 mr-2" />

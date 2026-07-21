@@ -33,12 +33,18 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
     }
   }, [imageProxyQuery.data]);
 
+  // Calculate effective total price based on price mode
+  const effectiveTotalPrice =
+    hotel.priceMode === "daily" && hotel.dailyPrice && hotel.nights
+      ? hotel.dailyPrice * hotel.nights
+      : hotel.totalPrice;
+
   return (
     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
       {/* Photo */}
       <div className="h-40 bg-slate-100 overflow-hidden flex items-center justify-center">
         {proxiedPhotoUrl ? (
-          <img src={proxiedPhotoUrl} alt={hotel.name} className="w-full h-full object-cover" />
+          <img src={proxiedPhotoUrl} alt={hotel.name} className="w-full h-full object-cover" crossOrigin="anonymous" />
         ) : (
           <div className="text-slate-400 text-sm">Sem foto</div>
         )}
@@ -72,13 +78,14 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
           <span>{hotel.address}</span>
         </div>
 
-        {/* Hotel URL link */}
+        {/* Hotel URL link - clickable in PDF */}
         {hotel.hotelUrl && (
           <div className="mb-3">
             <a
               href={hotel.hotelUrl}
               target="_blank"
               rel="noopener noreferrer"
+              data-pdf-link={hotel.hotelUrl}
               className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 underline"
             >
               Ver no site
@@ -106,11 +113,22 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
           </div>
         )}
 
+        {/* Daily price info */}
+        {hotel.priceMode === "daily" && hotel.dailyPrice && hotel.nights ? (
+          <div className="mb-3 text-xs text-slate-500">
+            Diária: <span className="font-bold text-[#1a2e4a]">{formatCurrency(hotel.dailyPrice)}</span>
+            {" × "}
+            <span className="font-bold text-[#1a2e4a]">{hotel.nights} diárias</span>
+            {" = "}
+            <span className="font-bold text-[#1a2e4a]">{formatCurrency(effectiveTotalPrice)}</span>
+          </div>
+        ) : null}
+
         {/* Prices grid - Total with flight included */}
         {tiers.length > 0 ? (
           <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(tiers.length, 3)}, 1fr)` }}>
             {tiers.map((tier) => {
-              const basePrice = includeAirfare ? hotel.totalPrice + tier.flightPrice : hotel.totalPrice;
+              const basePrice = includeAirfare ? effectiveTotalPrice + tier.flightPrice : effectiveTotalPrice;
               const totalPrice = basePrice * passengers;
               const perPersonPrice = basePrice;
               const label = includeAirfare ? `Com Aéreo ${tier.name}` : tier.name;
@@ -142,16 +160,16 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
               );
             })}
           </div>
-        ) : hotel.totalPrice > 0 ? (
+        ) : effectiveTotalPrice > 0 ? (
           <div className="rounded-lg border border-slate-200 p-3 text-center bg-blue-50 border-blue-300">
             <div className="text-[10px] font-bold mb-2 uppercase text-blue-700">
-              Preco do Hotel
+              Preço do Hotel
             </div>
             <div className="text-sm font-bold text-blue-600">
-              {formatCurrency(hotel.totalPrice * passengers)}
+              {formatCurrency(effectiveTotalPrice * passengers)}
             </div>
             <div className="text-[10px] text-blue-600/70">
-              {formatCurrency(hotel.totalPrice)} / pessoa
+              {formatCurrency(effectiveTotalPrice)} / pessoa
             </div>
           </div>
         ) : (

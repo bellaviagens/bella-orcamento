@@ -40,6 +40,10 @@ export interface Hotel {
   hotelUrl?: string; // Booking, Airbnb, etc
   totalPrice: number; // Preço total do hotel (para toda a hospedagem)
   prices: Record<string, HotelPriceByFare>; // tierId -> prices
+  priceMode?: "total" | "daily"; // Se "daily", usa dailyPrice * nights
+  dailyPrice?: number; // Preço por diária
+  nights?: number; // Número de diárias
+  startOnNewPage?: boolean; // Se true, começa em nova página no PDF
 }
 
 export interface TripInfo {
@@ -90,6 +94,12 @@ export interface BudgetData {
     flight?: number; // Parcelamento do aéreo
     hotel?: number; // Parcelamento do hotel
     combined?: boolean; // Se true, soma aéreo + hotel e divide pelas parcelas
+  };
+  pageBreaks?: {
+    flights?: boolean; // Iniciar voos em nova página
+    hotels?: boolean; // Iniciar hotéis em nova página
+    baggage?: boolean; // Iniciar bagagem em nova página
+    payment?: boolean; // Iniciar pagamento em nova página
   };
 }
 

@@ -17,12 +17,40 @@ function formatCurrency(value: number): string {
 
 export function PdfPreview({ data, includeAirfare = true }: PdfPreviewProps) {
   const { tripInfo, flights, fareComparison, baggage, hotels } = data;
+  const pageBreaks = data.pageBreaks || {};
+
+  // Calculate total for installment display
+  const passengerCount = parseInt(tripInfo.passengers) || 1;
+
+  // Calculate total aéreo (flight) price
+  const flightTotal = fareComparison.tiers.reduce((sum, tier) => sum + tier.flightPrice, 0);
+  const flightPerPerson = fareComparison.tiers.length > 0 ? flightTotal / fareComparison.tiers.length : 0;
+
+  // Calculate total hotel price
+  const hotelTotal = hotels.reduce((sum, hotel) => {
+    const effectivePrice = hotel.priceMode === "daily" && hotel.dailyPrice && hotel.nights
+      ? hotel.dailyPrice * hotel.nights
+      : hotel.totalPrice;
+    return sum + effectivePrice;
+  }, 0);
+
+  // Installment calculation
+  const installments = data.installments;
+  const flightInstallments = installments?.flight || 1;
+  const hotelInstallments = installments?.hotel || 1;
+
+  const flightInstallmentValue = flightTotal > 0 ? flightTotal / flightInstallments : 0;
+  const hotelInstallmentValue = hotelTotal > 0 ? hotelTotal / hotelInstallments : 0;
+
+  const combinedTotal = flightTotal + hotelTotal;
+  const combinedInstallments = Math.max(flightInstallments, hotelInstallments);
+  const combinedInstallmentValue = combinedTotal > 0 ? combinedTotal / combinedInstallments : 0;
 
   return (
     <div
       id="pdf-document"
       className="bg-white mx-auto"
-      style={{ width: "100%", maxWidth: "800px", minHeight: "1120px", fontFamily: "Inter, sans-serif" }}
+      style={{ width: "100%", maxWidth: "800px", fontFamily: "Inter, sans-serif" }}
     >
       {/* HEADER */}
       <div className="bg-[#1a2e4a] text-white px-8 py-6 flex items-center justify-between">
@@ -81,7 +109,7 @@ export function PdfPreview({ data, includeAirfare = true }: PdfPreviewProps) {
 
       {/* FLIGHTS SECTION */}
       {flights.length > 0 && (
-        <div className="px-8 py-4">
+        <div className="px-8 py-4" {...(pageBreaks.flights ? { "data-page-break": "true" } : {})}>
           <h3
             className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
             style={{ fontFamily: "Poppins, sans-serif" }}
@@ -98,7 +126,7 @@ export function PdfPreview({ data, includeAirfare = true }: PdfPreviewProps) {
 
       {/* HOTELS SECTION */}
       {hotels.length > 0 && (
-        <div className="px-8 py-4">
+        <div className="px-8 py-4" {...(pageBreaks.hotels ? { "data-page-break": "true" } : {})}>
           <h3
             className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
             style={{ fontFamily: "Poppins, sans-serif" }}
@@ -107,20 +135,25 @@ export function PdfPreview({ data, includeAirfare = true }: PdfPreviewProps) {
           </h3>
           <div className="space-y-4">
             {hotels.map((hotel, idx) => {
-              const passengerCount = parseInt(tripInfo.passengers) || 1;
               return (
-                <HotelCard key={hotel.id} hotel={hotel} index={idx} tiers={fareComparison.tiers} passengers={passengerCount} includeAirfare={includeAirfare} />
+                <div key={hotel.id} {...(hotel.startOnNewPage && idx > 0 ? { "data-page-break": "true" } : {})}>
+                  <HotelCard
+                    hotel={hotel}
+                    index={idx}
+                    tiers={fareComparison.tiers}
+                    passengers={passengerCount}
+                    includeAirfare={includeAirfare}
+                  />
+                </div>
               );
             })}
           </div>
         </div>
       )}
 
-
-
       {/* BAGGAGE GUIDE */}
       {baggage.some((b) => b.priceAdvance > 0 || b.priceAirport > 0) && (
-        <div className="px-8 py-4">
+        <div className="px-8 py-4" {...(pageBreaks.baggage ? { "data-page-break": "true" } : {})}>
           <h3
             className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
             style={{ fontFamily: "Poppins, sans-serif" }}
@@ -151,27 +184,52 @@ export function PdfPreview({ data, includeAirfare = true }: PdfPreviewProps) {
       )}
 
       {/* INSTALLMENTS SECTION */}
-      {(data.installments?.flight || data.installments?.hotel) && (
-        <div className="px-8 py-4">
-          <h3 className="text-xs font-bold text-[#1a2e4a] mb-3 uppercase tracking-wide">Formas de Pagamento</h3>
-          <div className="space-y-2 text-xs text-slate-600">
-            {data.installments?.combined ? (
-              <p>
-                <span className="font-semibold">Parcelamento Total:</span> Aéreo + Hotel parcelado em até {data.installments.flight || data.installments.hotel}x
-              </p>
+      {(installments?.flight || installments?.hotel) && (
+        <div className="px-8 py-4" {...(pageBreaks.payment ? { "data-page-break": "true" } : {})}>
+          <h3
+            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            Formas de Pagamento
+          </h3>
+          <div className="space-y-3">
+            {installments?.combined ? (
+              <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
+                <div className="text-sm font-semibold text-[#1a2e4a] mb-2">
+                  Parcelamento Total: Aéreo + Hotel
+                </div>
+                <div className="text-2xl font-bold text-[#1a2e4a]">
+                  {combinedInstallments}x de {formatCurrency(combinedInstallmentValue)}
+                </div>
+                <div className="text-xs text-slate-500 mt-1">
+                  Valor total: {formatCurrency(combinedTotal)}
+                </div>
+              </div>
             ) : (
-              <>
-                {data.installments?.flight && (
-                  <p>
-                    <span className="font-semibold">Aéreo:</span> Até {data.installments.flight}x
-                  </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {installments?.flight && flightTotal > 0 && (
+                  <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
+                    <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Aéreo</div>
+                    <div className="text-xl font-bold text-[#1a2e4a]">
+                      {flightInstallments}x de {formatCurrency(flightInstallmentValue)}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      Total: {formatCurrency(flightTotal)}
+                    </div>
+                  </div>
                 )}
-                {data.installments?.hotel && (
-                  <p>
-                    <span className="font-semibold">Hotel:</span> Até {data.installments.hotel}x
-                  </p>
+                {installments?.hotel && hotelTotal > 0 && (
+                  <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
+                    <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Hotel</div>
+                    <div className="text-xl font-bold text-[#1a2e4a]">
+                      {hotelInstallments}x de {formatCurrency(hotelInstallmentValue)}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      Total: {formatCurrency(hotelTotal)}
+                    </div>
+                  </div>
                 )}
-              </>
+              </div>
             )}
           </div>
         </div>

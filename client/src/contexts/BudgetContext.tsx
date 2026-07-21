@@ -16,6 +16,7 @@ interface BudgetContextType {
   removeFareTier: (id: string) => void;
   updateBaggage: (index: number, field: string, value: string | number) => void;
   updateInstallments: (field: "flight" | "hotel" | "combined", value: number | boolean) => void;
+  updatePageBreaks: (field: "flights" | "hotels" | "baggage" | "payment", value: boolean) => void;
   resetBudget: () => void;
 }
 
@@ -144,6 +145,16 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const updatePageBreaks = useCallback((field: "flights" | "hotels" | "baggage" | "payment", value: boolean) => {
+    setBudget((prev) => ({
+      ...prev,
+      pageBreaks: {
+        ...prev.pageBreaks,
+        [field]: value,
+      },
+    }));
+  }, []);
+
   const resetBudget = useCallback(() => {
     setBudget(defaultBudgetData);
   }, []);
@@ -164,6 +175,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         removeFareTier,
         updateBaggage,
         updateInstallments,
+        updatePageBreaks,
         resetBudget,
       }}
     >
