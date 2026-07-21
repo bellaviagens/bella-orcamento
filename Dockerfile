@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install WeasyPrint via pip
-RUN pip3 install --no-cache-dir weasyprint
+RUN pip3 install --no-cache-dir --break-system-packages weasyprint
 
 WORKDIR /app
 
