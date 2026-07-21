@@ -125,67 +125,37 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
         </div>
       )}
 
-      {/* FARES SECTION */}
-      {fareComparison.tiers.length > 0 && includeAirfare && (
+      {/* FARES SECTION - Only when no hotels (flight-only view) */}
+      {fareComparison.tiers.length > 0 && includeAirfare && hotels.length === 0 && (
         <div className="px-8 py-4" {...(pageBreaks.fares ? { "data-page-break": "true" } : {})}>
-          <h3
-            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            {hotels.length > 0 ? "Tipos de Tarifas Disponíveis" : "Comparativo de Tarifas"}
-          </h3>
-          <div className={hotels.length > 0 ? "space-y-3" : "grid gap-2"} style={hotels.length > 0 ? undefined : { gridTemplateColumns: `repeat(${Math.min(fareComparison.tiers.length, 3)}, 1fr)` }}>
-            {fareComparison.tiers.map((tier) => (
-              <div
-                key={tier.id}
-                className={`rounded-lg border border-slate-200 p-3 ${
-                  hotels.length > 0
-                    ? "bg-slate-50"
-                    : tier.highlighted
-                      ? "bg-amber-50 border-amber-300"
-                      : ""
-                }`}
-              >
-                {hotels.length > 0 ? (
-                  <>
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <div className="text-sm font-bold text-[#1a2e4a]">{tier.name}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-[#1a2e4a]">{formatCurrency(tier.flightPrice)}</div>
-                        <div className="text-xs text-slate-500">por pessoa</div>
-                      </div>
+          <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(fareComparison.tiers.length, 3)}, 1fr)` }}>
+            {fareComparison.tiers.map((tier) => {
+              const totalPrice = tier.flightPrice;
+              const perPersonPrice = tier.flightPrice / passengerCount;
+              return (
+                <div
+                  key={tier.id}
+                  className={`rounded-lg border border-slate-200 p-3 text-center ${
+                    tier.highlighted ? "bg-amber-50 border-amber-300" : ""
+                  }`}
+                >
+                  <div className={`text-[10px] font-bold mb-1 uppercase ${tier.highlighted ? "text-amber-700" : "text-slate-500"}`}>
+                    {tier.name}
+                  </div>
+                  <div className={`text-sm font-bold ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>
+                    {formatCurrency(totalPrice)}
+                  </div>
+                  <div className={`text-[10px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-400"}`}>
+                    {formatCurrency(perPersonPrice)} / pessoa
+                  </div>
+                  {tier.benefits && tier.benefits.length > 0 && (
+                    <div className="text-[8px] text-slate-400 mt-1 pt-1 border-t border-slate-200">
+                      {tier.benefits.join(", ")}
                     </div>
-                    {(tier.carryOn || tier.checkedBag || tier.seatSelection || tier.changes) && (
-                      <div className="mt-3 pt-3 border-t border-slate-200 text-xs text-slate-600 space-y-1">
-                        {tier.carryOn && <div>✓ Bagagem de mão incluída</div>}
-                        {tier.checkedBag && <div>✓ Mala despachada incluída</div>}
-                        {tier.seatSelection && <div>✓ Seleção de assento</div>}
-                        {tier.changes && <div>✓ Alterações permitidas</div>}
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className={`text-[10px] font-bold mb-1 uppercase ${tier.highlighted ? "text-amber-700" : "text-slate-500"}`}>
-                      {tier.name}
-                    </div>
-                    <div className={`text-sm font-bold ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>
-                      {formatCurrency(tier.flightPrice)}
-                    </div>
-                    <div className={`text-[10px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-400"}`}>
-                      {formatCurrency(tier.flightPrice / passengerCount)} / pessoa
-                    </div>
-                    {tier.benefits && tier.benefits.length > 0 && (
-                      <div className="text-[8px] text-slate-400 mt-1 pt-1 border-t border-slate-200">
-                        {tier.benefits.join(", ")}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
