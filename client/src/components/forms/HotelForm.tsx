@@ -534,45 +534,7 @@ export function HotelForm() {
             )}
           </div>
 
-          {/* Prices by fare tier */}
-          {budget.fareComparison.tiers.length > 0 && (
-            <div className="border-t border-slate-200 pt-3">
-              <Label className="text-xs font-bold text-slate-600">Preços por Tarifa</Label>
-              <div className="space-y-2 mt-2">
-                {budget.fareComparison.tiers.map((tier) => (
-                  <div key={tier.id} className="rounded-lg border border-slate-200 bg-white p-2">
-                    <div className="text-xs font-bold text-slate-600 mb-2">{tier.name}</div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label className="text-[10px] text-slate-500">Total (R$)</Label>
-                        <Input
-                          type="number"
-                          value={prices[tier.id]?.total || ""}
-                          onChange={(e) =>
-                            handlePriceChange(tier.id, "total", parseFloat(e.target.value) || 0)
-                          }
-                          placeholder="0"
-                          className="h-8 text-xs mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-[10px] text-slate-500">Por pessoa (R$)</Label>
-                        <Input
-                          type="number"
-                          value={prices[tier.id]?.perPerson || ""}
-                          onChange={(e) =>
-                            handlePriceChange(tier.id, "perPerson", parseFloat(e.target.value) || 0)
-                          }
-                          placeholder="0"
-                          className="h-8 text-xs mt-1"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+
 
           {/* Page break option */}
           <div className="flex items-center gap-2 border-t border-slate-200 pt-3">

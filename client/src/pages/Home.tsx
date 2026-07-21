@@ -92,13 +92,13 @@ function BuilderContent() {
                     <Plane className="h-3.5 w-3.5 mr-1" />
                     Voos
                   </TabsTrigger>
-                  <TabsTrigger value="hotels" className="text-xs">
-                    <Building2 className="h-3.5 w-3.5 mr-1" />
-                    Hotéis
-                  </TabsTrigger>
                   <TabsTrigger value="fares" className="text-xs">
                     <Settings className="h-3.5 w-3.5 mr-1" />
                     Tarifas
+                  </TabsTrigger>
+                  <TabsTrigger value="hotels" className="text-xs">
+                    <Building2 className="h-3.5 w-3.5 mr-1" />
+                    Hotéis
                   </TabsTrigger>
                   <TabsTrigger value="baggage" className="text-xs">
                     <Settings className="h-3.5 w-3.5 mr-1" />

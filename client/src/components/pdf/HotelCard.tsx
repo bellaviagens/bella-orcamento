@@ -129,8 +129,8 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
           <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(tiers.length, 3)}, 1fr)` }}>
             {tiers.map((tier) => {
               const basePrice = includeAirfare ? effectiveTotalPrice + tier.flightPrice : effectiveTotalPrice;
-              const totalPrice = basePrice * passengers;
-              const perPersonPrice = basePrice;
+              const totalPrice = basePrice;
+              const perPersonPrice = basePrice / passengers;
               const label = includeAirfare ? `Com Aéreo ${tier.name}` : tier.name;
 
               return (
@@ -166,10 +166,10 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
               Preço do Hotel
             </div>
             <div className="text-sm font-bold text-blue-600">
-              {formatCurrency(effectiveTotalPrice * passengers)}
+              {formatCurrency(effectiveTotalPrice)}
             </div>
             <div className="text-[10px] text-blue-600/70">
-              {formatCurrency(effectiveTotalPrice)} / pessoa
+              {formatCurrency(effectiveTotalPrice / passengers)} / pessoa
             </div>
           </div>
         ) : (

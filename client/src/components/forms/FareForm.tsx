@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Star } from "lucide-react";
+import { Plus, Trash2, Star, Edit2 } from "lucide-react";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
 
@@ -12,6 +12,7 @@ export function FareForm() {
   const { budget, addFareTier, updateFareTier, removeFareTier } = useBudget();
   const { fareComparison } = budget;
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form state
   const [name, setName] = useState("");
@@ -83,11 +84,42 @@ export function FareForm() {
     setHighlighted(false);
     setPaymentMethods([]);
     setInstallments(1);
+    setEditingId(null);
+  };
+
+  const handleEdit = (tier: any) => {
+    setEditingId(tier.id);
+    setName(tier.name);
+    setBagages(tier.bagages || []);
+    setCheckIns(tier.checkIns || []);
+    setChanges(tier.changes || []);
+    setFlightPrice(tier.flightPrice || 0);
+    setHighlighted(tier.highlighted || false);
+    setPaymentMethods(tier.paymentMethods || []);
+    setInstallments(tier.installments || 1);
+    setShowForm(true);
   };
 
   const handleSave = () => {
     if (!name.trim()) {
       toast.error("Nome da tarifa é obrigatório");
+      return;
+    }
+
+    if (editingId) {
+      updateFareTier(editingId, {
+        name: name.trim(),
+        bagages,
+        checkIns,
+        changes,
+        flightPrice,
+        highlighted,
+        paymentMethods,
+        installments,
+      });
+      toast.success("Tarifa atualizada com sucesso!");
+      setShowForm(false);
+      resetForm();
       return;
     }
 
@@ -112,7 +144,7 @@ export function FareForm() {
     <div className="space-y-3">
       {/* Existing tiers */}
       {fareComparison.tiers.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
           {fareComparison.tiers.map((tier) => (
             <div
               key={tier.id}
@@ -125,14 +157,24 @@ export function FareForm() {
                   {tier.highlighted && <Star className="h-4 w-4 fill-amber-400 text-amber-400" />}
                   <span className="font-bold text-[#1a2e4a]">{tier.name}</span>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeFareTier(tier.id)}
-                  className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEdit(tier)}
+                    className="text-blue-500 hover:text-blue-700 h-8 w-8 p-0"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeFareTier(tier.id)}
+                    className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-2 text-xs mb-2">
