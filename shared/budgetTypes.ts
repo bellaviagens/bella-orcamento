@@ -94,6 +94,7 @@ export interface BudgetData {
     flight?: number; // Parcelamento do aéreo
     hotel?: number; // Parcelamento do hotel
     combined?: boolean; // Se true, soma aéreo + hotel e divide pelas parcelas
+    paymentMethods?: string[]; // Formas de pagamento: "dinheiro", "cartao", "pix"
   };
   pageBreaks?: {
     flights?: boolean; // Iniciar voos em nova página

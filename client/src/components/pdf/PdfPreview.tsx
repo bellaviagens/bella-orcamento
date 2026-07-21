@@ -6,6 +6,7 @@ import { HotelCard } from "./HotelCard";
 interface PdfPreviewProps {
   data: BudgetData;
   includeAirfare?: boolean;
+  includeHotel?: boolean;
 }
 
 function formatCurrency(value: number): string {
@@ -15,7 +16,7 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function PdfPreview({ data, includeAirfare = true }: PdfPreviewProps) {
+export function PdfPreview({ data, includeAirfare = true, includeHotel = true }: PdfPreviewProps) {
   const { tripInfo, flights, fareComparison, baggage, hotels } = data;
   const pageBreaks = data.pageBreaks || {};
 
@@ -160,7 +161,7 @@ export function PdfPreview({ data, includeAirfare = true }: PdfPreviewProps) {
       )}
 
       {/* HOTELS SECTION */}
-      {hotels.length > 0 && (
+      {hotels.length > 0 && includeHotel && (
         <div className="px-8 py-4" {...(pageBreaks.hotels ? { "data-page-break": "true" } : {})}>
           <h3
             className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
@@ -264,6 +265,28 @@ export function PdfPreview({ data, includeAirfare = true }: PdfPreviewProps) {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+            {installments?.paymentMethods && installments.paymentMethods.length > 0 && (
+              <div className="rounded-lg border border-slate-200 p-4 bg-blue-50 mt-4">
+                <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Formas de Pagamento Aceitas</div>
+                <div className="flex flex-wrap gap-2">
+                  {installments.paymentMethods.includes("dinheiro") && (
+                    <span className="inline-block px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-medium text-[#1a2e4a]">
+                      Dinheiro
+                    </span>
+                  )}
+                  {installments.paymentMethods.includes("cartao") && (
+                    <span className="inline-block px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-medium text-[#1a2e4a]">
+                      Cartão
+                    </span>
+                  )}
+                  {installments.paymentMethods.includes("pix") && (
+                    <span className="inline-block px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-medium text-[#1a2e4a]">
+                      PIX
+                    </span>
+                  )}
+                </div>
               </div>
             )}
           </div>

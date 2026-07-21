@@ -11,7 +11,7 @@ function formatCurrency(value: number): string {
 }
 
 export function InstallmentsForm() {
-  const { budget, updateInstallments, updatePageBreaks } = useBudget();
+  const { budget, updateInstallments, updatePaymentMethods, updatePageBreaks } = useBudget();
   const { installments, pageBreaks } = budget;
 
   // Calculate totals for preview
@@ -90,6 +90,89 @@ export function InstallmentsForm() {
             {combinedInstallments}x de {formatCurrency(combinedTotal / combinedInstallments)}
           </p>
         )}
+      </div>
+
+      {/* Payment Methods */}
+      <div className="border-t border-slate-200 pt-4">
+        <Label className="text-[11px] font-semibold text-slate-500 uppercase">
+          Formas de Pagamento
+        </Label>
+        <p className="text-[10px] text-slate-400 mt-1 mb-3">
+          Selecione as formas de pagamento aceitas para este orçamento.
+        </p>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="payment-cash"
+              checked={installments?.paymentMethods?.includes("dinheiro") || false}
+              onCheckedChange={(checked) => {
+                const current = installments?.paymentMethods || [];
+                if (checked) {
+                  updatePaymentMethods([...current, "dinheiro"]);
+                } else {
+                  updatePaymentMethods(current.filter((m) => m !== "dinheiro"));
+                }
+              }}
+            />
+            <Label htmlFor="payment-cash" className="text-xs cursor-pointer">
+              Dinheiro
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="payment-card"
+              checked={installments?.paymentMethods?.includes("cartao") || false}
+              onCheckedChange={(checked) => {
+                const current = installments?.paymentMethods || [];
+                if (checked) {
+                  updatePaymentMethods([...current, "cartao"]);
+                } else {
+                  updatePaymentMethods(current.filter((m) => m !== "cartao"));
+                }
+              }}
+            />
+            <Label htmlFor="payment-card" className="text-xs cursor-pointer">
+              Cartão
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="payment-pix"
+              checked={installments?.paymentMethods?.includes("pix") || false}
+              onCheckedChange={(checked) => {
+                const current = installments?.paymentMethods || [];
+                if (checked) {
+                  updatePaymentMethods([...current, "pix"]);
+                } else {
+                  updatePaymentMethods(current.filter((m) => m !== "pix"));
+                }
+              }}
+            />
+            <Label htmlFor="payment-pix" className="text-xs cursor-pointer">
+              PIX
+            </Label>
+          </div>
+          <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+            <Checkbox
+              id="payment-all"
+              checked={(
+                installments?.paymentMethods?.includes("dinheiro") &&
+                installments?.paymentMethods?.includes("cartao") &&
+                installments?.paymentMethods?.includes("pix")
+              ) || false}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  updatePaymentMethods(["dinheiro", "cartao", "pix"]);
+                } else {
+                  updatePaymentMethods([]);
+                }
+              }}
+            />
+            <Label htmlFor="payment-all" className="text-xs cursor-pointer font-semibold">
+              Selecionar Todas
+            </Label>
+          </div>
+        </div>
       </div>
 
       {/* Page Break Controls */}

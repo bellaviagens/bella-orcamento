@@ -21,6 +21,7 @@ function BuilderContent() {
   const { generatePdf } = usePdfGenerator();
   const [showPreview, setShowPreview] = useState(true);
   const [includeAirfare, setIncludeAirfare] = useState(true);
+  const [includeHotel, setIncludeHotel] = useState(true);
 
   return (
     <div className="h-screen flex flex-col bg-slate-50">
@@ -53,6 +54,16 @@ function BuilderContent() {
               />
               <Label htmlFor="include-airfare" className="text-xs text-white cursor-pointer">
                 Incluir Aéreo
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="include-hotel"
+                checked={includeHotel}
+                onCheckedChange={(checked) => setIncludeHotel(checked as boolean)}
+              />
+              <Label htmlFor="include-hotel" className="text-xs text-white cursor-pointer">
+                Incluir Hotel
               </Label>
             </div>
             <Button
@@ -185,7 +196,7 @@ function BuilderContent() {
             <div className="flex-1 overflow-y-auto">
               <div className="p-6 flex justify-center">
                 <div className="shadow-2xl w-full max-w-2xl">
-                  <PdfPreview data={budget} includeAirfare={includeAirfare} />
+                  <PdfPreview data={budget} includeAirfare={includeAirfare} includeHotel={includeHotel} />
                 </div>
               </div>
             </div>
