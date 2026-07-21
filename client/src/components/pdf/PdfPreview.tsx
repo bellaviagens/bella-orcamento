@@ -124,6 +124,41 @@ export function PdfPreview({ data, includeAirfare = true }: PdfPreviewProps) {
         </div>
       )}
 
+      {/* FARES SECTION */}
+      {fareComparison.tiers.length > 0 && (
+        <div className="px-8 py-4" {...(pageBreaks.fares ? { "data-page-break": "true" } : {})}>
+          <h3
+            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            Tipos de Tarifas Disponíveis
+          </h3>
+          <div className="space-y-3">
+            {fareComparison.tiers.map((tier) => (
+              <div key={tier.id} className="rounded-lg border border-slate-200 p-4 bg-slate-50">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <div className="text-sm font-bold text-[#1a2e4a]">{tier.name}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-[#1a2e4a]">{formatCurrency(tier.flightPrice)}</div>
+                    <div className="text-xs text-slate-500">por pessoa</div>
+                  </div>
+                </div>
+                {(tier.carryOn || tier.checkedBag || tier.seatSelection || tier.changes) && (
+                  <div className="mt-3 pt-3 border-t border-slate-200 text-xs text-slate-600 space-y-1">
+                    {tier.carryOn && <div>✓ Bagagem de mão incluída</div>}
+                    {tier.checkedBag && <div>✓ Mala despachada incluída</div>}
+                    {tier.seatSelection && <div>✓ Seleção de assento</div>}
+                    {tier.changes && <div>✓ Alterações permitidas</div>}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* HOTELS SECTION */}
       {hotels.length > 0 && (
         <div className="px-8 py-4" {...(pageBreaks.hotels ? { "data-page-break": "true" } : {})}>

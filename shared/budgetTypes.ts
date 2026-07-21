@@ -97,6 +97,7 @@ export interface BudgetData {
   };
   pageBreaks?: {
     flights?: boolean; // Iniciar voos em nova página
+    fares?: boolean; // Iniciar tarifas em nova página
     hotels?: boolean; // Iniciar hotéis em nova página
     baggage?: boolean; // Iniciar bagagem em nova página
     payment?: boolean; // Iniciar pagamento em nova página

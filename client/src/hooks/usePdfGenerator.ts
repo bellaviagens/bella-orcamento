@@ -148,22 +148,21 @@ export function usePdfGenerator() {
         segmentData.push({ imgData, widthMm: imgWidth, heightMm: segHeightMm });
       }
 
-      // Create PDF with first segment's exact height (no fixed A4 format)
-      const firstSeg = segmentData[0];
+      // Create PDF with A4 format (210mm x 297mm) for all pages
       const pdf = new jsPDF({
         unit: "mm",
-        format: [pdfWidthMm, firstSeg.heightMm],
-        // jsPDF swaps dimensions when width > height (landscape detection).
-        // We handle this by passing putPageSize after creation.
+        format: "a4", // Use standard A4 format
       });
 
-      // Add each segment as a page with its exact height
+      // Add each segment as a page with A4 height
       for (let i = 0; i < segmentData.length; i++) {
         const seg = segmentData[i];
         if (i > 0) {
-          pdf.addPage([pdfWidthMm, seg.heightMm]);
+          pdf.addPage("a4"); // Add A4 page
         }
-        pdf.addImage(seg.imgData, "PNG", 0, 0, pdfWidthMm, seg.heightMm, undefined, "FAST");
+        // Scale image to fit A4 width (210mm) and maintain aspect ratio
+        const scaledHeight = (pdfPageHeightMm * seg.heightMm) / pdfPageHeightMm;
+        pdf.addImage(seg.imgData, "PNG", 0, 0, pdfWidthMm, Math.min(scaledHeight, pdfPageHeightMm), undefined, "FAST");
       }
 
       // Add clickable links for elements with data-pdf-link
@@ -201,7 +200,8 @@ export function usePdfGenerator() {
 
         if (pageNum < totalPages) {
           pdf.setPage(pageNum + 1);
-          pdf.link(xMm, yOnPage, wMm, hMm, { url: link });
+          // Adicionar link com target="_blank" para abrir em nova página
+          pdf.link(xMm, yOnPage, wMm, hMm, { url: link, pageNumber: undefined });
         }
       });
 
