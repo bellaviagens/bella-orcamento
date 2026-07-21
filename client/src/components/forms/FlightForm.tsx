@@ -5,15 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Plane, Upload, Loader2, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Trash2, Plane, Upload, Loader2, ChevronDown, ChevronRight, Edit2 } from "lucide-react";
 import type { Flight, FlightSegment } from "@shared/budgetTypes";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
 
 export function FlightForm() {
-  const { budget, addFlight, removeFlight } = useBudget();
+  const { budget, addFlight, removeFlight, updateFlight } = useBudget();
   const [showForm, setShowForm] = useState(false);
   const [expandedFlights, setExpandedFlights] = useState<Set<string>>(new Set());
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [parsing, setParsing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -58,6 +59,17 @@ export function FlightForm() {
         duration: "",
       },
     ]);
+    setEditingId(null);
+  };
+
+  const handleEdit = (flight: Flight) => {
+    setEditingId(flight.id);
+    setFlightType(flight.type);
+    setIsDirect(flight.isDirect);
+    setTotalDuration(flight.totalDuration);
+    setOperatingAirline(flight.operatingAirline);
+    setSegments(flight.segments);
+    setShowForm(true);
   };
 
   const handleAddSegment = () => {
@@ -111,15 +123,21 @@ export function FlightForm() {
     }
 
     const flight: Flight = {
-      id: nanoid(),
+      id: editingId || nanoid(),
       type: flightType,
       isDirect,
       totalDuration,
       operatingAirline,
       segments,
     };
-    addFlight(flight);
-    toast.success("Voo adicionado com sucesso!");
+
+    if (editingId) {
+      updateFlight(editingId, flight);
+      toast.success("Voo atualizado com sucesso!");
+    } else {
+      addFlight(flight);
+      toast.success("Voo adicionado com sucesso!");
+    }
     resetForm();
     setShowForm(false);
   };
@@ -192,6 +210,14 @@ export function FlightForm() {
                   {flight.isDirect ? "Direto" : `${flight.segments.length - 1} escala(s)`}
                 </span>
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleEdit(flight)}
+                className="text-blue-500 hover:text-blue-700 h-8 w-8 p-0"
+              >
+                <Edit2 className="h-4 w-4" />
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -268,7 +294,7 @@ export function FlightForm() {
       {showForm && (
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-[#1a2e4a]">Novo Voo</h4>
+            <h4 className="text-sm font-bold text-[#1a2e4a]">{editingId ? "Editar Voo" : "Novo Voo"}</h4>
             <Button variant="ghost" size="sm" onClick={() => { setShowForm(false); resetForm(); }}>
               Cancelar
             </Button>
