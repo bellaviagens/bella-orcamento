@@ -102,9 +102,9 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
           <p className="text-sm italic text-slate-600 mb-3">{hotel.description}</p>
         )}
 
-        {/* Amenities */}
+        {/* Amenities - Vertical layout */}
         {hotel.amenities.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-col gap-1.5 mb-4">
             {hotel.amenities.map((amenity, i) => {
               const colors = [
                 { bg: "bg-blue-50 border-blue-200 text-blue-700", icon: "✓" },
@@ -182,23 +182,30 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
             })}
           </div>
         ) : effectiveTotalPrice > 0 ? (
-          <div className="rounded-lg border border-slate-200 p-3 text-center bg-blue-50 border-blue-300">
-            <div className="text-[10px] font-bold mb-2 uppercase text-blue-700">
-              Preço do Hotel
-            </div>
-            <div className="text-sm font-bold text-blue-600">
-              {formatCurrency(effectiveTotalPrice)}
-            </div>
-            <div className="text-[10px] text-blue-600/70">
-              {formatCurrency(effectiveTotalPrice / passengers)} / pessoa
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-lg border border-slate-200 p-3 text-center bg-blue-50 border-blue-300">
+              <div className="text-[10px] font-bold mb-2 uppercase text-blue-700">
+                Preço do Hotel
+              </div>
+              <div className="text-sm font-bold text-blue-600">
+                {formatCurrency(effectiveTotalPrice)}
+              </div>
+              <div className="text-[10px] text-blue-600/70">
+                {formatCurrency(effectiveTotalPrice / passengers)} / pessoa
+              </div>
             </div>
             {hotelPaymentMethods && hotelPaymentMethods.length > 0 && (
-              <div className="text-[8px] text-slate-500 mt-2 pt-2 border-t border-blue-200 flex gap-1 justify-center flex-wrap">
-                {hotelPaymentMethods.map((method) => (
-                  <span key={method} className="px-2 py-0.5 bg-blue-200 text-blue-800 rounded text-[7px] font-semibold">
-                    {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
-                  </span>
-                ))}
+              <div className="rounded-lg border border-slate-200 p-3 bg-amber-50 border-amber-300">
+                <div className="text-[10px] font-bold mb-2 uppercase text-amber-700">
+                  Forma de Pagamento
+                </div>
+                <div className="flex flex-col gap-1">
+                  {hotelPaymentMethods.map((method) => (
+                    <div key={method} className="text-[9px] text-amber-700">
+                      <span className="font-semibold">{method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
