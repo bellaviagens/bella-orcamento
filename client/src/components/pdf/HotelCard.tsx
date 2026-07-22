@@ -104,15 +104,39 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
 
         {/* Amenities */}
         {hotel.amenities.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {hotel.amenities.map((amenity, i) => (
-              <span
-                key={i}
-                className="text-[11px] bg-slate-100 text-slate-600 px-2 py-1 rounded-full"
-              >
-                {amenity}
-              </span>
-            ))}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {hotel.amenities.map((amenity, i) => {
+              const amenityLower = amenity.toLowerCase();
+              let bgColor = "bg-blue-50 border-blue-200 text-blue-700";
+              let icon = "✓";
+              
+              if (amenityLower.includes("cafe") || amenityLower.includes("café")) {
+                bgColor = "bg-amber-50 border-amber-200 text-amber-700";
+                icon = "☕";
+              } else if (amenityLower.includes("wifi") || amenityLower.includes("wi-fi")) {
+                bgColor = "bg-green-50 border-green-200 text-green-700";
+                icon = "📶";
+              } else if (amenityLower.includes("academia") || amenityLower.includes("gym")) {
+                bgColor = "bg-orange-50 border-orange-200 text-orange-700";
+                icon = "💪";
+              } else if (amenityLower.includes("piscina") || amenityLower.includes("pool")) {
+                bgColor = "bg-cyan-50 border-cyan-200 text-cyan-700";
+                icon = "🏊";
+              } else if (amenityLower.includes("restaurante") || amenityLower.includes("food")) {
+                bgColor = "bg-red-50 border-red-200 text-red-700";
+                icon = "🍽️";
+              }
+              
+              return (
+                <span
+                  key={i}
+                  className={`text-[10px] font-medium px-2.5 py-1.5 rounded-lg border ${bgColor} inline-flex items-center gap-1`}
+                >
+                  <span>{icon}</span>
+                  <span>{amenity}</span>
+                </span>
+              );
+            })}
           </div>
         )}
 

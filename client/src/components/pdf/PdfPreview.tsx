@@ -135,22 +135,27 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
               return (
                 <div
                   key={tier.id}
-                  className={`rounded-lg border border-slate-200 p-3 text-center ${
-                    tier.highlighted ? "bg-amber-50 border-amber-300" : ""
+                  className={`rounded-lg border-l-4 border border-slate-200 p-4 text-center shadow-sm ${
+                    tier.highlighted ? "bg-amber-50 border-l-amber-400 border-amber-300" : "bg-white border-l-blue-400"
                   }`}
                 >
-                  <div className={`text-[10px] font-bold mb-1 uppercase ${tier.highlighted ? "text-amber-700" : "text-slate-500"}`}>
+                  <div className={`text-[10px] font-bold mb-2 uppercase tracking-wide ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
                     {tier.name}
                   </div>
-                  <div className={`text-sm font-bold ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>
+                  <div className={`text-lg font-bold mb-1 ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>
                     {formatCurrency(totalPrice)}
                   </div>
-                  <div className={`text-[10px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-400"}`}>
+                  <div className={`text-[9px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-500"}`}>
                     {formatCurrency(perPersonPrice)} / pessoa
                   </div>
                   {tier.benefits && tier.benefits.length > 0 && (
-                    <div className="text-[8px] text-slate-400 mt-1 pt-1 border-t border-slate-200">
-                      {tier.benefits.join(", ")}
+                    <div className="text-[7px] text-slate-500 mt-2 pt-2 border-t border-slate-200 space-y-0.5">
+                      {tier.benefits.map((benefit, idx) => (
+                        <div key={idx} className="flex items-center justify-center gap-1">
+                          <span>•</span>
+                          <span>{benefit}</span>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
