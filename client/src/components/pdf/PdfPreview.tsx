@@ -126,7 +126,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
       )}
 
       {/* FARES SECTION - Only when no hotels (flight-only view) */}
-      {fareComparison.tiers.length > 0 && includeAirfare && hotels.length === 0 && (
+      {fareComparison.tiers.length > 0 && includeAirfare && (!includeHotel || hotels.length === 0) && (
         <div className="px-8 py-4" {...(pageBreaks.fares ? { "data-page-break": "true" } : {})}>
           <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(fareComparison.tiers.length, 3)}, 1fr)` }}>
             {fareComparison.tiers.map((tier) => {

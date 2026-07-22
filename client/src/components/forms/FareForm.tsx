@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Star, Edit2 } from "lucide-react";
+import { Plus, Trash2, Star, Edit2, ChevronDown, ChevronRight } from "lucide-react";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
 
@@ -13,6 +13,7 @@ export function FareForm() {
   const { fareComparison } = budget;
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [expandedTiers, setExpandedTiers] = useState<Set<string>>(new Set());
 
   // Form state
   const [name, setName] = useState("");
@@ -25,7 +26,7 @@ export function FareForm() {
   const [installments, setInstallments] = useState(1);
 
   const bagageOptions = [
-    "Bagagem de mão",
+    "Bolsa ou mochila de até 10kg",
     "Bagagem de 10 kg",
     "Bagagem de 23 kg",
   ];
@@ -77,7 +78,7 @@ export function FareForm() {
 
   const resetForm = () => {
     setName("");
-    setBagages(["Bagagem de mão"]);
+    setBagages(["Bolsa ou mochila de até 10kg"]);
     setCheckIns([]);
     setChanges([]);
     setFlightPrice(0);
@@ -120,6 +121,7 @@ export function FareForm() {
       toast.success("Tarifa atualizada com sucesso!");
       setShowForm(false);
       resetForm();
+      setExpandedTiers(new Set());
       return;
     }
 
@@ -138,6 +140,7 @@ export function FareForm() {
     toast.success("Tarifa adicionada com sucesso!");
     resetForm();
     setShowForm(false);
+    setExpandedTiers(new Set());
   };
 
   return (
@@ -154,6 +157,24 @@ export function FareForm() {
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      const newExpanded = new Set(expandedTiers);
+                      if (newExpanded.has(tier.id)) {
+                        newExpanded.delete(tier.id);
+                      } else {
+                        newExpanded.add(tier.id);
+                      }
+                      setExpandedTiers(newExpanded);
+                    }}
+                    className="p-0.5 hover:bg-slate-100 rounded"
+                  >
+                    {expandedTiers.has(tier.id) ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                  </button>
                   {tier.highlighted && <Star className="h-4 w-4 fill-amber-400 text-amber-400" />}
                   <span className="font-bold text-[#1a2e4a]">{tier.name}</span>
                 </div>
@@ -177,8 +198,9 @@ export function FareForm() {
                 </div>
               </div>
 
-              <div className="space-y-2 text-xs mb-2">
-                <div>
+              {expandedTiers.has(tier.id) && (
+                <div className="space-y-2 text-xs mb-2">
+                  <div>
                   <Label className="text-[10px] text-slate-500 font-semibold">Bagagem</Label>
                   <div className="space-y-1 mt-1">
                     {bagageOptions.map((opt) => (
@@ -238,6 +260,7 @@ export function FareForm() {
                   </div>
                 </div>
               </div>
+              )}
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
