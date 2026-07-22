@@ -9,6 +9,9 @@ interface HotelCardProps {
   tiers: FareTier[];
   passengers: number;
   includeAirfare?: boolean;
+  hotelPaymentMethods?: string[];
+  flightPaymentMethods?: string[];
+  combined?: boolean;
 }
 
 function formatCurrency(value: number): string {
@@ -18,7 +21,7 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true }: HotelCardProps) {
+export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false }: HotelCardProps) {
   const [proxiedPhotoUrl, setProxiedPhotoUrl] = useState<string | null>(hotel.photoUrl || null);
   const imageProxyQuery = trpc.imageProxy.useQuery(
     { url: hotel.photoUrl || "" },
@@ -171,6 +174,15 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
             <div className="text-[10px] text-blue-600/70">
               {formatCurrency(effectiveTotalPrice / passengers)} / pessoa
             </div>
+            {hotelPaymentMethods && hotelPaymentMethods.length > 0 && (
+              <div className="text-[8px] text-slate-500 mt-2 pt-2 border-t border-blue-200 flex gap-1 justify-center flex-wrap">
+                {hotelPaymentMethods.map((method) => (
+                  <span key={method} className="px-2 py-0.5 bg-blue-200 text-blue-800 rounded text-[7px] font-semibold">
+                    {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-xs text-slate-400 text-center py-4">Nenhuma tarifa adicionada</div>

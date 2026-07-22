@@ -153,6 +153,15 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                       {tier.benefits.join(", ")}
                     </div>
                   )}
+                  {installments?.paymentMethods && installments.paymentMethods.length > 0 && (
+                    <div className="text-[8px] text-slate-500 mt-2 pt-2 border-t border-slate-200 flex gap-1 justify-center flex-wrap">
+                      {installments.paymentMethods.map((method) => (
+                        <span key={method} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-[7px] font-semibold">
+                          {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -179,6 +188,9 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     tiers={fareComparison.tiers}
                     passengers={passengerCount}
                     includeAirfare={includeAirfare}
+                    hotelPaymentMethods={installments?.hotelPaymentMethods}
+                    flightPaymentMethods={installments?.paymentMethods}
+                    combined={installments?.combined}
                   />
                 </div>
               );
