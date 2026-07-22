@@ -55,16 +55,13 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
     >
       {/* HEADER */}
       <div className="bg-[#1a2e4a] text-white px-8 py-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <img src="/manus-storage/LogocomSlogan_8e0da7e8.jpeg" alt="Bella Viagens" className="h-20 w-auto" />
-          <div>
-            <h1 className="text-2xl font-extrabold tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
-              Bella Viagens e Milhas
-            </h1>
-            <p className="text-sm text-amber-400 font-medium tracking-wide mt-0.5">
-              Acumule. Viaje. Viva.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
+            Bella Viagens e Milhas
+          </h1>
+          <p className="text-sm text-amber-400 font-medium tracking-wide mt-0.5">
+            Acumule. Viaje. Viva.
+          </p>
         </div>
         <div className="text-right">
           <h2 className="text-lg font-bold" style={{ fontFamily: "Poppins, sans-serif" }}>
