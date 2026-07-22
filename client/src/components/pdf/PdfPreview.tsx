@@ -153,15 +153,6 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                       {tier.benefits.join(", ")}
                     </div>
                   )}
-                  {installments?.paymentMethods && installments.paymentMethods.length > 0 && (
-                    <div className="text-[8px] text-slate-500 mt-2 pt-2 border-t border-slate-200 flex gap-1 justify-center flex-wrap">
-                      {installments.paymentMethods.map((method) => (
-                        <span key={method} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-[7px] font-semibold">
-                          {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -264,6 +255,15 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     <div className="text-xs text-slate-500 mt-1">
                       Total: {formatCurrency(flightTotal)}
                     </div>
+                    {installments?.paymentMethods && installments.paymentMethods.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {installments.paymentMethods.map((method) => (
+                          <span key={method} className="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                            {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartao" : "PIX"}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
                 {installments?.hotel && hotelTotal > 0 && (
@@ -275,6 +275,15 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     <div className="text-xs text-slate-500 mt-1">
                       Total: {formatCurrency(hotelTotal)}
                     </div>
+                    {installments?.hotelPaymentMethods && installments.hotelPaymentMethods.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {installments.hotelPaymentMethods.map((method) => (
+                          <span key={method} className="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                            {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartao" : "PIX"}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

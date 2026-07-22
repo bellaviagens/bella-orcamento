@@ -158,24 +158,6 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         {tier.benefits.join(", ")}
                       </div>
                     )}
-                    {includeAirfare && flightPaymentMethods && flightPaymentMethods.length > 0 && (
-                      <div className="text-[8px] text-slate-500 mt-2 pt-2 border-t border-slate-200 flex gap-1 justify-center flex-wrap">
-                        {flightPaymentMethods.map((method) => (
-                          <span key={method} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-[7px] font-semibold">
-                            {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    {hotelPaymentMethods && hotelPaymentMethods.length > 0 && (
-                      <div className="text-[8px] text-slate-500 mt-2 pt-2 border-t border-slate-200 flex gap-1 justify-center flex-wrap">
-                        {hotelPaymentMethods.map((method) => (
-                          <span key={method} className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-[7px] font-semibold">
-                            {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
-                          </span>
-                        ))}
-                      </div>
-                    )}
                   </>
                 </div>
               );
