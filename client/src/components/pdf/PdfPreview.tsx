@@ -248,6 +248,15 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                 <div className="text-xs text-slate-500 mt-1">
                   Valor total: {formatCurrency(combinedTotal)}
                 </div>
+                {installments?.paymentMethods && installments.paymentMethods.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {installments.paymentMethods.map((method) => (
+                      <span key={method} className="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                        {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
