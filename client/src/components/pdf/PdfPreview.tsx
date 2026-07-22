@@ -24,16 +24,16 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
   const passengerCount = parseInt(tripInfo.passengers) || 1;
 
   // Calculate total aéreo (flight) price
-  const flightTotal = fareComparison.tiers.reduce((sum, tier) => sum + tier.flightPrice, 0);
+  const flightTotal = includeAirfare ? fareComparison.tiers.reduce((sum, tier) => sum + tier.flightPrice, 0) : 0;
   const flightPerPerson = fareComparison.tiers.length > 0 ? flightTotal / fareComparison.tiers.length : 0;
 
   // Calculate total hotel price
-  const hotelTotal = hotels.reduce((sum, hotel) => {
+  const hotelTotal = includeHotel ? hotels.reduce((sum, hotel) => {
     const effectivePrice = hotel.priceMode === "daily" && hotel.dailyPrice && hotel.nights
       ? hotel.dailyPrice * hotel.nights
       : hotel.totalPrice;
     return sum + effectivePrice;
-  }, 0);
+  }, 0) : 0;
 
   // Installment calculation
   const installments = data.installments;
@@ -251,7 +251,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {installments?.flight && flightTotal > 0 && (
+                {includeAirfare && installments?.flight && flightTotal > 0 && (
                   <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
                     <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Aéreo</div>
                     <div className="text-xl font-bold text-[#1a2e4a]">
@@ -271,7 +271,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     )}
                   </div>
                 )}
-                {installments?.hotel && hotelTotal > 0 && (
+                {includeHotel && installments?.hotel && hotelTotal > 0 && (
                   <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
                     <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Hotel</div>
                     <div className="text-xl font-bold text-[#1a2e4a]">
