@@ -15,8 +15,9 @@ interface BudgetContextType {
   updateFareTier: (id: string, tier: Partial<FareTier>) => void;
   removeFareTier: (id: string) => void;
   updateBaggage: (index: number, field: string, value: string | number) => void;
-  updateInstallments: (field: "flight" | "hotel" | "combined", value: number | boolean) => void;
+  updateInstallments: (field: "flight" | "hotel" | "combined", value: number | boolean | undefined) => void;
   updatePaymentMethods: (methods: string[]) => void;
+  updateHotelPaymentMethods: (methods: string[]) => void;
   updatePageBreaks: (field: "flights" | "hotels" | "baggage" | "payment", value: boolean) => void;
   resetBudget: () => void;
 }
@@ -136,7 +137,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const updateInstallments = useCallback((field: "flight" | "hotel" | "combined", value: number | boolean) => {
+  const updateInstallments = useCallback((field: "flight" | "hotel" | "combined", value: number | boolean | undefined) => {
     setBudget((prev) => ({
       ...prev,
       installments: {
@@ -152,6 +153,16 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       installments: {
         ...prev.installments,
         paymentMethods: methods,
+      },
+    }));
+  }, []);
+
+  const updateHotelPaymentMethods = useCallback((methods: string[]) => {
+    setBudget((prev) => ({
+      ...prev,
+      installments: {
+        ...prev.installments,
+        hotelPaymentMethods: methods,
       },
     }));
   }, []);
@@ -187,6 +198,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         updateBaggage,
         updateInstallments,
         updatePaymentMethods,
+        updateHotelPaymentMethods,
         updatePageBreaks,
         resetBudget,
       }}

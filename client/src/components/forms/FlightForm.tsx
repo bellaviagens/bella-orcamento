@@ -188,6 +188,7 @@ export function FlightForm() {
   return (
     <div className="space-y-3">
       {/* Existing flights */}
+      <div className="max-h-96 overflow-y-auto pr-2 space-y-3">
       {budget.flights.map((flight) => {
         const expanded = expandedFlights.has(flight.id);
         const firstSeg = flight.segments[0];
@@ -249,6 +250,7 @@ export function FlightForm() {
           </div>
         );
       })}
+      </div>
 
       {/* Screenshot upload */}
       <div className="rounded-lg border-2 border-dashed border-slate-300 p-4 text-center">

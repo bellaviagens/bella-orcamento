@@ -77,7 +77,7 @@ export function FareForm() {
 
   const resetForm = () => {
     setName("");
-    setBagages([]);
+    setBagages(["Bagagem de mão"]);
     setCheckIns([]);
     setChanges([]);
     setFlightPrice(0);
