@@ -50,7 +50,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
   return (
     <div
       id="pdf-document"
-      className="bg-white mx-auto"
+      className="bg-slate-50 mx-auto"
       style={{ width: "100%", maxWidth: "800px", fontFamily: "Inter, sans-serif" }}
     >
       {/* HEADER */}

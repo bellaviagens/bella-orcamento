@@ -106,26 +106,20 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
         {hotel.amenities.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {hotel.amenities.map((amenity, i) => {
-              const amenityLower = amenity.toLowerCase();
-              let bgColor = "bg-blue-50 border-blue-200 text-blue-700";
-              let icon = "✓";
-              
-              if (amenityLower.includes("cafe") || amenityLower.includes("café")) {
-                bgColor = "bg-amber-50 border-amber-200 text-amber-700";
-                icon = "☕";
-              } else if (amenityLower.includes("wifi") || amenityLower.includes("wi-fi")) {
-                bgColor = "bg-green-50 border-green-200 text-green-700";
-                icon = "📶";
-              } else if (amenityLower.includes("academia") || amenityLower.includes("gym")) {
-                bgColor = "bg-orange-50 border-orange-200 text-orange-700";
-                icon = "💪";
-              } else if (amenityLower.includes("piscina") || amenityLower.includes("pool")) {
-                bgColor = "bg-cyan-50 border-cyan-200 text-cyan-700";
-                icon = "🏊";
-              } else if (amenityLower.includes("restaurante") || amenityLower.includes("food")) {
-                bgColor = "bg-red-50 border-red-200 text-red-700";
-                icon = "🍽️";
-              }
+              const colors = [
+                { bg: "bg-blue-50 border-blue-200 text-blue-700", icon: "✓" },
+                { bg: "bg-amber-50 border-amber-200 text-amber-700", icon: "☕" },
+                { bg: "bg-green-50 border-green-200 text-green-700", icon: "📶" },
+                { bg: "bg-orange-50 border-orange-200 text-orange-700", icon: "💪" },
+                { bg: "bg-cyan-50 border-cyan-200 text-cyan-700", icon: "🏊" },
+                { bg: "bg-red-50 border-red-200 text-red-700", icon: "🍽️" },
+                { bg: "bg-purple-50 border-purple-200 text-purple-700", icon: "🎵" },
+                { bg: "bg-pink-50 border-pink-200 text-pink-700", icon: "💆" },
+                { bg: "bg-indigo-50 border-indigo-200 text-indigo-700", icon: "📚" },
+                { bg: "bg-rose-50 border-rose-200 text-rose-700", icon: "🎮" },
+              ];
+              const colorIndex = i % colors.length;
+              const { bg: bgColor, icon } = colors[colorIndex];
               
               return (
                 <span
