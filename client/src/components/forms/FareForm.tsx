@@ -382,33 +382,7 @@ export function FareForm() {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold">Forma de Pagamento</Label>
-            <div className="space-y-1.5">
-              {paymentOptions.map((method) => (
-                <div key={method} className="flex items-center gap-2">
-                  <Checkbox
-                    checked={paymentMethods.includes(method)}
-                    onCheckedChange={() => togglePayment(method)}
-                  />
-                  <span className="text-xs text-slate-600">{method}</span>
-                </div>
-              ))}
-            </div>
-          </div>
 
-          <div>
-            <Label className="text-xs">Parcelamento (vezes)</Label>
-            <Input
-              type="number"
-              min="1"
-              max="12"
-              value={installments || 1}
-              onChange={(e) => setInstallments(parseInt(e.target.value) || 1)}
-              placeholder="1"
-              className="mt-1"
-            />
-          </div>
 
           <div className="flex items-center gap-2">
             <Checkbox checked={highlighted} onCheckedChange={(c) => setHighlighted(c === true)} />

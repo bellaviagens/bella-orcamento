@@ -53,48 +53,68 @@ export function InstallmentsForm() {
         <div className="mt-3 space-y-2">
           <div className="flex items-center gap-2">
             <Checkbox
-              id="payment-cash"
-              checked={installments?.paymentMethods?.includes("dinheiro") || false}
+              id="payment-flight-all"
+              checked={(
+                installments?.paymentMethods?.includes("dinheiro") &&
+                installments?.paymentMethods?.includes("cartao") &&
+                installments?.paymentMethods?.includes("pix")
+              ) || false}
               onCheckedChange={(checked) => {
-                const current = installments?.paymentMethods || [];
                 if (checked) {
-                  updatePaymentMethods([...current, "dinheiro"]);
+                  updatePaymentMethods(["dinheiro", "cartao", "pix"]);
                 } else {
-                  updatePaymentMethods(current.filter((m) => m !== "dinheiro"));
+                  updatePaymentMethods([]);
                 }
               }}
             />
-            <Label htmlFor="payment-cash" className="text-xs cursor-pointer">Dinheiro</Label>
+            <Label htmlFor="payment-flight-all" className="text-xs cursor-pointer font-semibold">Selecionar Tudo</Label>
           </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="payment-card"
-              checked={installments?.paymentMethods?.includes("cartao") || false}
-              onCheckedChange={(checked) => {
-                const current = installments?.paymentMethods || [];
-                if (checked) {
-                  updatePaymentMethods([...current, "cartao"]);
-                } else {
-                  updatePaymentMethods(current.filter((m) => m !== "cartao"));
-                }
-              }}
-            />
-            <Label htmlFor="payment-card" className="text-xs cursor-pointer">Cartão</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="payment-pix"
-              checked={installments?.paymentMethods?.includes("pix") || false}
-              onCheckedChange={(checked) => {
-                const current = installments?.paymentMethods || [];
-                if (checked) {
-                  updatePaymentMethods([...current, "pix"]);
-                } else {
-                  updatePaymentMethods(current.filter((m) => m !== "pix"));
-                }
-              }}
-            />
-            <Label htmlFor="payment-pix" className="text-xs cursor-pointer">PIX</Label>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="payment-cash"
+                checked={installments?.paymentMethods?.includes("dinheiro") || false}
+                onCheckedChange={(checked) => {
+                  const current = installments?.paymentMethods || [];
+                  if (checked) {
+                    updatePaymentMethods([...current, "dinheiro"]);
+                  } else {
+                    updatePaymentMethods(current.filter((m) => m !== "dinheiro"));
+                  }
+                }}
+              />
+              <Label htmlFor="payment-cash" className="text-xs cursor-pointer">Dinheiro</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="payment-card"
+                checked={installments?.paymentMethods?.includes("cartao") || false}
+                onCheckedChange={(checked) => {
+                  const current = installments?.paymentMethods || [];
+                  if (checked) {
+                    updatePaymentMethods([...current, "cartao"]);
+                  } else {
+                    updatePaymentMethods(current.filter((m) => m !== "cartao"));
+                  }
+                }}
+              />
+              <Label htmlFor="payment-card" className="text-xs cursor-pointer">Cartão</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="payment-pix"
+                checked={installments?.paymentMethods?.includes("pix") || false}
+                onCheckedChange={(checked) => {
+                  const current = installments?.paymentMethods || [];
+                  if (checked) {
+                    updatePaymentMethods([...current, "pix"]);
+                  } else {
+                    updatePaymentMethods(current.filter((m) => m !== "pix"));
+                  }
+                }}
+              />
+              <Label htmlFor="payment-pix" className="text-xs cursor-pointer">PIX</Label>
+            </div>
           </div>
         </div>
       </div>
@@ -121,48 +141,68 @@ export function InstallmentsForm() {
         <div className="mt-3 space-y-2">
           <div className="flex items-center gap-2">
             <Checkbox
-              id="payment-hotel-cash"
-              checked={installments?.hotelPaymentMethods?.includes("dinheiro") || false}
+              id="payment-hotel-all"
+              checked={(
+                installments?.hotelPaymentMethods?.includes("dinheiro") &&
+                installments?.hotelPaymentMethods?.includes("cartao") &&
+                installments?.hotelPaymentMethods?.includes("pix")
+              ) || false}
               onCheckedChange={(checked) => {
-                const current = installments?.hotelPaymentMethods || [];
                 if (checked) {
-                  updateHotelPaymentMethods([...current, "dinheiro"]);
+                  updateHotelPaymentMethods(["dinheiro", "cartao", "pix"]);
                 } else {
-                  updateHotelPaymentMethods(current.filter((m) => m !== "dinheiro"));
+                  updateHotelPaymentMethods([]);
                 }
               }}
             />
-            <Label htmlFor="payment-hotel-cash" className="text-xs cursor-pointer">Dinheiro</Label>
+            <Label htmlFor="payment-hotel-all" className="text-xs cursor-pointer font-semibold">Selecionar Tudo</Label>
           </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="payment-hotel-card"
-              checked={installments?.hotelPaymentMethods?.includes("cartao") || false}
-              onCheckedChange={(checked) => {
-                const current = installments?.hotelPaymentMethods || [];
-                if (checked) {
-                  updateHotelPaymentMethods([...current, "cartao"]);
-                } else {
-                  updateHotelPaymentMethods(current.filter((m) => m !== "cartao"));
-                }
-              }}
-            />
-            <Label htmlFor="payment-hotel-card" className="text-xs cursor-pointer">Cartão</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="payment-hotel-pix"
-              checked={installments?.hotelPaymentMethods?.includes("pix") || false}
-              onCheckedChange={(checked) => {
-                const current = installments?.hotelPaymentMethods || [];
-                if (checked) {
-                  updateHotelPaymentMethods([...current, "pix"]);
-                } else {
-                  updateHotelPaymentMethods(current.filter((m) => m !== "pix"));
-                }
-              }}
-            />
-            <Label htmlFor="payment-hotel-pix" className="text-xs cursor-pointer">PIX</Label>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="payment-hotel-cash"
+                checked={installments?.hotelPaymentMethods?.includes("dinheiro") || false}
+                onCheckedChange={(checked) => {
+                  const current = installments?.hotelPaymentMethods || [];
+                  if (checked) {
+                    updateHotelPaymentMethods([...current, "dinheiro"]);
+                  } else {
+                    updateHotelPaymentMethods(current.filter((m) => m !== "dinheiro"));
+                  }
+                }}
+              />
+              <Label htmlFor="payment-hotel-cash" className="text-xs cursor-pointer">Dinheiro</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="payment-hotel-card"
+                checked={installments?.hotelPaymentMethods?.includes("cartao") || false}
+                onCheckedChange={(checked) => {
+                  const current = installments?.hotelPaymentMethods || [];
+                  if (checked) {
+                    updateHotelPaymentMethods([...current, "cartao"]);
+                  } else {
+                    updateHotelPaymentMethods(current.filter((m) => m !== "cartao"));
+                  }
+                }}
+              />
+              <Label htmlFor="payment-hotel-card" className="text-xs cursor-pointer">Cartão</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="payment-hotel-pix"
+                checked={installments?.hotelPaymentMethods?.includes("pix") || false}
+                onCheckedChange={(checked) => {
+                  const current = installments?.hotelPaymentMethods || [];
+                  if (checked) {
+                    updateHotelPaymentMethods([...current, "pix"]);
+                  } else {
+                    updateHotelPaymentMethods(current.filter((m) => m !== "pix"));
+                  }
+                }}
+              />
+              <Label htmlFor="payment-hotel-pix" className="text-xs cursor-pointer">PIX</Label>
+            </div>
           </div>
         </div>
       </div>
