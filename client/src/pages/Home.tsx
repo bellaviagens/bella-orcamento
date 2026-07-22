@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff, MessageCircle } from "lucide-react";
+import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 function BuilderContent() {
@@ -66,27 +66,6 @@ function BuilderContent() {
                 Incluir Hotel
               </Label>
             </div>
-            <Button
-              size="sm"
-              onClick={() => {
-                const tripInfo = budget.tripInfo;
-                const fareTotal = budget.fareComparison.tiers.reduce((sum, tier) => sum + tier.flightPrice, 0);
-                const hotelTotal = budget.hotels.reduce((sum, hotel) => {
-                  const effectivePrice = hotel.priceMode === "daily" && hotel.dailyPrice && hotel.nights
-                    ? hotel.dailyPrice * hotel.nights
-                    : hotel.totalPrice;
-                  return sum + effectivePrice;
-                }, 0);
-                
-                const message = `🌍 *Bella Viagens e Milhas* 🌍\n\n✈️ *Orçamento de Viagem*\n\n📍 Destino: ${tripInfo.destination || "N/A"}\n📅 Período: ${tripInfo.period || "N/A"}\n👥 Passageiros: ${tripInfo.passengers || "N/A"}\n\n💰 *Valores*\n✈️ Aéreo: R$ ${fareTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}\n🏨 Hotel: R$ ${hotelTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}\n\n📝 Para mais detalhes, solicite o orçamento completo em PDF.\n\nAcumule. Viaje. Viva. ✨`;
-                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                window.open(whatsappUrl, "_blank");
-              }}
-              className="bg-green-500 text-white hover:bg-green-600"
-            >
-              <MessageCircle className="h-4 w-4 mr-2" />
-              WhatsApp
-            </Button>
             <Button
               size="sm"
               onClick={async () => {
