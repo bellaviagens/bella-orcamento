@@ -288,28 +288,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                 )}
               </div>
             )}
-            {installments?.paymentMethods && installments.paymentMethods.length > 0 && (
-              <div className="rounded-lg border border-slate-200 p-4 bg-blue-50 mt-4">
-                <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Formas de Pagamento Aceitas</div>
-                <div className="flex flex-wrap gap-2">
-                  {installments.paymentMethods.includes("dinheiro") && (
-                    <span className="inline-block px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-medium text-[#1a2e4a]">
-                      Dinheiro
-                    </span>
-                  )}
-                  {installments.paymentMethods.includes("cartao") && (
-                    <span className="inline-block px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-medium text-[#1a2e4a]">
-                      Cartão
-                    </span>
-                  )}
-                  {installments.paymentMethods.includes("pix") && (
-                    <span className="inline-block px-3 py-1 rounded-full bg-white border border-slate-200 text-xs font-medium text-[#1a2e4a]">
-                      PIX
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
+
           </div>
         </div>
       )}
