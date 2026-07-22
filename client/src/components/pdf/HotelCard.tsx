@@ -146,7 +146,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
         ) : null}
 
         {/* Prices grid - Total with flight included */}
-        {tiers.length > 0 ? (
+        {includeAirfare && tiers.length > 0 ? (
           <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(tiers.length, 3)}, 1fr)` }}>
             {tiers.map((tier) => {
               const basePrice = includeAirfare ? effectiveTotalPrice + tier.flightPrice : effectiveTotalPrice;
