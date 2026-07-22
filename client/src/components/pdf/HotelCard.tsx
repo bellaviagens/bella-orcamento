@@ -13,6 +13,7 @@ interface HotelCardProps {
   flightPaymentMethods?: string[];
   combined?: boolean;
   hotelObservation?: string;
+  hotelInstallments?: number;
 }
 
 function formatCurrency(value: number): string {
@@ -22,7 +23,7 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "" }: HotelCardProps) {
+export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "", hotelInstallments = 0 }: HotelCardProps) {
   const [proxiedPhotoUrl, setProxiedPhotoUrl] = useState<string | null>(hotel.photoUrl || null);
   const imageProxyQuery = trpc.imageProxy.useQuery(
     { url: hotel.photoUrl || "" },
@@ -190,6 +191,28 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
         <button className="w-full bg-[#1a2e4a] text-white py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-[#253d5c] transition">
           Acessar Cotação & Fotos
         </button>
+
+        {/* Parcelamento Individual do Hotel */}
+        {hotelInstallments > 0 && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 mt-4">
+            <div className="text-xs font-bold text-blue-700 mb-2 uppercase">Parcelamento Total: Aéreo + Hotel</div>
+            <div className="text-sm font-bold text-blue-600 mb-1">
+              {hotelInstallments}x de {formatCurrency((effectiveTotalPrice + (tiers.length > 0 ? tiers[0].flightPrice : 0)) / hotelInstallments)}
+            </div>
+            <div className="text-xs text-blue-600/70 mb-2">
+              Valor total: {formatCurrency(effectiveTotalPrice + (tiers.length > 0 ? tiers[0].flightPrice : 0))}
+            </div>
+            {hotelPaymentMethods && hotelPaymentMethods.length > 0 && (
+              <div className="flex gap-1 flex-wrap">
+                {hotelPaymentMethods.map((method) => (
+                  <span key={method} className="text-[10px] px-2 py-1 rounded bg-blue-200 text-blue-800 font-semibold">
+                    {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Hotel URL link */}
         {hotel.hotelUrl && (
