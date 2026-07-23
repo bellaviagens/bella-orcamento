@@ -323,34 +323,12 @@ export function InstallmentsForm() {
         )}
       </div>
 
-      {/* Flight Observations */}
+      {/* Observations */}
       <div className="border-t border-slate-200 pt-4">
-        <Label className="text-[11px] font-semibold text-slate-500 uppercase">Observações do Parcelamento do Aéreo</Label>
+        <Label className="text-[11px] font-semibold text-slate-500 uppercase">Observações do Parcelamento</Label>
         <textarea
-          value={installments?.flightObservations || ""}
-          onChange={(e) => updateInstallments("flightObservations", e.target.value)}
-          placeholder="Ex: à vista 20% de desconto, parcela em até 12x..."
-          className="w-full h-16 text-xs border border-slate-300 rounded p-2 mt-2 resize-none"
-        />
-      </div>
-
-      {/* Hotel Observations */}
-      <div className="border-t border-slate-200 pt-4">
-        <Label className="text-[11px] font-semibold text-slate-500 uppercase">Observações do Parcelamento do Hotel</Label>
-        <textarea
-          value={installments?.hotelObservations || ""}
-          onChange={(e) => updateInstallments("hotelObservations", e.target.value)}
-          placeholder="Ex: à vista 20% de desconto, parcela em até 12x..."
-          className="w-full h-16 text-xs border border-slate-300 rounded p-2 mt-2 resize-none"
-        />
-      </div>
-
-      {/* Combined Observations */}
-      <div className="border-t border-slate-200 pt-4">
-        <Label className="text-[11px] font-semibold text-slate-500 uppercase">Observações do Parcelamento Combinado</Label>
-        <textarea
-          value={installments?.combinedObservations || ""}
-          onChange={(e) => updateInstallments("combinedObservations", e.target.value)}
+          value={installments?.observations || ""}
+          onChange={(e) => updateInstallments("observations", e.target.value)}
           placeholder="Ex: à vista 20% de desconto, parcela em até 12x..."
           className="w-full h-16 text-xs border border-slate-300 rounded p-2 mt-2 resize-none"
         />

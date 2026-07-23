@@ -23,9 +23,7 @@ interface HotelCardProps {
   combinedInstallments?: number;
   combinedDownpayment?: boolean;
   combinedDownpaymentAmount?: number;
-  flightObservations?: string;
-  hotelObservations?: string;
-  combinedObservations?: string;
+  observations?: string;
 }
 
 function formatCurrency(value: number): string {
@@ -35,7 +33,7 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, includeHotel = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "", hotelInstallments = 1, hotelDownpayment = false, hotelDownpaymentAmount = 0, flightInstallments = 1, flightDownpayment = false, flightDownpaymentAmount = 0, combinedInstallments = 1, combinedDownpayment = false, combinedDownpaymentAmount = 0, flightObservations = "", hotelObservations = "", combinedObservations = "" }: HotelCardProps) {
+export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, includeHotel = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "", hotelInstallments = 1, hotelDownpayment = false, hotelDownpaymentAmount = 0, flightInstallments = 1, flightDownpayment = false, flightDownpaymentAmount = 0, combinedInstallments = 1, combinedDownpayment = false, combinedDownpaymentAmount = 0, observations = "" }: HotelCardProps) {
   const [proxiedPhotoUrl, setProxiedPhotoUrl] = useState<string | null>(hotel.photoUrl || null);
   const imageProxyQuery = trpc.imageProxy.useQuery(
     { url: hotel.photoUrl || "" },
@@ -293,19 +291,9 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
               </div>
             )}
             {/* Installment Observations */}
-            {combined && combinedObservations && (
+            {observations && (
               <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-slate-700">
-                {combinedObservations}
-              </div>
-            )}
-            {!combined && includeAirfare && flightObservations && (
-              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-slate-700">
-                {flightObservations}
-              </div>
-            )}
-            {!combined && includeHotel && hotelObservations && (
-              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-slate-700">
-                {hotelObservations}
+                {observations}
               </div>
             )}
             {hotel.paymentNotes && (

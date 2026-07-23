@@ -103,9 +103,7 @@ export interface BudgetData {
     flightDownpaymentAmount?: number; // Valor da entrada do aéreo
     combinedDownpayment?: boolean; // Se true, tem entrada quando parcelar tudo junto
     combinedDownpaymentAmount?: number; // Valor da entrada quando parcelar tudo junto
-    flightObservations?: string; // Observações customizáveis para o parcelamento do aéreo
-    hotelObservations?: string; // Observações customizáveis para o parcelamento do hotel
-    combinedObservations?: string; // Observações customizáveis para o parcelamento combinado
+    observations?: string; // Observações customizáveis para o parcelamento (aparece em todos os blocos)
   };
   pageBreaks?: {
     flights?: boolean; // Iniciar voos em nova página
