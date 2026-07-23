@@ -71,19 +71,20 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
               </div>
               {/* Botão Acessar Cotação & Fotos - Ao lado do hotel */}
               <div className="flex flex-col items-end gap-1">
-                <button className="bg-[#1a2e4a] text-white py-1.5 px-2 rounded-lg font-bold text-xs uppercase hover:bg-[#253d5c] transition whitespace-nowrap">
-                  Acessar Fotos
-                </button>
-                {hotel.hotelUrl && (
+                {hotel.hotelUrl ? (
                   <a
                     href={hotel.hotelUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 underline"
+                    className="bg-[#1a2e4a] text-white py-1.5 px-2 rounded-lg font-bold text-xs uppercase hover:bg-[#253d5c] transition whitespace-nowrap inline-flex items-center gap-1"
                   >
-                    Ver no site
+                    Acessar Fotos e Site
                     <ExternalLink className="h-3 w-3" />
                   </a>
+                ) : (
+                  <button className="bg-[#1a2e4a] text-white py-1.5 px-2 rounded-lg font-bold text-xs uppercase hover:bg-[#253d5c] transition whitespace-nowrap">
+                    Acessar Fotos
+                  </button>
                 )}
               </div>
             </div>
