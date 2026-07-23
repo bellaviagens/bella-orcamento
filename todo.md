@@ -72,3 +72,5 @@
 - [x] Otimizar espaços vazios para 2 hotéis caberem em uma página (h-40→h-32, p-5→p-4, gaps e margins reduzidos)
 
 - [x] Refatorar HotelCard para layout compacto sem foto grande - 2 hotéis por página (mantendo cores, fórmulas e design)
+
+- [x] Adicionar foto do hotel (80x80px) ao lado da descrição, mantendo layout compacto

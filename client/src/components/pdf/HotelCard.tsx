@@ -56,10 +56,12 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm p-3 mb-3">
-      {/* Header with left border */}
+      {/* Header with left border + Photo */}
       <div className="flex gap-2 mb-2">
         <div className="w-1 bg-amber-400 rounded-full flex-shrink-0"></div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 flex gap-2">
+          {/* Left: Info */}
+          <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1 flex-wrap">
             <span className="text-sm font-bold text-[#1a2e4a]">{index + 1}.</span>
             <h3 className="text-sm font-bold text-[#1a2e4a]">{hotel.name}</h3>
@@ -86,6 +88,14 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
             <div className="mt-1 inline-block bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded text-xs">
               <span className="font-bold text-blue-700">★ Nota: {hotel.rating.toFixed(1)} / 10</span>
               <span className="text-blue-600"> ({hotel.ratingLabel})</span>
+            </div>
+          )}
+          </div>
+          
+          {/* Right: Photo - Pequena */}
+          {proxiedPhotoUrl && (
+            <div className="w-20 h-20 flex-shrink-0">
+              <img src={proxiedPhotoUrl} alt={hotel.name} className="w-full h-full object-cover rounded" crossOrigin="anonymous" />
             </div>
           )}
         </div>
