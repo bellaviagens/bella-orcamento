@@ -92,12 +92,29 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
           )}
           </div>
           
-          {/* Right: Photo - Pequena */}
-          {proxiedPhotoUrl && (
-            <div className="w-20 h-20 flex-shrink-0">
-              <img src={proxiedPhotoUrl} alt={hotel.name} className="w-full h-full object-cover rounded" crossOrigin="anonymous" />
-            </div>
-          )}
+          {/* Right: Photo + Button */}
+          <div className="flex flex-col gap-1 items-end">
+            {proxiedPhotoUrl && (
+              <div className="w-24 h-24 flex-shrink-0">
+                <img src={proxiedPhotoUrl} alt={hotel.name} className="w-full h-full object-cover rounded" crossOrigin="anonymous" />
+              </div>
+            )}
+            {hotel.hotelUrl ? (
+              <a
+                href={hotel.hotelUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-[#1a2e4a] text-white py-1 px-1.5 rounded font-bold text-[9px] uppercase hover:bg-[#253d5c] transition inline-flex items-center justify-center gap-0.5 whitespace-nowrap"
+              >
+                Acessar Site e Fotos
+                <ExternalLink className="h-2.5 w-2.5" />
+              </a>
+            ) : (
+              <button className="bg-[#1a2e4a] text-white py-1 px-1.5 rounded font-bold text-[9px] uppercase hover:bg-[#253d5c] transition whitespace-nowrap">
+                Acessar Site e Fotos
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -138,17 +155,17 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 return (
                   <div
                     key={tier.id}
-                    className={`rounded-lg border p-2 text-center ${
+                    className={`rounded-lg border p-1.5 text-center ${
                       tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"
                     }`}
                   >
-                    <div className={`text-[9px] font-bold mb-0.5 uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
+                    <div className={`text-[8px] font-bold mb-0.5 uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
                       {label}
                     </div>
                     <div className={`text-xs font-bold ${tier.highlighted ? "text-amber-600" : "text-blue-600"}`}>
                       {formatCurrency(totalPrice)}
                     </div>
-                    <div className={`text-[8px] ${tier.highlighted ? "text-amber-600/70" : "text-blue-600/70"}`}>
+                    <div className={`text-[7px] ${tier.highlighted ? "text-amber-600/70" : "text-blue-600/70"}`}>
                       {formatCurrency(perPersonPrice)} / pessoa
                     </div>
                     {tier.benefits && tier.benefits.length > 0 && (
@@ -178,22 +195,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
         </div>
       </div>
 
-      {/* Button - Full width, compacto */}
-      {hotel.hotelUrl ? (
-        <a
-          href={hotel.hotelUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full bg-[#1a2e4a] text-white py-1.5 px-2 rounded font-bold text-xs uppercase hover:bg-[#253d5c] transition inline-flex items-center justify-center gap-1 mb-2"
-        >
-          Acessar Cotação & Fotos
-          <ExternalLink className="h-3 w-3" />
-        </a>
-      ) : (
-        <button className="w-full bg-[#1a2e4a] text-white py-1.5 px-2 rounded font-bold text-xs uppercase hover:bg-[#253d5c] transition mb-2">
-          Acessar Cotação & Fotos
-        </button>
-      )}
+
 
       {/* Payment Methods Block - Individual for each hotel with Aéreo + Hotel calculator */}
       {((includeAirfare && flightPaymentMethods?.length > 0) || (includeHotel && hotelPaymentMethods?.length > 0)) && (

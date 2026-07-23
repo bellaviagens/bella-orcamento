@@ -74,3 +74,7 @@
 - [x] Refatorar HotelCard para layout compacto sem foto grande - 2 hotéis por página (mantendo cores, fórmulas e design)
 
 - [x] Adicionar foto do hotel (80x80px) ao lado da descrição, mantendo layout compacto
+
+- [x] Aumentar foto do hotel para 96x96px
+- [x] Mover botão para ao lado da foto com texto "ACESSAR SITE E FOTOS"
+- [x] Diminuir blocos de tarifas (padding p-1.5, texto menor)
