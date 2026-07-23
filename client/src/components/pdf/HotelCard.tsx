@@ -57,7 +57,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
   return (
     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
       {/* Photo */}
-      <div className="h-40 bg-slate-100 overflow-hidden flex items-center justify-center">
+      <div className="h-32 bg-slate-100 overflow-hidden flex items-center justify-center">
         {proxiedPhotoUrl ? (
           <img src={proxiedPhotoUrl} alt={hotel.name} className="w-full h-full object-cover" crossOrigin="anonymous" />
         ) : (
@@ -65,7 +65,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
         )}
       </div>
 
-      <div className="p-5">
+      <div className="p-4">
         {/* Header with left border */}
         <div className="flex gap-3 mb-4">
           <div className="w-1 bg-amber-400 rounded-full flex-shrink-0"></div>
@@ -122,7 +122,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
         </div>
 
         {/* Main content: Amenities left, Tarifas right */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-2 gap-3 mb-3">
           {/* Left: Amenities */}
           <div>
             <div className="text-xs font-bold text-[#1a2e4a] mb-2 uppercase">Comodidades Incluídas:</div>
@@ -203,7 +203,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
 
         {/* Payment Methods Block - Individual for each hotel with Aéreo + Hotel calculator */}
         {((includeAirfare && flightPaymentMethods?.length > 0) || (includeHotel && hotelPaymentMethods?.length > 0)) && (
-          <div className="mt-6 pt-4 border-t-2 border-amber-400">
+          <div className="mt-3 pt-2 border-t-2 border-amber-400">
             <div className="text-sm font-bold text-[#1a2e4a] uppercase mb-3 pb-2 border-b border-slate-200">
               Forma de Pagamento
             </div>
@@ -292,12 +292,12 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
             )}
             {/* Installment Observations */}
             {observations && (
-              <div className="mt-6 mb-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-slate-700 break-inside-avoid">
+              <div className="mt-2 mb-2 p-2 bg-amber-50 border border-amber-200 rounded text-sm text-slate-700 break-inside-avoid">
                 {observations}
               </div>
             )}
             {hotel.paymentNotes && (
-              <div className="mt-6 mb-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-slate-700 break-inside-avoid">
+              <div className="mt-2 mb-2 p-2 bg-amber-50 border border-amber-200 rounded text-sm text-slate-700 break-inside-avoid">
                 {hotel.paymentNotes}
               </div>
             )}

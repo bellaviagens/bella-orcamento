@@ -174,10 +174,10 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
           >
             Opções de Hospedagem
           </h3>
-          <div className="space-y-8">
+          <div className="space-y-4">
             {hotels.map((hotel, idx) => {
               return (
-                <div key={hotel.id} className="pb-8 border-b-4 border-slate-100 last:border-b-0" {...(hotel.startOnNewPage && idx > 0 ? { "data-page-break": "true" } : {})}>
+                <div key={hotel.id} className="pb-4 border-b-4 border-slate-100 last:border-b-0" {...(hotel.startOnNewPage && idx > 0 ? { "data-page-break": "true" } : {})}>
                   <HotelCard
                     hotel={hotel}
                     index={idx}
