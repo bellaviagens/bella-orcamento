@@ -184,6 +184,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     tiers={fareComparison.tiers}
                     passengers={passengerCount}
                     includeAirfare={includeAirfare}
+                    includeHotel={includeHotel}
                     hotelPaymentMethods={installments?.hotelPaymentMethods}
                     flightPaymentMethods={installments?.paymentMethods}
                     combined={installments?.combined}

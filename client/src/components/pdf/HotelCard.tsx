@@ -9,6 +9,7 @@ interface HotelCardProps {
   tiers: FareTier[];
   passengers: number;
   includeAirfare?: boolean;
+  includeHotel?: boolean;
   hotelPaymentMethods?: string[];
   flightPaymentMethods?: string[];
   combined?: boolean;
@@ -31,7 +32,7 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "", hotelInstallments = 1, hotelDownpayment = false, hotelDownpaymentAmount = 0, flightInstallments = 1, flightDownpayment = false, flightDownpaymentAmount = 0, combinedInstallments = 1, combinedDownpayment = false, combinedDownpaymentAmount = 0 }: HotelCardProps) {
+export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, includeHotel = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "", hotelInstallments = 1, hotelDownpayment = false, hotelDownpaymentAmount = 0, flightInstallments = 1, flightDownpayment = false, flightDownpaymentAmount = 0, combinedInstallments = 1, combinedDownpayment = false, combinedDownpaymentAmount = 0 }: HotelCardProps) {
   const [proxiedPhotoUrl, setProxiedPhotoUrl] = useState<string | null>(hotel.photoUrl || null);
   const imageProxyQuery = trpc.imageProxy.useQuery(
     { url: hotel.photoUrl || "" },
@@ -200,7 +201,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
 
 
         {/* Payment Methods Block - Individual for each hotel with Aéreo + Hotel calculator */}
-        {(flightPaymentMethods?.length > 0 || hotelPaymentMethods?.length > 0) && (
+        {((includeAirfare && flightPaymentMethods?.length > 0) || (includeHotel && hotelPaymentMethods?.length > 0)) && (
           <div className="mt-6 pt-4 border-t-2 border-amber-400">
             <div className="text-sm font-bold text-[#1a2e4a] uppercase mb-3 pb-2 border-b border-slate-200">
               Forma de Pagamento
@@ -265,7 +266,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                   </div>
                 )}
                 {/* HOTEL Block */}
-                {hotelPaymentMethods && hotelPaymentMethods.length > 0 && (
+                {includeHotel && hotelPaymentMethods && hotelPaymentMethods.length > 0 && (
                   <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
                     <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Hotel</div>
                     <div className="text-xl font-bold text-[#1a2e4a]">
