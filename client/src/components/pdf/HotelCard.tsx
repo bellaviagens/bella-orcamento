@@ -57,7 +57,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
   return (
     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
       {/* Photo */}
-      <div className="h-40 bg-slate-100 overflow-hidden flex items-center justify-center">
+      <div className="h-32 bg-slate-100 overflow-hidden flex items-center justify-center">
         {proxiedPhotoUrl ? (
           <img src={proxiedPhotoUrl} alt={hotel.name} className="w-full h-full object-cover" crossOrigin="anonymous" />
         ) : (
@@ -65,9 +65,9 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
         )}
       </div>
 
-      <div className="p-5">
+      <div className="p-4">
         {/* Header with left border */}
-        <div className="flex gap-3 mb-4">
+        <div className="flex gap-3 mb-3">
           <div className="w-1 bg-amber-400 rounded-full flex-shrink-0"></div>
           <div className="flex-1">
             <div className="flex items-center justify-between gap-2">
@@ -101,19 +101,19 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
             </div>
             
             {/* Address */}
-            <div className="flex items-start gap-1.5 text-xs text-slate-500 mt-1">
+            <div className="flex items-start gap-1.5 text-xs text-slate-500 mt-0.5">
               <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
               <span>{hotel.address}</span>
             </div>
 
             {/* Description */}
             {hotel.description && (
-              <p className="text-xs italic text-slate-600 mt-1">{hotel.description}</p>
+              <p className="text-xs italic text-slate-600 mt-0.5">{hotel.description}</p>
             )}
 
             {/* Rating */}
             {hotel.rating > 0 && (
-              <div className="mt-2 inline-block bg-blue-50 border border-blue-200 px-2 py-1 rounded text-xs">
+              <div className="mt-1 inline-block bg-blue-50 border border-blue-200 px-2 py-1 rounded text-xs">
                 <span className="font-bold text-blue-700">★ Nota: {hotel.rating.toFixed(1)} / 10</span>
                 <span className="text-blue-600"> ({hotel.ratingLabel})</span>
               </div>
@@ -122,7 +122,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
         </div>
 
         {/* Main content: Amenities left, Tarifas right */}
-        <div className="grid grid-cols-2 gap-4 mb-2">
+        <div className="grid grid-cols-2 gap-3 mb-2">
           {/* Left: Amenities */}
           <div>
             <div className="text-xs font-bold text-[#1a2e4a] mb-2 uppercase">Comodidades Incluídas:</div>
@@ -203,7 +203,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
 
         {/* Payment Methods Block - Individual for each hotel with Aéreo + Hotel calculator */}
         {((includeAirfare && flightPaymentMethods?.length > 0) || (includeHotel && hotelPaymentMethods?.length > 0)) && (
-          <div className="mt-2 pt-3 border-t-2 border-amber-400">
+          <div className="mt-1.5 pt-2 border-t-2 border-amber-400">
             <div className="text-sm font-bold text-[#1a2e4a] uppercase mb-3 pb-2 border-b border-slate-200">
               Forma de Pagamento
             </div>
