@@ -41,6 +41,7 @@ export function HotelForm() {
   const [dailyPrice, setDailyPrice] = useState(0);
   const [nights, setNights] = useState(0);
   const [startOnNewPage, setStartOnNewPage] = useState(false);
+  const [paymentNotes, setPaymentNotes] = useState("");
   const [prices, setPrices] = useState<Record<string, { total: number; perPerson: number }>>({});
 
   const parseHotelMutation = trpc.parseHotelScreenshot.useMutation();
@@ -61,6 +62,7 @@ export function HotelForm() {
     setDailyPrice(0);
     setNights(0);
     setStartOnNewPage(false);
+    setPaymentNotes("");
     setPrices({});
     setEditingId(null);
   };
@@ -81,6 +83,7 @@ export function HotelForm() {
     setDailyPrice(hotel.dailyPrice || 0);
     setNights(hotel.nights || 0);
     setStartOnNewPage(hotel.startOnNewPage || false);
+    setPaymentNotes(hotel.paymentNotes || "");
     setPrices(hotel.prices);
     setShowForm(true);
   };
@@ -115,6 +118,7 @@ export function HotelForm() {
       dailyPrice,
       nights,
       startOnNewPage,
+      paymentNotes,
       prices,
     };
 
@@ -535,6 +539,18 @@ export function HotelForm() {
           </div>
 
 
+
+          {/* Payment Notes */}
+          <div>
+            <Label className="text-xs">Observacoes de Pagamento (ex: a vista 20% de desconto)</Label>
+            <Textarea
+              value={paymentNotes}
+              onChange={(e) => setPaymentNotes(e.target.value)}
+              placeholder="Ex: a vista 20% de desconto, parcela em ate 12x..."
+              className="mt-1"
+              rows={2}
+            />
+          </div>
 
           {/* Page break option */}
           <div className="flex items-center gap-2 border-t border-slate-200 pt-3">

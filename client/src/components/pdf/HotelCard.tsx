@@ -259,6 +259,11 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 )}
               </div>
             )}
+            {hotel.paymentNotes && (
+              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-slate-700">
+                {hotel.paymentNotes}
+              </div>
+            )}
           </div>
         )}
       </div>

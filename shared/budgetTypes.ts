@@ -44,6 +44,7 @@ export interface Hotel {
   dailyPrice?: number; // Preço por diária
   nights?: number; // Número de diárias
   startOnNewPage?: boolean; // Se true, começa em nova página no PDF
+  paymentNotes?: string; // Observações customizáveis para o bloco de formas de pagamento
 }
 
 export interface TripInfo {
