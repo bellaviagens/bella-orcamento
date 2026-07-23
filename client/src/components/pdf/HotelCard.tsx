@@ -23,6 +23,7 @@ function formatCurrency(value: number): string {
 
 export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false }: HotelCardProps) {
   const [proxiedPhotoUrl, setProxiedPhotoUrl] = useState<string | null>(hotel.photoUrl || null);
+  const [selectedTierIndex, setSelectedTierIndex] = useState(0);
   const imageProxyQuery = trpc.imageProxy.useQuery(
     { url: hotel.photoUrl || "" },
     {
@@ -148,7 +149,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
         {/* Prices grid - Total with flight included */}
         {includeAirfare && tiers.length > 0 ? (
           <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(tiers.length, 3)}, 1fr)` }}>
-            {tiers.map((tier) => {
+            {tiers.map((tier, tierIdx) => {
               const basePrice = includeAirfare ? effectiveTotalPrice + tier.flightPrice : effectiveTotalPrice;
               const totalPrice = basePrice;
               const perPersonPrice = basePrice / passengers;
@@ -157,8 +158,11 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
               return (
                 <div
                   key={tier.id}
-                  className={`rounded-lg border border-slate-200 p-3 text-center ${
-                    tier.highlighted ? "bg-amber-50 border-amber-300" : ""
+                  onClick={() => setSelectedTierIndex(tierIdx)}
+                  className={`rounded-lg border p-3 text-center cursor-pointer transition ${
+                    selectedTierIndex === tierIdx
+                      ? tier.highlighted ? "bg-amber-100 border-amber-400" : "bg-blue-100 border-blue-400"
+                      : tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-slate-50 border-slate-200"
                   }`}
                 >
                   <div className={`text-[10px] font-bold mb-1 uppercase ${tier.highlighted ? "text-amber-700" : "text-slate-500"}`}>
@@ -192,18 +196,24 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
             <div className="text-[10px] text-blue-600/70">
               {formatCurrency(effectiveTotalPrice / passengers)} / pessoa
             </div>
-            {hotelPaymentMethods && hotelPaymentMethods.length > 0 && (
-              <div className="text-[8px] text-slate-500 mt-2 pt-2 border-t border-blue-200 flex gap-1 justify-center flex-wrap">
-                {hotelPaymentMethods.map((method) => (
-                  <span key={method} className="px-2 py-0.5 bg-blue-200 text-blue-800 rounded text-[7px] font-semibold">
-                    {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
-                  </span>
-                ))}
-              </div>
-            )}
+
           </div>
         ) : (
           <div className="text-xs text-slate-400 text-center py-4">Nenhuma tarifa adicionada</div>
+        )}
+
+        {/* Forma de Pagamento Individual */}
+        {hotelPaymentMethods && hotelPaymentMethods.length > 0 && (
+          <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3">
+            <div className="text-xs font-bold text-blue-700 mb-2 uppercase">Forma de Pagamento</div>
+            <div className="flex gap-1 flex-wrap">
+              {hotelPaymentMethods.map((method) => (
+                <span key={method} className="text-[10px] px-2 py-1 rounded bg-blue-200 text-blue-800 font-semibold">
+                  {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartao" : "PIX"}
+                </span>
+              ))}
+            </div>
+          </div>
         )}
       </div>
     </div>
