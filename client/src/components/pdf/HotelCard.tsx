@@ -186,6 +186,35 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
             </a>
           </div>
         )}
+
+        {/* Payment Methods Block - Individual for each hotel */}
+        {hotelPaymentMethods && hotelPaymentMethods.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-slate-200">
+            <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
+              <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Hotel</div>
+              <div className="text-xl font-bold text-[#1a2e4a]">
+                {hotelPaymentMethods && hotelPaymentMethods.length > 0 ? (
+                  <div>
+                    <div className="text-sm mb-2">
+                      {effectiveTotalPrice > 0 && (
+                        <div className="text-xs text-slate-500 mb-1">
+                          Total: {formatCurrency(effectiveTotalPrice)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+              <div className="flex flex-wrap gap-2 mt-3">
+                {hotelPaymentMethods.map((method) => (
+                  <span key={method} className="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                    {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
