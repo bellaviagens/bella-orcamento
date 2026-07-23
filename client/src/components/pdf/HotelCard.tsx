@@ -210,11 +210,20 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
               <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
                 <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Aéreo + Hotel</div>
                 <div className="text-xl font-bold text-[#1a2e4a]">
-                  {tiers[0]?.flightPrice && effectiveTotalPrice ? (
-                    combinedDownpayment && combinedDownpaymentAmount && combinedDownpaymentAmount > 0
-                      ? `1x de ${formatCurrency(combinedDownpaymentAmount)} + ${combinedInstallments}x de ${formatCurrency((tiers[0].flightPrice + effectiveTotalPrice - combinedDownpaymentAmount) / combinedInstallments)}`
-                      : `${combinedInstallments}x de ${formatCurrency((tiers[0].flightPrice + effectiveTotalPrice) / combinedInstallments)}`
-                  ) : "N/A"}
+                  {tiers[0]?.flightPrice && effectiveTotalPrice ? (() => {
+                    const flightTotal = tiers[0].flightPrice;
+                    const hotelTotal = effectiveTotalPrice;
+                    const totalAmount = flightTotal + hotelTotal;
+                    
+                    // Calculate total downpayment (flight + hotel)
+                    const totalDownpayment = (flightDownpayment && flightDownpaymentAmount ? flightDownpaymentAmount : 0) + (combinedDownpayment && combinedDownpaymentAmount ? combinedDownpaymentAmount : 0);
+                    
+                    if (totalDownpayment > 0) {
+                      return `1x de ${formatCurrency(totalDownpayment)} + ${combinedInstallments}x de ${formatCurrency((totalAmount - totalDownpayment) / combinedInstallments)}`;
+                    } else {
+                      return `${combinedInstallments}x de ${formatCurrency(totalAmount / combinedInstallments)}`;
+                    }
+                  })() : "N/A"}
                 </div>
                 <div className="text-xs text-slate-500 mt-1">
                   Total: {tiers[0]?.flightPrice && effectiveTotalPrice ? formatCurrency(tiers[0].flightPrice + effectiveTotalPrice) : "N/A"}
