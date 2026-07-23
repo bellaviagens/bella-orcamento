@@ -13,6 +13,9 @@ interface HotelCardProps {
   flightPaymentMethods?: string[];
   combined?: boolean;
   hotelObservation?: string;
+  hotelInstallments?: number;
+  hotelDownpayment?: boolean;
+  hotelDownpaymentAmount?: number;
 }
 
 function formatCurrency(value: number): string {
@@ -22,7 +25,7 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "" }: HotelCardProps) {
+export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "", hotelInstallments = 1, hotelDownpayment = false, hotelDownpaymentAmount = 0 }: HotelCardProps) {
   const [proxiedPhotoUrl, setProxiedPhotoUrl] = useState<string | null>(hotel.photoUrl || null);
   const imageProxyQuery = trpc.imageProxy.useQuery(
     { url: hotel.photoUrl || "" },
@@ -243,7 +246,10 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                   <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
                     <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Hotel</div>
                     <div className="text-xl font-bold text-[#1a2e4a]">
-                      10x de {formatCurrency(effectiveTotalPrice / 10)}
+                      {hotelDownpayment && hotelDownpaymentAmount && hotelDownpaymentAmount > 0
+                        ? `1x de ${formatCurrency(hotelDownpaymentAmount)} + ${hotelInstallments}x de ${formatCurrency((effectiveTotalPrice - hotelDownpaymentAmount) / hotelInstallments)}`
+                        : `${hotelInstallments}x de ${formatCurrency(effectiveTotalPrice / hotelInstallments)}`
+                      }
                     </div>
                     <div className="text-xs text-slate-500 mt-1">
                       Total: {formatCurrency(effectiveTotalPrice)}

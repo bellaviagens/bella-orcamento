@@ -228,7 +228,37 @@ export function InstallmentsForm() {
         )}
       </div>
 
-
+      {/* Hotel Downpayment */}
+      <div className="border-t border-slate-200 pt-4">
+        <Label className="text-[11px] font-semibold text-slate-500 uppercase">Entrada do Hotel</Label>
+        <div className="flex items-center gap-2 mt-2">
+          <Checkbox
+            id="hotel-downpayment"
+            checked={installments?.hotelDownpayment || false}
+            onCheckedChange={(checked) => updateInstallments("hotelDownpayment", checked as boolean)}
+          />
+          <Label htmlFor="hotel-downpayment" className="text-xs cursor-pointer">Tem entrada?</Label>
+        </div>
+        {installments?.hotelDownpayment && (
+          <div className="mt-3">
+            <Label className="text-xs text-slate-600">Valor da Entrada (R$)</Label>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={installments?.hotelDownpaymentAmount || ""}
+              onChange={(e) => updateInstallments("hotelDownpaymentAmount", e.target.value ? parseFloat(e.target.value) : undefined)}
+              placeholder="Ex: 1000.00"
+              className="h-8 text-sm mt-1"
+            />
+            {hotelTotal > 0 && installments?.hotelDownpaymentAmount && installments?.hotel && (
+              <p className="text-[10px] text-slate-500 mt-2">
+                Entrada: {formatCurrency(installments.hotelDownpaymentAmount)} + {installments.hotel}x de {formatCurrency((hotelTotal - installments.hotelDownpaymentAmount) / installments.hotel)}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Page Break Controls */}
       <div className="border-t border-slate-200 pt-4">

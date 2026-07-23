@@ -187,6 +187,9 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     hotelPaymentMethods={installments?.hotelPaymentMethods}
                     flightPaymentMethods={installments?.paymentMethods}
                     combined={installments?.combined}
+                    hotelInstallments={installments?.hotel || 1}
+                    hotelDownpayment={installments?.hotelDownpayment}
+                    hotelDownpaymentAmount={installments?.hotelDownpaymentAmount}
                   />
                 </div>
               );

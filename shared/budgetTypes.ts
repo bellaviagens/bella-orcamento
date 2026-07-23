@@ -97,6 +97,8 @@ export interface BudgetData {
     combined?: boolean; // Se true, soma aéreo + hotel e divide pelas parcelas
     paymentMethods?: string[]; // Formas de pagamento do aéreo: "dinheiro", "cartao", "pix"
     hotelPaymentMethods?: string[]; // Formas de pagamento do hotel: "dinheiro", "cartao", "pix"
+    hotelDownpayment?: boolean; // Se true, tem entrada no hotel
+    hotelDownpaymentAmount?: number; // Valor da entrada do hotel
   };
   pageBreaks?: {
     flights?: boolean; // Iniciar voos em nova página
