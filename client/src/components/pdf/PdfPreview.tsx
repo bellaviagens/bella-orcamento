@@ -167,7 +167,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
 
       {/* HOTELS SECTION */}
       {hotels.length > 0 && includeHotel && (
-        <div className="px-8 py-4" {...(pageBreaks.hotels ? { "data-page-break": "true" } : {})}>
+        <div className="px-8 py-8" {...(pageBreaks.hotels ? { "data-page-break": "true" } : {})}>
           <h3
             className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
             style={{ fontFamily: "Poppins, sans-serif" }}
@@ -298,8 +298,18 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
         </div>
       )}
 
-      {/* AVAILABILITY NOTE */}
-      <div className="px-8 py-4">
+      {/* FOOTER */}
+      <div className="bg-[#1a2e4a] text-white px-8 py-4 mt-8">
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-white/70">
+            Bella Viagens e Milhas | Acumule. Viaje. Viva.
+          </p>
+          <p className="text-xs text-white/70">Página 1</p>
+        </div>
+      </div>
+
+      {/* AVAILABILITY NOTE - Last page */}
+      <div className="px-8 py-4 page-break-before">
         <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 flex items-start gap-3">
           <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-slate-600 leading-relaxed">
@@ -308,13 +318,13 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
         </div>
       </div>
 
-      {/* FOOTER */}
+      {/* FOOTER - Last page */}
       <div className="bg-[#1a2e4a] text-white px-8 py-4 mt-8">
         <div className="flex items-center justify-between">
           <p className="text-xs text-white/70">
             Bella Viagens e Milhas | Acumule. Viaje. Viva.
           </p>
-          <p className="text-xs text-white/70">Página 1</p>
+          <p className="text-xs text-white/70">Última Página</p>
         </div>
       </div>
     </div>

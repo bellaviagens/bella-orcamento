@@ -78,3 +78,6 @@
 - [x] Aumentar foto do hotel para 96x96px
 - [x] Mover botão para ao lado da foto com texto "ACESSAR SITE E FOTOS"
 - [x] Diminuir blocos de tarifas (padding p-1.5, texto menor)
+
+- [x] Mover nota "Os valores apresentados..." para última página (fixo lá)
+- [x] Aumentar margem antes de "Opções de Hospedagem" (py-4 para py-8)
