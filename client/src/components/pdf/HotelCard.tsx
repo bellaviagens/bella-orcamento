@@ -1,4 +1,4 @@
-import { MapPin, ExternalLink, Star } from "lucide-react";
+import { MapPin, Star, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Hotel, FareTier } from "@shared/budgetTypes";
 import { trpc } from "@/lib/trpc";
@@ -12,8 +12,6 @@ interface HotelCardProps {
   hotelPaymentMethods?: string[];
   flightPaymentMethods?: string[];
   combined?: boolean;
-  hotelObservation?: string;
-  hotelInstallments?: number;
 }
 
 function formatCurrency(value: number): string {
@@ -23,10 +21,8 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "", hotelInstallments = 0 }: HotelCardProps) {
+export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false }: HotelCardProps) {
   const [proxiedPhotoUrl, setProxiedPhotoUrl] = useState<string | null>(hotel.photoUrl || null);
-  const [selectedTierIndex, setSelectedTierIndex] = useState(0);
-  
   const imageProxyQuery = trpc.imageProxy.useQuery(
     { url: hotel.photoUrl || "" },
     {
@@ -46,12 +42,6 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
       ? hotel.dailyPrice * hotel.nights
       : hotel.totalPrice;
 
-  // Get selected tier for payment calculation
-  const selectedTier = tiers[selectedTierIndex] || tiers[0];
-  const selectedTierPrice = selectedTier ? selectedTier.flightPrice : 0;
-  const paymentTotal = effectiveTotalPrice + selectedTierPrice;
-  const paymentPerInstallment = hotelInstallments > 0 ? paymentTotal / hotelInstallments : paymentTotal;
-
   return (
     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
       {/* Photo */}
@@ -64,165 +54,156 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
       </div>
 
       <div className="p-5">
-        {/* Header with left border */}
-        <div className="flex gap-3 mb-4">
-          <div className="w-1 bg-amber-400 rounded-full flex-shrink-0"></div>
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <span className="text-lg font-bold text-[#1a2e4a]">{index + 1}.</span>
               <h3 className="text-lg font-bold text-[#1a2e4a]">{hotel.name}</h3>
-              <div className="flex items-center gap-1">
-                {Array.from({ length: hotel.stars }).map((_, i) => (
-                  <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                ))}
-              </div>
             </div>
-            
-            {/* Address */}
-            <div className="flex items-start gap-1.5 text-xs text-slate-500 mt-1">
-              <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-              <span>{hotel.address}</span>
+            <div className="flex items-center gap-1 mt-1">
+              {Array.from({ length: hotel.stars }).map((_, i) => (
+                <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              ))}
             </div>
-
-            {/* Description */}
-            {hotel.description && (
-              <p className="text-xs italic text-slate-600 mt-1">{hotel.description}</p>
-            )}
-
-            {/* Rating */}
-            {hotel.rating > 0 && (
-              <div className="mt-2 inline-block bg-blue-50 border border-blue-200 px-2 py-1 rounded text-xs">
-                <span className="font-bold text-blue-700">★ Nota: {hotel.rating.toFixed(1)} / 10</span>
-                <span className="text-blue-600"> ({hotel.ratingLabel})</span>
-              </div>
-            )}
           </div>
+          {hotel.rating > 0 && (
+            <div className="bg-[#1a2e4a] text-white px-3 py-1.5 rounded-lg text-center flex-shrink-0">
+              <div className="text-sm font-bold">{hotel.rating.toFixed(1)} / 10</div>
+              <div className="text-[10px] opacity-90">{hotel.ratingLabel}</div>
+            </div>
+          )}
         </div>
 
-        {/* Main content: Amenities left, Tarifas right */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          {/* Left: Amenities */}
-          <div>
-            <div className="text-xs font-bold text-[#1a2e4a] mb-2 uppercase">Comodidades Incluídas:</div>
-            {hotel.amenities.length > 0 ? (
-              <div className="flex flex-col gap-1.5">
-                {hotel.amenities.map((amenity, i) => {
-                  const icons = ["☕", "🏊", "💪", "📶", "🍽️", "🎵", "💆", "📚", "🎮", "✓"];
-                  const icon = icons[i % icons.length];
-                  
-                  return (
-                    <div key={i} className="text-xs text-slate-700 flex items-center gap-2">
-                      <span className="text-sm">{icon}</span>
-                      <span>{amenity}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-xs text-slate-400">Sem comodidades</div>
-            )}
-          </div>
-
-          {/* Right: Tarifas */}
-          <div>
-            {includeAirfare && tiers.length > 0 ? (
-              <div className="space-y-2">
-                {tiers.slice(0, 2).map((tier, idx) => {
-                  const basePrice = includeAirfare ? effectiveTotalPrice + tier.flightPrice : effectiveTotalPrice;
-                  const totalPrice = basePrice;
-                  const perPersonPrice = basePrice / passengers;
-                  const label = includeAirfare ? `Com Aéreo ${tier.name}` : tier.name;
-
-                  return (
-                    <div
-                      key={tier.id}
-                      className={`rounded-lg border p-3 text-center cursor-pointer transition ${
-                        selectedTierIndex === idx
-                          ? tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-100 border-blue-400"
-                          : tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"
-                      }`}
-                      onClick={() => setSelectedTierIndex(idx)}
-                    >
-                      <div className={`text-[10px] font-bold mb-1 uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
-                        {label}
-                      </div>
-                      <div className={`text-sm font-bold ${tier.highlighted ? "text-amber-600" : "text-blue-600"}`}>
-                        {formatCurrency(totalPrice)}
-                      </div>
-                      <div className={`text-[9px] ${tier.highlighted ? "text-amber-600/70" : "text-blue-600/70"}`}>
-                        {formatCurrency(perPersonPrice)} / pessoa
-                      </div>
-                      {tier.benefits && tier.benefits.length > 0 && (
-                        <div className="text-[7px] text-slate-500 mt-1 pt-1 border-t border-slate-200">
-                          {tier.benefits.join(", ")}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : effectiveTotalPrice > 0 ? (
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-center">
-                <div className="text-[10px] font-bold mb-1 uppercase text-blue-700">
-                  Preço do Hotel
-                </div>
-                <div className="text-sm font-bold text-blue-600">
-                  {formatCurrency(effectiveTotalPrice)}
-                </div>
-                <div className="text-[9px] text-blue-600/70">
-                  {formatCurrency(effectiveTotalPrice / passengers)} / pessoa
-                </div>
-              </div>
-            ) : (
-              <div className="text-xs text-slate-400">Nenhuma tarifa</div>
-            )}
-          </div>
+        {/* Address */}
+        <div className="flex items-start gap-1.5 text-xs text-slate-500 mb-3">
+          <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+          <span>{hotel.address}</span>
         </div>
 
-        {/* Forma de Pagamento Individual */}
-        {(hotelInstallments > 0 || hotelPaymentMethods?.length > 0) && (
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-            <div className="text-xs font-bold text-blue-700 mb-2 uppercase">Forma de Pagamento</div>
-            {hotelInstallments > 0 && (
-              <>
-                <div className="text-sm font-bold text-blue-600 mb-1">
-                  {hotelInstallments}x de {formatCurrency(paymentPerInstallment)}
+        {/* Hotel URL link - clickable in PDF */}
+        {hotel.hotelUrl && (
+          <div className="mb-3">
+            <a
+              href={hotel.hotelUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-pdf-link={hotel.hotelUrl}
+              className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 underline"
+            >
+              Ver no site
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+        )}
+
+        {/* Description */}
+        {hotel.description && (
+          <p className="text-sm italic text-slate-600 mb-3">{hotel.description}</p>
+        )}
+
+        {/* Amenities */}
+        {hotel.amenities.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {hotel.amenities.map((amenity, i) => {
+              const colors = [
+                { bg: "bg-blue-50 border-blue-200 text-blue-700", icon: "✓" },
+                { bg: "bg-amber-50 border-amber-200 text-amber-700", icon: "☕" },
+                { bg: "bg-green-50 border-green-200 text-green-700", icon: "📶" },
+                { bg: "bg-orange-50 border-orange-200 text-orange-700", icon: "💪" },
+                { bg: "bg-cyan-50 border-cyan-200 text-cyan-700", icon: "🏊" },
+                { bg: "bg-red-50 border-red-200 text-red-700", icon: "🍽️" },
+                { bg: "bg-purple-50 border-purple-200 text-purple-700", icon: "🎵" },
+                { bg: "bg-pink-50 border-pink-200 text-pink-700", icon: "💆" },
+                { bg: "bg-indigo-50 border-indigo-200 text-indigo-700", icon: "📚" },
+                { bg: "bg-rose-50 border-rose-200 text-rose-700", icon: "🎮" },
+              ];
+              const colorIndex = i % colors.length;
+              const { bg: bgColor, icon } = colors[colorIndex];
+              
+              return (
+                <span
+                  key={i}
+                  className={`text-[10px] font-medium px-2.5 py-1.5 rounded-lg border ${bgColor} inline-flex items-center gap-1`}
+                >
+                  <span>{icon}</span>
+                  <span>{amenity}</span>
+                </span>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Daily price info */}
+        {hotel.priceMode === "daily" && hotel.dailyPrice && hotel.nights ? (
+          <div className="mb-3 text-xs text-slate-500">
+            Diária: <span className="font-bold text-[#1a2e4a]">{formatCurrency(hotel.dailyPrice)}</span>
+            {" × "}
+            <span className="font-bold text-[#1a2e4a]">{hotel.nights} diárias</span>
+            {" = "}
+            <span className="font-bold text-[#1a2e4a]">{formatCurrency(effectiveTotalPrice)}</span>
+          </div>
+        ) : null}
+
+        {/* Prices grid - Total with flight included */}
+        {includeAirfare && tiers.length > 0 ? (
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(tiers.length, 3)}, 1fr)` }}>
+            {tiers.map((tier) => {
+              const basePrice = includeAirfare ? effectiveTotalPrice + tier.flightPrice : effectiveTotalPrice;
+              const totalPrice = basePrice;
+              const perPersonPrice = basePrice / passengers;
+              const label = includeAirfare ? `Com Aéreo ${tier.name}` : tier.name;
+
+              return (
+                <div
+                  key={tier.id}
+                  className={`rounded-lg border border-slate-200 p-3 text-center ${
+                    tier.highlighted ? "bg-amber-50 border-amber-300" : ""
+                  }`}
+                >
+                  <div className={`text-[10px] font-bold mb-1 uppercase ${tier.highlighted ? "text-amber-700" : "text-slate-500"}`}>
+                    {label}
+                  </div>
+                  <>
+                    <div className={`text-sm font-bold ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>
+                      {formatCurrency(totalPrice)}
+                    </div>
+                    <div className={`text-[10px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-400"}`}>
+                      {formatCurrency(perPersonPrice)} / pessoa
+                    </div>
+                    {tier.benefits && tier.benefits.length > 0 && (
+                      <div className="text-[8px] text-slate-400 mt-1 pt-1 border-t border-slate-200">
+                        {tier.benefits.join(", ")}
+                      </div>
+                    )}
+                  </>
                 </div>
-                <div className="text-xs text-blue-600/70 mb-2">
-                  Valor total: {formatCurrency(paymentTotal)}
-                </div>
-              </>
-            )}
+              );
+            })}
+          </div>
+        ) : effectiveTotalPrice > 0 ? (
+          <div className="rounded-lg border border-slate-200 p-3 text-center bg-blue-50 border-blue-300">
+            <div className="text-[10px] font-bold mb-2 uppercase text-blue-700">
+              Preço do Hotel
+            </div>
+            <div className="text-sm font-bold text-blue-600">
+              {formatCurrency(effectiveTotalPrice)}
+            </div>
+            <div className="text-[10px] text-blue-600/70">
+              {formatCurrency(effectiveTotalPrice / passengers)} / pessoa
+            </div>
             {hotelPaymentMethods && hotelPaymentMethods.length > 0 && (
-              <div className="flex gap-1 flex-wrap">
+              <div className="text-[8px] text-slate-500 mt-2 pt-2 border-t border-blue-200 flex gap-1 justify-center flex-wrap">
                 {hotelPaymentMethods.map((method) => (
-                  <span key={method} className="text-[10px] px-2 py-1 rounded bg-blue-200 text-blue-800 font-semibold">
+                  <span key={method} className="px-2 py-0.5 bg-blue-200 text-blue-800 rounded text-[7px] font-semibold">
                     {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
                   </span>
                 ))}
               </div>
             )}
           </div>
-        )}
-
-        {/* Button */}
-        <button className="w-full bg-[#1a2e4a] text-white py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-[#253d5c] transition mt-4">
-          Acessar Cotação & Fotos
-        </button>
-
-        {/* Hotel URL link */}
-        {hotel.hotelUrl && (
-          <div className="mt-2 text-center">
-            <a
-              href={hotel.hotelUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 underline"
-            >
-              Ver no site
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          </div>
+        ) : (
+          <div className="text-xs text-slate-400 text-center py-4">Nenhuma tarifa adicionada</div>
         )}
       </div>
     </div>
