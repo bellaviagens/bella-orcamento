@@ -66,3 +66,5 @@
 - [x] Validado em múltiplos navegadores - Funciona!
 
 - [x] Corrigir corte de observações de parcelamento em quebra de página (adicionar break-inside-avoid e espaçamento)
+
+- [x] Subir blocos de tarifas reduzindo espaçamento (mb-4 para mb-2, mt-6 para mt-2)

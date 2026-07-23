@@ -122,7 +122,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
         </div>
 
         {/* Main content: Amenities left, Tarifas right */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-2 gap-4 mb-2">
           {/* Left: Amenities */}
           <div>
             <div className="text-xs font-bold text-[#1a2e4a] mb-2 uppercase">Comodidades Incluídas:</div>
@@ -203,7 +203,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
 
         {/* Payment Methods Block - Individual for each hotel with Aéreo + Hotel calculator */}
         {((includeAirfare && flightPaymentMethods?.length > 0) || (includeHotel && hotelPaymentMethods?.length > 0)) && (
-          <div className="mt-6 pt-4 border-t-2 border-amber-400">
+          <div className="mt-2 pt-3 border-t-2 border-amber-400">
             <div className="text-sm font-bold text-[#1a2e4a] uppercase mb-3 pb-2 border-b border-slate-200">
               Forma de Pagamento
             </div>
