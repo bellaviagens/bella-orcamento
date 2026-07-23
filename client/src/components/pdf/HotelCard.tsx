@@ -59,13 +59,32 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
         <div className="flex gap-3 mb-4">
           <div className="w-1 bg-amber-400 rounded-full flex-shrink-0"></div>
           <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-[#1a2e4a]">{index + 1}.</span>
-              <h3 className="text-lg font-bold text-[#1a2e4a]">{hotel.name}</h3>
-              <div className="flex items-center gap-1">
-                {Array.from({ length: hotel.stars }).map((_, i) => (
-                  <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                ))}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-[#1a2e4a]">{index + 1}.</span>
+                <h3 className="text-lg font-bold text-[#1a2e4a]">{hotel.name}</h3>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: hotel.stars }).map((_, i) => (
+                    <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+              </div>
+              {/* Botão Acessar Cotação & Fotos - Ao lado do hotel */}
+              <div className="flex flex-col items-end gap-1">
+                <button className="bg-[#1a2e4a] text-white py-1.5 px-2 rounded-lg font-bold text-xs uppercase hover:bg-[#253d5c] transition whitespace-nowrap">
+                  Acessar Fotos
+                </button>
+                {hotel.hotelUrl && (
+                  <a
+                    href={hotel.hotelUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Ver no site
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
               </div>
             </div>
             
@@ -168,24 +187,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
         </div>
 
         {/* Button */}
-        <button className="w-full bg-[#1a2e4a] text-white py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-[#253d5c] transition">
-          Acessar Cotação & Fotos
-        </button>
 
-        {/* Hotel URL link */}
-        {hotel.hotelUrl && (
-          <div className="mt-2 text-center">
-            <a
-              href={hotel.hotelUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 underline"
-            >
-              Ver no site
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          </div>
-        )}
 
         {/* Payment Methods Block - Individual for each hotel with Aéreo + Hotel calculator */}
         {(flightPaymentMethods?.length > 0 || hotelPaymentMethods?.length > 0) && (
