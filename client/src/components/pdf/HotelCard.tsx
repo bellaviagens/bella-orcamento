@@ -167,25 +167,6 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
           </div>
         </div>
 
-        {/* Formas de Pagamento com Observação */}
-        {hotelPaymentMethods && hotelPaymentMethods.length > 0 && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 mb-4">
-            <div className="text-xs font-bold text-amber-700 mb-2 uppercase">Forma de Pagamento</div>
-            <div className="flex flex-col gap-1.5">
-              {hotelPaymentMethods.map((method) => (
-                <div key={method} className="text-xs text-amber-700 font-semibold">
-                  {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
-                </div>
-              ))}
-              {hotelObservation && (
-                <div className="text-xs text-amber-600 italic mt-1 pt-1 border-t border-amber-200">
-                  {hotelObservation}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Button */}
         <button className="w-full bg-[#1a2e4a] text-white py-2.5 rounded-lg font-bold text-xs uppercase hover:bg-[#253d5c] transition">
           Acessar Cotação & Fotos
