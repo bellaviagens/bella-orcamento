@@ -68,3 +68,5 @@
 - [x] Corrigir corte de observações de parcelamento em quebra de página (adicionar break-inside-avoid e espaçamento)
 
 - [x] Otimizar espaçamento para caber 2 hotéis por página (reduzir altura da foto, padding, margins entre seções)
+
+- [x] Refatorar layout do HotelCard: remover foto grande, compactar informações, 2 hotéis por página (mantendo cores e design)
