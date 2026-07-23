@@ -64,3 +64,5 @@
 - [x] Testado PDF com dados vazios - Sucesso!
 - [x] Testado PDF com voo real (GRU → SCL) - Sucesso!
 - [x] Validado em múltiplos navegadores - Funciona!
+
+- [x] Corrigir corte de observações de parcelamento em quebra de página (adicionar break-inside-avoid e espaçamento)

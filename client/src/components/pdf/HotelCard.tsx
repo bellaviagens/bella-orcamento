@@ -292,12 +292,12 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
             )}
             {/* Installment Observations */}
             {observations && (
-              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-slate-700">
+              <div className="mt-6 mb-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-slate-700 break-inside-avoid">
                 {observations}
               </div>
             )}
             {hotel.paymentNotes && (
-              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-slate-700">
+              <div className="mt-6 mb-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-slate-700 break-inside-avoid">
                 {hotel.paymentNotes}
               </div>
             )}
