@@ -207,6 +207,38 @@ export function InstallmentsForm() {
         </div>
       </div>
 
+      {/* Flight Downpayment */}
+      <div className="border-t border-slate-200 pt-4">
+        <Label className="text-[11px] font-semibold text-slate-500 uppercase">Entrada do Aéreo</Label>
+        <div className="flex items-center gap-2 mt-2">
+          <Checkbox
+            id="flight-downpayment"
+            checked={installments?.flightDownpayment || false}
+            onCheckedChange={(checked) => updateInstallments("flightDownpayment", checked as boolean)}
+          />
+          <Label htmlFor="flight-downpayment" className="text-xs cursor-pointer">Tem entrada?</Label>
+        </div>
+        {installments?.flightDownpayment && (
+          <div className="mt-3">
+            <Label className="text-xs text-slate-600">Valor da Entrada (R$)</Label>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={installments?.flightDownpaymentAmount || ""}
+              onChange={(e) => updateInstallments("flightDownpaymentAmount", e.target.value ? parseFloat(e.target.value) : undefined)}
+              placeholder="Ex: 1000.00"
+              className="h-8 text-sm mt-1"
+            />
+            {flightTotal > 0 && installments?.flightDownpaymentAmount && installments?.flight && (
+              <p className="text-[10px] text-slate-500 mt-2">
+                Entrada: {formatCurrency(installments.flightDownpaymentAmount)} + {installments.flight}x de {formatCurrency((flightTotal - installments.flightDownpaymentAmount) / installments.flight)}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
       <div className="border-t border-slate-200 pt-4">
         <div className="flex items-center gap-2">
           <Checkbox
@@ -225,6 +257,37 @@ export function InstallmentsForm() {
           <p className="text-[10px] text-[#1a2e4a] font-semibold mt-2 ml-6">
             {combinedInstallments}x de {formatCurrency(combinedTotal / combinedInstallments)}
           </p>
+        )}
+        {installments?.combined && (
+          <div className="mt-3">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="combined-downpayment"
+                checked={installments?.combinedDownpayment || false}
+                onCheckedChange={(checked) => updateInstallments("combinedDownpayment", checked as boolean)}
+              />
+              <Label htmlFor="combined-downpayment" className="text-xs cursor-pointer">Tem entrada?</Label>
+            </div>
+            {installments?.combinedDownpayment && (
+              <div className="mt-2 ml-6">
+                <Label className="text-xs text-slate-600">Valor da Entrada (R$)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={installments?.combinedDownpaymentAmount || ""}
+                  onChange={(e) => updateInstallments("combinedDownpaymentAmount", e.target.value ? parseFloat(e.target.value) : undefined)}
+                  placeholder="Ex: 2000.00"
+                  className="h-8 text-sm mt-1"
+                />
+                {combinedTotal > 0 && installments?.combinedDownpaymentAmount && combinedInstallments && (
+                  <p className="text-[10px] text-slate-500 mt-2">
+                    Entrada: {formatCurrency(installments.combinedDownpaymentAmount)} + {combinedInstallments}x de {formatCurrency((combinedTotal - installments.combinedDownpaymentAmount) / combinedInstallments)}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
         )}
       </div>
 

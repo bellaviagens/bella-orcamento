@@ -99,6 +99,10 @@ export interface BudgetData {
     hotelPaymentMethods?: string[]; // Formas de pagamento do hotel: "dinheiro", "cartao", "pix"
     hotelDownpayment?: boolean; // Se true, tem entrada no hotel
     hotelDownpaymentAmount?: number; // Valor da entrada do hotel
+    flightDownpayment?: boolean; // Se true, tem entrada no aéreo
+    flightDownpaymentAmount?: number; // Valor da entrada do aéreo
+    combinedDownpayment?: boolean; // Se true, tem entrada quando parcelar tudo junto
+    combinedDownpaymentAmount?: number; // Valor da entrada quando parcelar tudo junto
   };
   pageBreaks?: {
     flights?: boolean; // Iniciar voos em nova página

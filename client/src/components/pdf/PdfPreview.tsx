@@ -190,6 +190,12 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     hotelInstallments={installments?.hotel || 1}
                     hotelDownpayment={installments?.hotelDownpayment}
                     hotelDownpaymentAmount={installments?.hotelDownpaymentAmount}
+                    flightInstallments={installments?.flight || 1}
+                    flightDownpayment={installments?.flightDownpayment}
+                    flightDownpaymentAmount={installments?.flightDownpaymentAmount}
+                    combinedInstallments={Math.max(installments?.flight || 1, installments?.hotel || 1)}
+                    combinedDownpayment={installments?.combinedDownpayment}
+                    combinedDownpaymentAmount={installments?.combinedDownpaymentAmount}
                   />
                 </div>
               );
