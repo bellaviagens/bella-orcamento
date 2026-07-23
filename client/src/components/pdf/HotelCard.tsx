@@ -192,8 +192,10 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
 
         {/* Payment Methods Block - Individual for each hotel with Aéreo + Hotel calculator */}
         {(flightPaymentMethods?.length > 0 || hotelPaymentMethods?.length > 0) && (
-          <div className="mt-4 pt-4 border-t border-slate-200">
-            <div className="text-xs font-semibold text-slate-500 uppercase mb-3">Formas de Pagamento</div>
+          <div className="mt-6 pt-4 border-t-2 border-amber-400">
+            <div className="text-sm font-bold text-[#1a2e4a] uppercase mb-3 pb-2 border-b border-slate-200">
+              {index + 1}. {hotel.name} - Formas de Pagamento
+            </div>
             {combined ? (
               /* COMBINED Block - Aéreo + Hotel */
               <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
