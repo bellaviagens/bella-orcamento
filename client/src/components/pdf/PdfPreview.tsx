@@ -298,18 +298,8 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
         </div>
       )}
 
-      {/* FOOTER */}
-      <div className="bg-[#1a2e4a] text-white px-8 py-4 mt-8">
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-white/70">
-            Bella Viagens e Milhas | Acumule. Viaje. Viva.
-          </p>
-          <p className="text-xs text-white/70">Página 1</p>
-        </div>
-      </div>
-
-      {/* AVAILABILITY NOTE - Last page */}
-      <div className="px-8 py-4 page-break-before">
+      {/* AVAILABILITY NOTE - First page */}
+      <div className="px-8 py-4">
         <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 flex items-start gap-3">
           <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-slate-600 leading-relaxed">
@@ -318,13 +308,13 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
         </div>
       </div>
 
-      {/* FOOTER - Last page */}
+      {/* FOOTER */}
       <div className="bg-[#1a2e4a] text-white px-8 py-4 mt-8">
         <div className="flex items-center justify-between">
           <p className="text-xs text-white/70">
             Bella Viagens e Milhas | Acumule. Viaje. Viva.
           </p>
-          <p className="text-xs text-white/70">Última Página</p>
+          <p className="text-xs text-white/70">Página 1</p>
         </div>
       </div>
     </div>
