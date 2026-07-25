@@ -50,7 +50,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
   return (
     <div
       id="pdf-document"
-      className="bg-slate-50 mx-auto"
+      className="bg-slate-50 mx-auto flex flex-col min-h-screen"
       style={{ width: "100%", maxWidth: "800px", fontFamily: "Inter, sans-serif" }}
     >
       {/* HEADER */}
@@ -122,16 +122,6 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
               <FlightCard key={flight.id} flight={flight} />
             ))}
           </div>
-
-          {/* AVAILABILITY NOTE - After flights section */}
-          <div className="px-0 py-4 mt-4">
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 flex items-start gap-3">
-              <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-slate-600 leading-relaxed">
-                <span className="font-bold text-[#1a2e4a]">Nota:</span> Os valores apresentados neste orçamento estão sujeitos a alteração sem aviso prévio, conforme disponibilidade e variação cambial. A confirmação da reserva está condicionada ao pagamento e emissão dentro do prazo de validade informado.
-              </p>
-            </div>
-          </div>
         </div>
       )}
 
@@ -171,16 +161,6 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                 </div>
               );
             })}
-          </div>
-
-          {/* AVAILABILITY NOTE - After flights section */}
-          <div className="px-0 py-4 mt-4">
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 flex items-start gap-3">
-              <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-slate-600 leading-relaxed">
-                <span className="font-bold text-[#1a2e4a]">Nota:</span> Os valores apresentados neste orçamento estão sujeitos a alteração sem aviso prévio, conforme disponibilidade e variação cambial. A confirmação da reserva está condicionada ao pagamento e emissão dentro do prazo de validade informado.
-              </p>
-            </div>
           </div>
         </div>
       )}
@@ -317,6 +297,19 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
           </div>
         </div>
       )}
+
+      {/* SPACER - Push content up */}
+      <div className="flex-grow"></div>
+
+      {/* AVAILABILITY NOTE - Before footer (rodapé da primeira página) */}
+      <div className="px-8 py-4">
+        <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 flex items-start gap-3">
+          <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-slate-600 leading-relaxed">
+            <span className="font-bold text-[#1a2e4a]">Nota:</span> Os valores apresentados neste orçamento estão sujeitos a alteração sem aviso prévio, conforme disponibilidade e variação cambial. A confirmação da reserva está condicionada ao pagamento e emissão dentro do prazo de validade informado.
+          </p>
+        </div>
+      </div>
 
       {/* FOOTER */}
       <div className="bg-[#1a2e4a] text-white px-8 py-4 mt-8">

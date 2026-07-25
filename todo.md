@@ -85,3 +85,5 @@
 - [x] Mover nota para final da primeira página (antes do footer "Página 1")
 
 - [x] Mover nota para seção de voos (após "Horários dos Voos Selecionados")
+
+- [x] Mover nota para rodapé da primeira página (flex-grow spacer + estrutura flexbox)
