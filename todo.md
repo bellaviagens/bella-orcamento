@@ -83,3 +83,5 @@
 - [x] Aumentar margem antes de "Opções de Hospedagem" (py-4 para py-8)
 
 - [x] Mover nota para final da primeira página (antes do footer "Página 1")
+
+- [x] Mover nota para seção de voos (após "Horários dos Voos Selecionados")
