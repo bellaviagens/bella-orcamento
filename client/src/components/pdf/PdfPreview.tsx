@@ -302,10 +302,10 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
       <div className="flex-grow"></div>
 
       {/* AVAILABILITY NOTE - Before footer (rodapé da primeira página) */}
-      <div className="px-8 py-4">
-        <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 flex items-start gap-3">
-          <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-slate-600 leading-relaxed">
+      <div className="px-8 py-2">
+        <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 flex items-start gap-2">
+          <Info className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+          <p className="text-[10px] text-slate-600 leading-tight">
             <span className="font-bold text-[#1a2e4a]">Nota:</span> Os valores apresentados neste orçamento estão sujeitos a alteração sem aviso prévio, conforme disponibilidade e variação cambial. A confirmação da reserva está condicionada ao pagamento e emissão dentro do prazo de validade informado.
           </p>
         </div>
