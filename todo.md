@@ -89,3 +89,5 @@
 - [x] Mover nota para rodapé da primeira página (flex-grow spacer + estrutura flexbox)
 
 - [x] Reduzir tamanho da mensagem de nota (texto [10px], padding p-2, ícone h-4 w-4) - mantém no rodapé da primeira página
+
+- [x] Adicionar ícones correspondentes aos benefícios (mala 🧳, assento 💺, alterações 🔄, etc)
