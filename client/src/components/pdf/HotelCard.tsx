@@ -169,7 +169,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                       {formatCurrency(perPersonPrice)} / pessoa
                     </div>
                     {tier.benefits && tier.benefits.length > 0 && (
-                      <div className="text-[7px] text-slate-500 mt-0.5 pt-0.5 border-t border-slate-200 space-y-0.5">
+                      <div className="text-[7px] text-slate-500 mt-0.5 pt-0.5 border-t border-slate-200 flex flex-wrap gap-1 justify-center">
                         {tier.benefits.map((benefit, idx) => {
                           const benefitIcons: Record<string, string> = {
                             "mala de mao": "🧳",
@@ -185,7 +185,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                           const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
                           const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "✓";
                           return (
-                            <div key={idx} className="flex items-center justify-center gap-1">
+                            <div key={idx} className="flex items-center gap-0.5 whitespace-nowrap">
                               <span>{icon}</span>
                               <span>{benefit}</span>
                             </div>
