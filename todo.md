@@ -114,6 +114,6 @@
 
 - [x] Remover header azul (branding Bella Viagens) do PDF
 - [x] Remover footer azul (branding + "Página 1") do PDF
-- [x] Mover nota amarela para final da última página (usando mt-auto)
-- [x] Corrigir layout: remover min-h-screen para não cortar hotéis
-- [x] Adicionar data-page-break na nota para garantir nova página
+- [x] Mover nota amarela para final da última página (usando flex-grow spacer)
+- [x] Corrigir layout: remover data-page-break e usar quebras automáticas
+- [x] Restaurar min-h-screen para flexbox funcionar corretamente
