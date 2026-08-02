@@ -109,3 +109,5 @@
 - [x] Remover espaço em branco entre valor e opcionais (justify-between → gap-0.5, flex-1)
 
 - [x] Restaurar ícones nos benefícios (text-[8px] para ícone, text-[6px] para texto)
+
+- [x] Adicionar cores aos ícones dos benefícios (azul, laranja, roxo, verde)

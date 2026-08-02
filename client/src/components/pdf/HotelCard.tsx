@@ -174,22 +174,22 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                           {Array.from({ length: Math.ceil(tier.benefits.length / 4) }).map((_, colIdx) => (
                             <div key={colIdx} className="flex flex-col gap-0.25">
                               {tier.benefits && tier.benefits.slice(colIdx * 4, (colIdx + 1) * 4).map((benefit, idx) => {
-                                const benefitIcons: Record<string, string> = {
-                                  "mala de mao": "🧳",
-                                  "mala despachada": "📦",
-                                  "selecao de assento": "💺",
-                                  "alteracoes": "🔄",
-                                  "reembolso": "💰",
-                                  "carry on": "🧳",
-                                  "checked bag": "📦",
-                                  "seat selection": "💺",
-                                  "changes": "🔄",
+                                const benefitIcons: Record<string, { icon: string; color: string }> = {
+                                  "mala de mao": { icon: "🧳", color: "text-blue-500" },
+                                  "mala despachada": { icon: "📦", color: "text-orange-500" },
+                                  "selecao de assento": { icon: "💺", color: "text-blue-500" },
+                                  "alteracoes": { icon: "🔄", color: "text-purple-500" },
+                                  "reembolso": { icon: "💰", color: "text-green-500" },
+                                  "carry on": { icon: "🧳", color: "text-blue-500" },
+                                  "checked bag": { icon: "📦", color: "text-orange-500" },
+                                  "seat selection": { icon: "💺", color: "text-blue-500" },
+                                  "changes": { icon: "🔄", color: "text-purple-500" },
                                 };
                                 const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                                const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "✓";
+                                const iconData = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || { icon: "✓", color: "text-gray-500" };
                                 return (
                                   <div key={idx} className="flex items-center gap-0.5 whitespace-nowrap">
-                                    <span className="text-[8px]">{icon}</span>
+                                    <span className={`text-[8px] ${iconData.color}`}>{iconData.icon}</span>
                                     <span className="text-[6px]">{benefit}</span>
                                   </div>
                                 );
