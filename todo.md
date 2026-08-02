@@ -101,3 +101,7 @@
 - [x] Corrigir atualização de benefits ao editar tarifas na aba "Tarifas" (adicionar getBenefits() no updateFareTier)
 
 - [x] Corrigir calculateBenefits para usar arrays bagages, checkIns, changes (permitir mais de 4 opcionais em múltiplas colunas)
+
+- [x] Restaurar ícones nos opcionais (🧳, 📦, 💺, 🔄, 💰)
+- [x] Compactar layout - juntar opcionais com valor (justify-between, gap-0.5)
+- [x] Simplificar nome da tarifa - "COM AÉREO" para "AÉREO"
