@@ -157,8 +157,8 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                     key={tier.id}
                     className={`rounded-lg border p-1 ${tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
                   >
-                    <div className="flex items-start justify-between gap-1">
-                      <div className="text-left">
+                    <div className="flex items-start gap-0.5">
+                      <div className="text-left flex-1">
                         <div className={`text-[8px] font-bold mb-0.5 uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
                           {label}
                         </div>
@@ -170,7 +170,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         </div>
                       </div>
                       {tier.benefits && tier.benefits.length > 0 && (
-                        <div className="text-[7px] text-slate-500 flex gap-0.5">
+                        <div className="text-[7px] text-slate-500 flex gap-0.25">
                           {Array.from({ length: Math.ceil(tier.benefits.length / 4) }).map((_, colIdx) => (
                             <div key={colIdx} className="flex flex-col gap-0.25">
                               {tier.benefits && tier.benefits.slice(colIdx * 4, (colIdx + 1) * 4).map((benefit, idx) => {

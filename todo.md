@@ -105,3 +105,5 @@
 - [x] Restaurar ícones nos opcionais (🧳, 📦, 💺, 🔄, 💰)
 - [x] Compactar layout - juntar opcionais com valor (justify-between, gap-0.5)
 - [x] Simplificar nome da tarifa - "COM AÉREO" para "AÉREO"
+
+- [x] Remover espaço em branco entre valor e opcionais (justify-between → gap-0.5, flex-1)
