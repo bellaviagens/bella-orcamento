@@ -50,7 +50,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
   return (
     <div
       id="pdf-document"
-      className="bg-slate-50 mx-auto flex flex-col min-h-screen"
+      className="bg-slate-50 mx-auto flex flex-col"
       style={{ width: "100%", maxWidth: "800px", fontFamily: "Inter, sans-serif" }}
     >
 
@@ -281,7 +281,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
       )}
 
       {/* AVAILABILITY NOTE - At the end of last page */}
-      <div className="px-8 py-2 mt-auto">
+      <div className="px-8 py-4 mt-8" data-page-break="true">
         <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 flex items-start gap-2">
           <Info className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
           <p className="text-[10px] text-slate-600 leading-tight">
