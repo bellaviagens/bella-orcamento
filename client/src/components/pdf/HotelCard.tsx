@@ -189,8 +189,8 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                                 const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "✓";
                                 return (
                                   <div key={idx} className="flex items-center gap-0.5 whitespace-nowrap">
-                                    <span>{icon}</span>
-                                    <span>{benefit}</span>
+                                    <span className="text-[8px]">{icon}</span>
+                                    <span className="text-[6px]">{benefit}</span>
                                   </div>
                                 );
                               })}
