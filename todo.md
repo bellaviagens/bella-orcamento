@@ -99,3 +99,5 @@
 - [x] Reorganizar benefícios em colunas verticais (máx 4 por coluna, gap-1 entre colunas)
 
 - [x] Corrigir atualização de benefits ao editar tarifas na aba "Tarifas" (adicionar getBenefits() no updateFareTier)
+
+- [x] Corrigir calculateBenefits para usar arrays bagages, checkIns, changes (permitir mais de 4 opcionais em múltiplas colunas)

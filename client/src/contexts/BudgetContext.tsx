@@ -26,10 +26,18 @@ const BudgetContext = createContext<BudgetContextType | null>(null);
 
 function calculateBenefits(tier: FareTier): string[] {
   const benefits = [];
-  if (tier.carryOn) benefits.push("Mala de Mão");
-  if (tier.checkedBag) benefits.push("Mala Despachada");
-  if (tier.seatSelection) benefits.push("Seleção de Assento");
-  if (tier.changes) benefits.push("Alterações/Reembolso");
+  // Adicionar bagagens
+  if (tier.bagages && Array.isArray(tier.bagages)) {
+    benefits.push(...tier.bagages);
+  }
+  // Adicionar check-ins
+  if (tier.checkIns && Array.isArray(tier.checkIns)) {
+    benefits.push(...tier.checkIns);
+  }
+  // Adicionar alterações
+  if (tier.changes && Array.isArray(tier.changes)) {
+    benefits.push(...tier.changes);
+  }
   return benefits;
 }
 
@@ -103,12 +111,12 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         tiers: prev.fareComparison.tiers.map((t) => {
           if (t.id === id) {
             const updated = { ...t, ...updates };
-            // Recalcular benefícios se algum checkbox foi alterado
+            // Recalcular benefícios se algum array foi alterado
             if (
-              updates.carryOn !== undefined ||
-              updates.checkedBag !== undefined ||
-              updates.seatSelection !== undefined ||
-              updates.changes !== undefined
+              updates.bagages !== undefined ||
+              updates.checkIns !== undefined ||
+              updates.changes !== undefined ||
+              updates.benefits !== undefined
             ) {
               updated.benefits = calculateBenefits(updated);
             }
