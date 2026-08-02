@@ -111,3 +111,7 @@
 - [x] Restaurar ícones nos benefícios (text-[8px] para ícone, text-[6px] para texto)
 
 - [x] Adicionar cores aos ícones dos benefícios (azul, laranja, roxo, verde)
+
+- [x] Remover header azul (branding Bella Viagens) do PDF
+- [x] Remover footer azul (branding + "Página 1") do PDF
+- [x] Mover nota amarela para final da última página (usando mt-auto)

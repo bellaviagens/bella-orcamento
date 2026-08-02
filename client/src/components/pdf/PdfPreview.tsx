@@ -53,25 +53,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
       className="bg-slate-50 mx-auto flex flex-col min-h-screen"
       style={{ width: "100%", maxWidth: "800px", fontFamily: "Inter, sans-serif" }}
     >
-      {/* HEADER */}
-      <div className="bg-[#1a2e4a] text-white px-8 py-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
-            Bella Viagens e Milhas
-          </h1>
-          <p className="text-sm text-amber-400 font-medium tracking-wide mt-0.5">
-            Acumule. Viaje. Viva.
-          </p>
-        </div>
-        <div className="text-right">
-          <h2 className="text-lg font-bold" style={{ fontFamily: "Poppins, sans-serif" }}>
-            Comparativo de Tarifas & Hospedagem
-          </h2>
-          {tripInfo.destination && (
-            <p className="text-sm text-white/80 mt-0.5">{tripInfo.destination}</p>
-          )}
-        </div>
-      </div>
+
 
       {/* TRIP INFO BAR */}
       <div className="bg-slate-100 px-8 py-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -298,26 +280,13 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
         </div>
       )}
 
-      {/* SPACER - Push content up */}
-      <div className="flex-grow"></div>
-
-      {/* AVAILABILITY NOTE - Before footer (rodapé da primeira página) */}
-      <div className="px-8 py-2">
+      {/* AVAILABILITY NOTE - At the end of last page */}
+      <div className="px-8 py-2 mt-auto">
         <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 flex items-start gap-2">
           <Info className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
           <p className="text-[10px] text-slate-600 leading-tight">
             <span className="font-bold text-[#1a2e4a]">Nota:</span> Os valores apresentados neste orçamento estão sujeitos a alteração sem aviso prévio, conforme disponibilidade e variação cambial. A confirmação da reserva está condicionada ao pagamento e emissão dentro do prazo de validade informado.
           </p>
-        </div>
-      </div>
-
-      {/* FOOTER */}
-      <div className="bg-[#1a2e4a] text-white px-8 py-4 mt-8">
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-white/70">
-            Bella Viagens e Milhas | Acumule. Viaje. Viva.
-          </p>
-          <p className="text-xs text-white/70">Página 1</p>
         </div>
       </div>
     </div>
