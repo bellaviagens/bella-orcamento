@@ -117,3 +117,5 @@
 - [x] Mover nota amarela para final da última página (usando flex-grow spacer)
 - [x] Corrigir layout: remover data-page-break e usar quebras automáticas
 - [x] Restaurar min-h-screen para flexbox funcionar corretamente
+
+- [x] Adicionar break-inside: avoid ao HotelCard para evitar cortes de hotéis entre páginas

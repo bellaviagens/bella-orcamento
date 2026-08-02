@@ -55,7 +55,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
       : hotel.totalPrice;
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm p-3 mb-3">
+    <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm p-3 mb-3" style={{ breakInside: 'avoid' }}>
       {/* Header with left border + Photo */}
       <div className="flex gap-2 mb-2">
         <div className="w-1 bg-amber-400 rounded-full flex-shrink-0"></div>
