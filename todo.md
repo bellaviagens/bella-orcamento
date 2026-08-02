@@ -97,3 +97,5 @@
 - [x] Reorganizar benefícios para lado direito do bloco de tarifas (layout flex, justify-end)
 
 - [x] Reorganizar benefícios em colunas verticais (máx 4 por coluna, gap-1 entre colunas)
+
+- [x] Corrigir atualização de benefits ao editar tarifas na aba "Tarifas" (adicionar getBenefits() no updateFareTier)
