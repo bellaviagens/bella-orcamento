@@ -157,7 +157,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                     key={tier.id}
                     className={`rounded-lg border p-1.5 ${tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
                   >
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-1">
                       <div className="text-left flex-1">
                         <div className={`text-[8px] font-bold mb-0.5 uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
                           {label}
@@ -170,28 +170,32 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         </div>
                       </div>
                       {tier.benefits && tier.benefits.length > 0 && (
-                        <div className="text-[7px] text-slate-500 flex flex-wrap gap-1 justify-end items-start">
-                          {tier.benefits.map((benefit, idx) => {
-                            const benefitIcons: Record<string, string> = {
-                              "mala de mao": "🧳",
-                              "mala despachada": "📦",
-                              "selecao de assento": "💺",
-                              "alteracoes": "🔄",
-                              "reembolso": "💰",
-                              "carry on": "🧳",
-                              "checked bag": "📦",
-                              "seat selection": "💺",
-                              "changes": "🔄",
-                            };
-                            const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                            const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "✓";
-                            return (
-                              <div key={idx} className="flex items-center gap-0.5 whitespace-nowrap">
-                                <span>{icon}</span>
-                                <span>{benefit}</span>
-                              </div>
-                            );
-                          })}
+                        <div className="text-[7px] text-slate-500 flex gap-1">
+                          {Array.from({ length: Math.ceil(tier.benefits.length / 4) }).map((_, colIdx) => (
+                            <div key={colIdx} className="flex flex-col gap-0.5">
+                              {tier.benefits && tier.benefits.slice(colIdx * 4, (colIdx + 1) * 4).map((benefit, idx) => {
+                                const benefitIcons: Record<string, string> = {
+                                  "mala de mao": "🧳",
+                                  "mala despachada": "📦",
+                                  "selecao de assento": "💺",
+                                  "alteracoes": "🔄",
+                                  "reembolso": "💰",
+                                  "carry on": "🧳",
+                                  "checked bag": "📦",
+                                  "seat selection": "💺",
+                                  "changes": "🔄",
+                                };
+                                const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                                const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "✓";
+                                return (
+                                  <div key={idx} className="flex items-center gap-0.5 whitespace-nowrap">
+                                    <span>{icon}</span>
+                                    <span>{benefit}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
