@@ -1,4 +1,4 @@
-import { MapPin, ExternalLink, Star, Coffee, Waves, Dumbbell, Wifi, UtensilsCrossed, Music, Sparkles, BookOpen, Gamepad2, CheckCircle2 } from "lucide-react";
+import { MapPin, ExternalLink, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Hotel, FareTier } from "@shared/budgetTypes";
 import { trpc } from "@/lib/trpc";
@@ -122,19 +122,16 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
       <div className="grid grid-cols-2 gap-2 mb-2">
         {/* Left: Amenities - Compacto */}
         <div>
-          <div className="text-xs font-bold text-[#1a2e4a] mb-1 uppercase flex items-center gap-1">
-            <Sparkles className="h-3.5 w-3.5" />
-            Comodidades:
-          </div>
+          <div className="text-xs font-bold text-[#1a2e4a] mb-1 uppercase">Comodidades:</div>
           {hotel.amenities.length > 0 ? (
             <div className="flex flex-col gap-0.5">
               {hotel.amenities.map((amenity, i) => {
-                const iconComponents = [Coffee, Waves, Dumbbell, Wifi, UtensilsCrossed, Music, Sparkles, BookOpen, Gamepad2, CheckCircle2];
-                const IconComponent = iconComponents[i % iconComponents.length];
+                const icons = ["☕", "🏊", "💪", "📶", "🍽️", "🎵", "💆", "📚", "🎮", "✓"];
+                const icon = icons[i % icons.length];
                 
                 return (
                   <div key={i} className="text-xs text-slate-700 flex items-center gap-1">
-                    <IconComponent className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
+                    <span className="text-sm">{icon}</span>
                     <span>{amenity}</span>
                   </div>
                 );

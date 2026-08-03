@@ -92,14 +92,14 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
 
       {/* FLIGHTS SECTION */}
       {flights.length > 0 && includeAirfare && (
-        <div className="px-8 py-2" {...(pageBreaks.flights ? { "data-page-break": "true" } : {})}>
+        <div className="px-8 py-4" {...(pageBreaks.flights ? { "data-page-break": "true" } : {})}>
           <h3
-            className="text-base font-bold text-[#1a2e4a] mb-3 uppercase tracking-wide"
+            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             Horários dos Voos Selecionados
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {flights.map((flight) => (
               <FlightCard key={flight.id} flight={flight} />
             ))}
@@ -149,14 +149,14 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
 
       {/* HOTELS SECTION */}
       {hotels.length > 0 && includeHotel && (
-        <div className="px-8 py-3" {...(pageBreaks.hotels ? { "data-page-break": "true" } : {})}>
+        <div className="px-8 py-8" {...(pageBreaks.hotels ? { "data-page-break": "true" } : {})}>
           <h3
-            className="text-base font-bold text-[#1a2e4a] mb-3 uppercase tracking-wide"
+            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             Opções de Hospedagem
           </h3>
-          <div className="space-y-4">
+          <div className="space-y-8">
             {hotels.map((hotel, idx) => {
               return (
                 <div key={hotel.id} className="pb-8 border-b-4 border-slate-100 last:border-b-0" data-hotel-card {...(hotel.startOnNewPage && idx > 0 ? { "data-page-break": "true" } : {})}>
