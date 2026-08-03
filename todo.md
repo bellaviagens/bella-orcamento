@@ -124,7 +124,3 @@
 - [x] Adicionar data-hotel-card aos wrappers dos hoteis no PdfPreview
 - [x] Adicionar data-pdf-note a nota amarela no PdfPreview
 - [x] Garantir que a nota amarela fique no rodape da ultima pagina
-
-- [x] Corrigir posicionamento da nota amarela para rodape da ultima pagina (yOffset no jsPDF)
-
-- [x] Corrigir nota amarela para sempre ficar no rodape da ultima pagina (yOffset no jsPDF)
