@@ -134,27 +134,27 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                       </div>
                     </div>
                     {tier.benefits && tier.benefits.length > 0 && (
-                      <div className="text-[8px] text-slate-500 flex gap-0.25">
+                      <div className="text-[9px] text-slate-700 flex gap-0.25">
                         {Array.from({ length: Math.ceil(tier.benefits.length / 3) }).map((_, colIdx) => (
                           <div key={colIdx} className="flex flex-col gap-0.5">
                             {tier.benefits && tier.benefits.slice(colIdx * 3, (colIdx + 1) * 3).map((benefit, idx) => {
                               const benefitIcons: Record<string, { icon: string; color: string }> = {
-                                "mala de mao": { icon: "🧳", color: "text-blue-500" },
-                                "mala despachada": { icon: "📦", color: "text-orange-500" },
-                                "selecao de assento": { icon: "💺", color: "text-blue-500" },
-                                "alteracoes": { icon: "🔄", color: "text-purple-500" },
-                                "reembolso": { icon: "💰", color: "text-green-500" },
-                                "carry on": { icon: "🧳", color: "text-blue-500" },
-                                "checked bag": { icon: "📦", color: "text-orange-500" },
-                                "seat selection": { icon: "💺", color: "text-blue-500" },
-                                "changes": { icon: "🔄", color: "text-purple-500" },
+                                "mala de mao": { icon: "🧳", color: "text-blue-600" },
+                                "mala despachada": { icon: "📦", color: "text-orange-600" },
+                                "selecao de assento": { icon: "💺", color: "text-blue-600" },
+                                "alteracoes": { icon: "🔄", color: "text-purple-600" },
+                                "reembolso": { icon: "💰", color: "text-green-600" },
+                                "carry on": { icon: "🧳", color: "text-blue-600" },
+                                "checked bag": { icon: "📦", color: "text-orange-600" },
+                                "seat selection": { icon: "💺", color: "text-blue-600" },
+                                "changes": { icon: "🔄", color: "text-purple-600" },
                               };
                               const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                              const iconData = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || { icon: "✓", color: "text-gray-500" };
+                              const iconData = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || { icon: "✓", color: "text-gray-600" };
                               return (
                                 <div key={idx} className="flex items-center gap-0.5 whitespace-nowrap">
-                                  <span className={`text-[10px] ${iconData.color}`}>{iconData.icon}</span>
-                                  <span className="text-[8px]">{benefit}</span>
+                                  <span className={`text-[11px] ${iconData.color}`}>{iconData.icon}</span>
+                                  <span className="text-[9px] font-medium text-slate-700">{benefit}</span>
                                 </div>
                               );
                             })}
