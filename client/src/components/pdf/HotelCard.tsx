@@ -157,8 +157,8 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                     key={tier.id}
                     className={`rounded-lg border p-1 ${tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
                   >
-                    <div className="flex items-start gap-0.5">
-                      <div className="text-left flex-1">
+                    <div className="flex flex-col gap-0">
+                      <div className="text-left">
                         <div className={`text-[8px] font-bold uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
                           {label}
                         </div>
@@ -170,7 +170,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         </div>
                       </div>
                       {tier.benefits && tier.benefits.length > 0 && (
-                        <div className="text-[7px] text-slate-500 flex flex-col gap-0">
+                        <div className="text-[7px] text-slate-500 mt-0.5 flex flex-col gap-0">
                           {tier.benefits.map((benefit, idx) => {
                             const benefitIcons: Record<string, { icon: string; color: string }> = {
                               "mala de mao": { icon: "🧳", color: "" },
