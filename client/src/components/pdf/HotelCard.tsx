@@ -119,7 +119,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
       </div>
 
       {/* Main content: Amenities left, Tarifas right */}
-      <div className="grid grid-cols-2 gap-2 mb-2">
+      <div className="grid grid-cols-2 gap-2 mb-0.5">
         {/* Left: Amenities - Compacto */}
         <div>
           <div className="text-xs font-bold text-[#1a2e4a] mb-1 uppercase">Comodidades:</div>
