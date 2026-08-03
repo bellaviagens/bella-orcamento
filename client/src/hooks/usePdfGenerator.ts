@@ -112,7 +112,7 @@ export function usePdfGenerator() {
       // Build page segments: each segment is [startY, endY] in canvas pixels
       // Strategy: fill pages with A4 height, but never cut a hotel card.
       // If a hotel card would be cut, end the current page before it and start a new page.
-      const segments: Array<{ start: number; end: number }> = [];
+      const segments: Array<{ start: number; end: number; isNote?: boolean; noteHeightPx?: number }> = [];
 
       // Content before the note (hotels, flights, etc.)
       const contentEnd = noteTop;
@@ -181,7 +181,7 @@ export function usePdfGenerator() {
 
       // Create PDF
       // Pre-compute all segment images and heights
-      const segmentData: Array<{ imgData: string; widthMm: number; heightMm: number }> = [];
+      const segmentData: Array<{ imgData: string; widthMm: number; heightMm: number; isNote?: boolean; noteHeightPx?: number }> = [];
       for (const seg of segments) {
         const segHeight = seg.end - seg.start;
         const subCanvas = document.createElement("canvas");
@@ -194,7 +194,7 @@ export function usePdfGenerator() {
         ctx.drawImage(canvas, 0, seg.start, canvas.width, segHeight, 0, 0, canvas.width, segHeight);
         const imgData = subCanvas.toDataURL("image/png");
         const segHeightMm = (segHeight * imgWidth) / canvas.width;
-        segmentData.push({ imgData, widthMm: imgWidth, heightMm: segHeightMm });
+        segmentData.push({ imgData, widthMm: imgWidth, heightMm: segHeightMm, isNote: seg.isNote, noteHeightPx: seg.noteHeightPx });
       }
 
       // Create PDF with A4 format (210mm x 297mm) for all pages
@@ -209,8 +209,15 @@ export function usePdfGenerator() {
         if (i > 0) {
           pdf.addPage("a4"); // Add A4 page
         }
-        // Place image at the top of the page, scaled to fit A4 width
-        pdf.addImage(seg.imgData, "PNG", 0, 0, pdfWidthMm, Math.min(seg.heightMm, pdfPageHeightMm), undefined, "FAST");
+        if (seg.isNote && seg.noteHeightPx) {
+          // Place the note at the BOTTOM of a full A4 page
+          const noteHeightMm = (seg.noteHeightPx * imgWidth) / canvas.width;
+          const yOffset = pdfPageHeightMm - noteHeightMm;
+          pdf.addImage(seg.imgData, "PNG", 0, yOffset, pdfWidthMm, noteHeightMm, undefined, "FAST");
+        } else {
+          // Place image at the top of the page, scaled to fit A4 width
+          pdf.addImage(seg.imgData, "PNG", 0, 0, pdfWidthMm, Math.min(seg.heightMm, pdfPageHeightMm), undefined, "FAST");
+        }
       }
 
       // Add clickable links for elements with data-pdf-link
