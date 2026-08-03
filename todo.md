@@ -124,7 +124,3 @@
 - [x] Adicionar data-hotel-card aos wrappers dos hoteis no PdfPreview
 - [x] Adicionar data-pdf-note a nota amarela no PdfPreview
 - [x] Garantir que a nota amarela fique no rodape da ultima pagina
-
-- [x] Diminuir espaco entre valores e opcionais no HotelCard
-- [x] Trocar "Aéreo Full" por "Aéreo" no label das tarifas
-- [x] Restaurar icones dos opcionais (mala, bagagem, etc) conforme tarifas
