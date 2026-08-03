@@ -121,25 +121,48 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     tier.highlighted ? "bg-amber-50 border-l-amber-400 border-amber-300" : "bg-white border-l-blue-400"
                   }`}
                 >
-                  <div className={`text-[10px] font-bold mb-2 uppercase tracking-wide ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
-                    {tier.name}
-                  </div>
-                  <div className={`text-lg font-bold mb-1 ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>
-                    {formatCurrency(totalPrice)}
-                  </div>
-                  <div className={`text-[9px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-500"}`}>
-                    {formatCurrency(perPersonPrice)} / pessoa
-                  </div>
-                  {tier.benefits && tier.benefits.length > 0 && (
-                    <div className="text-[7px] text-slate-500 mt-2 pt-2 border-t border-slate-200 space-y-0.5">
-                      {tier.benefits.map((benefit, idx) => (
-                        <div key={idx} className="flex items-center justify-center gap-1">
-                          <span>•</span>
-                          <span>{benefit}</span>
-                        </div>
-                      ))}
+                  <div className="flex items-start gap-0.25">
+                    <div className="text-left flex-1">
+                      <div className={`text-[8px] font-bold uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
+                        {tier.name}
+                      </div>
+                      <div className={`text-xs font-bold ${tier.highlighted ? "text-amber-600" : "text-blue-600"}`}>
+                        {formatCurrency(totalPrice)}
+                      </div>
+                      <div className={`text-[7px] ${tier.highlighted ? "text-amber-600/70" : "text-blue-600/70"}`}>
+                        {formatCurrency(perPersonPrice)} / pessoa
+                      </div>
                     </div>
-                  )}
+                    {tier.benefits && tier.benefits.length > 0 && (
+                      <div className="text-[8px] text-slate-500 flex gap-0.25">
+                        {Array.from({ length: Math.ceil(tier.benefits.length / 3) }).map((_, colIdx) => (
+                          <div key={colIdx} className="flex flex-col gap-0.5">
+                            {tier.benefits && tier.benefits.slice(colIdx * 3, (colIdx + 1) * 3).map((benefit, idx) => {
+                              const benefitIcons: Record<string, { icon: string; color: string }> = {
+                                "mala de mao": { icon: "🧳", color: "text-blue-500" },
+                                "mala despachada": { icon: "📦", color: "text-orange-500" },
+                                "selecao de assento": { icon: "💺", color: "text-blue-500" },
+                                "alteracoes": { icon: "🔄", color: "text-purple-500" },
+                                "reembolso": { icon: "💰", color: "text-green-500" },
+                                "carry on": { icon: "🧳", color: "text-blue-500" },
+                                "checked bag": { icon: "📦", color: "text-orange-500" },
+                                "seat selection": { icon: "💺", color: "text-blue-500" },
+                                "changes": { icon: "🔄", color: "text-purple-500" },
+                              };
+                              const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                              const iconData = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || { icon: "✓", color: "text-gray-500" };
+                              return (
+                                <div key={idx} className="flex items-center gap-0.5 whitespace-nowrap">
+                                  <span className={`text-[10px] ${iconData.color}`}>{iconData.icon}</span>
+                                  <span className="text-[8px]">{benefit}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
