@@ -150,16 +150,16 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 const basePrice = includeAirfare ? effectiveTotalPrice + tier.flightPrice : effectiveTotalPrice;
                 const totalPrice = basePrice;
                 const perPersonPrice = basePrice / passengers;
-                const label = includeAirfare ? `Aéreo ${tier.name}` : tier.name;
+                const label = includeAirfare ? `Aéreo` : tier.name;
 
                 return (
                   <div
                     key={tier.id}
                     className={`rounded-lg border p-1 ${tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
                   >
-                    <div className="flex items-start gap-0.5">
-                      <div className="text-left flex-1">
-                        <div className={`text-[8px] font-bold mb-0.5 uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
+                    <div className="flex flex-col gap-0">
+                      <div className="text-left">
+                        <div className={`text-[8px] font-bold uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
                           {label}
                         </div>
                         <div className={`text-xs font-bold ${tier.highlighted ? "text-amber-600" : "text-blue-600"}`}>
@@ -170,32 +170,32 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         </div>
                       </div>
                       {tier.benefits && tier.benefits.length > 0 && (
-                        <div className="text-[7px] text-slate-500 flex gap-0.25">
-                          {Array.from({ length: Math.ceil(tier.benefits.length / 4) }).map((_, colIdx) => (
-                            <div key={colIdx} className="flex flex-col gap-0.25">
-                              {tier.benefits && tier.benefits.slice(colIdx * 4, (colIdx + 1) * 4).map((benefit, idx) => {
-                                const benefitIcons: Record<string, { icon: string; color: string }> = {
-                                  "mala de mao": { icon: "🧳", color: "text-blue-500" },
-                                  "mala despachada": { icon: "📦", color: "text-orange-500" },
-                                  "selecao de assento": { icon: "💺", color: "text-blue-500" },
-                                  "alteracoes": { icon: "🔄", color: "text-purple-500" },
-                                  "reembolso": { icon: "💰", color: "text-green-500" },
-                                  "carry on": { icon: "🧳", color: "text-blue-500" },
-                                  "checked bag": { icon: "📦", color: "text-orange-500" },
-                                  "seat selection": { icon: "💺", color: "text-blue-500" },
-                                  "changes": { icon: "🔄", color: "text-purple-500" },
-                                };
-                                const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                                const iconData = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || { icon: "✓", color: "text-gray-500" };
-                                return (
-                                  <div key={idx} className="flex items-center gap-0.5 whitespace-nowrap">
-                                    <span className={`text-[8px] ${iconData.color}`}>{iconData.icon}</span>
-                                    <span className="text-[6px]">{benefit}</span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ))}
+                        <div className="text-[7px] text-slate-500 mt-0.5 flex flex-col gap-0">
+                          {tier.benefits.map((benefit, idx) => {
+                            const benefitIcons: Record<string, { icon: string; color: string }> = {
+                              "mala de mao": { icon: "🧳", color: "" },
+                              "mala despachada": { icon: "📦", color: "" },
+                              "selecao de assento": { icon: "💺", color: "" },
+                              "alteracoes": { icon: "🔄", color: "" },
+                              "reembolso": { icon: "💰", color: "" },
+                              "carry on": { icon: "🧳", color: "" },
+                              "checked bag": { icon: "📦", color: "" },
+                              "seat selection": { icon: "💺", color: "" },
+                              "changes": { icon: "🔄", color: "" },
+                              "bagagem": { icon: "🧳", color: "" },
+                              "check-in": { icon: "✅", color: "" },
+                              "embarque": { icon: "✅", color: "" },
+                              "prioritario": { icon: "⭐", color: "" },
+                            };
+                            const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                            const iconData = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || { icon: "✓", color: "" };
+                            return (
+                              <div key={idx} className="flex items-center gap-0.5 whitespace-nowrap">
+                                <span className="text-[8px]">{iconData.icon}</span>
+                                <span className="text-[6px]">{benefit}</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
