@@ -70,61 +70,110 @@ export function usePdfGenerator() {
       // If the content is shorter than one A4 page, just use one page
       const effectivePageHeightPx = canvas.height < pageHeightPx ? canvas.height : pageHeightPx;
 
-      // Find all elements marked with data-page-break to use as break points
-      const breakElements = element.querySelectorAll("[data-page-break='true']");
-      const breakPoints: number[] = [];
-
       // Get the element's position on the page to calculate offsets
       const elementRect = element.getBoundingClientRect();
 
-      breakElements.forEach((el) => {
-        const rect = (el as HTMLElement).getBoundingClientRect();
-        const yInCanvas = (rect.top - elementRect.top) * (canvas.height / elementRect.height);
-        breakPoints.push(Math.round(yInCanvas));
-      });
+      // Helper: convert element bounding rect top to canvas Y coordinate
+      const elemTopToCanvasY = (el: HTMLElement) => {
+        const rect = el.getBoundingClientRect();
+        return Math.round((rect.top - elementRect.top) * (canvas.height / elementRect.height));
+      };
 
-      // Sort break points
+      // Helper: convert element bounding rect bottom to canvas Y coordinate
+      const elemBottomToCanvasY = (el: HTMLElement) => {
+        const rect = el.getBoundingClientRect();
+        return Math.round((rect.bottom - elementRect.top) * (canvas.height / elementRect.height));
+      };
+
+      // Collect all hotel card elements (they must not be split across pages)
+      const hotelCardElements = Array.from(element.querySelectorAll('[data-hotel-card]')) as HTMLElement[];
+      const hotelBounds = hotelCardElements.map(el => ({
+        top: elemTopToCanvasY(el),
+        bottom: elemBottomToCanvasY(el),
+      }));
+
+      // Find the note element (it must go at the bottom of the last page)
+      const noteElement = element.querySelector('[data-pdf-note]') as HTMLElement | null;
+      const noteTop = noteElement ? elemTopToCanvasY(noteElement) : canvas.height;
+      const noteBottom = noteElement ? elemBottomToCanvasY(noteElement) : canvas.height;
+
+      // Find all elements marked with data-page-break to use as break points
+      const breakElements = element.querySelectorAll("[data-page-break='true']");
+      const breakPoints: number[] = [];
+      breakElements.forEach((el) => {
+        breakPoints.push(elemTopToCanvasY(el as HTMLElement));
+      });
       breakPoints.sort((a, b) => a - b);
 
       console.log("✓ Break points found:", breakPoints.length, breakPoints);
+      console.log("✓ Hotel cards found:", hotelBounds.length, hotelBounds);
+      console.log("✓ Note at:", noteTop, "-", noteBottom);
 
       // Build page segments: each segment is [startY, endY] in canvas pixels
+      // Strategy: fill pages with A4 height, but never cut a hotel card.
+      // If a hotel card would be cut, end the current page before it and start a new page.
       const segments: Array<{ start: number; end: number }> = [];
 
-      if (breakPoints.length === 0) {
-        // No break points - use fixed A4 height
-        let y = 0;
-        while (y < canvas.height) {
-          const end = Math.min(y + effectivePageHeightPx, canvas.height);
-          if (end - y > 10) {
-            segments.push({ start: y, end });
-          }
-          y += effectivePageHeightPx;
-        }
-      } else {
-        // Use break points to create segments
-        let currentY = 0;
+      // Content before the note (hotels, flights, etc.)
+      const contentEnd = noteTop;
 
-        for (const bp of breakPoints) {
-          // If there's content before the break point, fill with A4-height pages
-          while (currentY + effectivePageHeightPx < bp) {
-            segments.push({ start: currentY, end: currentY + effectivePageHeightPx });
-            currentY += effectivePageHeightPx;
-          }
-          // Add the remaining content before the break point as a page
-          if (bp > currentY) {
-            segments.push({ start: currentY, end: bp });
-          }
-          currentY = bp;
+      let currentY = 0;
+
+      // First, handle any explicit break points that fall before the note
+      let bpIdx = 0;
+
+      while (currentY < contentEnd) {
+        let pageEnd = currentY + effectivePageHeightPx;
+
+        // Don't go past the content end (before note)
+        if (pageEnd > contentEnd) {
+          pageEnd = contentEnd;
         }
 
-        // After the last break point, fill remaining content with A4-height pages
-        while (currentY < canvas.height) {
-          const end = Math.min(currentY + effectivePageHeightPx, canvas.height);
-          if (end - currentY > 10) {
-            segments.push({ start: currentY, end });
+        // Check if any explicit break point falls within this page
+        for (; bpIdx < breakPoints.length; bpIdx++) {
+          if (breakPoints[bpIdx] > currentY && breakPoints[bpIdx] < pageEnd) {
+            pageEnd = breakPoints[bpIdx];
+            break;
           }
-          currentY += effectivePageHeightPx;
+          if (breakPoints[bpIdx] >= pageEnd) break;
+        }
+
+        // Check if any hotel card would be cut by this page boundary
+        for (const hb of hotelBounds) {
+          // If hotel starts on this page (top >= currentY) and ends after pageEnd (bottom > pageEnd)
+          // and hotel starts before pageEnd (top < pageEnd)
+          if (hb.top >= currentY && hb.top < pageEnd && hb.bottom > pageEnd) {
+            // Hotel would be cut - end page before the hotel starts
+            if (hb.top > currentY) {
+              pageEnd = hb.top;
+            }
+            break;
+          }
+        }
+
+        if (pageEnd > currentY && pageEnd - currentY > 10) {
+          segments.push({ start: currentY, end: pageEnd });
+        }
+        currentY = pageEnd;
+
+        // If we ended exactly at a hotel boundary, the next iteration will start the hotel on a new page
+      }
+
+      // Now add the note as the last page (or at the end of the current last page if it fits)
+      if (noteBottom > currentY) {
+        const noteHeight = noteBottom - noteTop;
+        const lastSeg = segments[segments.length - 1];
+        const usedHeight = lastSeg ? (lastSeg.end - lastSeg.start) : 0;
+        const spaceOnLastPage = lastSeg ? effectivePageHeightPx - usedHeight : 0;
+
+        if (lastSeg && spaceOnLastPage >= noteHeight) {
+          // Note fits on the last page - extend it to include the note
+          lastSeg.end = noteBottom;
+        } else {
+          // Note needs its own page - start a new page with the note at the bottom
+          // The page starts right after the last content, and the note sits at the end
+          segments.push({ start: noteTop, end: noteBottom });
         }
       }
 
@@ -160,9 +209,8 @@ export function usePdfGenerator() {
         if (i > 0) {
           pdf.addPage("a4"); // Add A4 page
         }
-        // Scale image to fit A4 width (210mm) and maintain aspect ratio
-        const scaledHeight = (pdfPageHeightMm * seg.heightMm) / pdfPageHeightMm;
-        pdf.addImage(seg.imgData, "PNG", 0, 0, pdfWidthMm, Math.min(scaledHeight, pdfPageHeightMm), undefined, "FAST");
+        // Place image at the top of the page, scaled to fit A4 width
+        pdf.addImage(seg.imgData, "PNG", 0, 0, pdfWidthMm, Math.min(seg.heightMm, pdfPageHeightMm), undefined, "FAST");
       }
 
       // Add clickable links for elements with data-pdf-link

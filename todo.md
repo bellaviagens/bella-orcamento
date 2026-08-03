@@ -119,3 +119,8 @@
 - [x] Restaurar min-h-screen para flexbox funcionar corretamente
 
 - [x] Adicionar break-inside: avoid ao HotelCard para evitar cortes de hotéis entre páginas
+
+- [x] Reescrever logica de quebra de pagina do usePdfGenerator para detectar hoteis e evitar cortes
+- [x] Adicionar data-hotel-card aos wrappers dos hoteis no PdfPreview
+- [x] Adicionar data-pdf-note a nota amarela no PdfPreview
+- [x] Garantir que a nota amarela fique no rodape da ultima pagina

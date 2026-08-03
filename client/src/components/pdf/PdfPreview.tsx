@@ -159,7 +159,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
           <div className="space-y-8">
             {hotels.map((hotel, idx) => {
               return (
-                <div key={hotel.id} className="pb-8 border-b-4 border-slate-100 last:border-b-0" {...(hotel.startOnNewPage && idx > 0 ? { "data-page-break": "true" } : {})}>
+                <div key={hotel.id} className="pb-8 border-b-4 border-slate-100 last:border-b-0" data-hotel-card {...(hotel.startOnNewPage && idx > 0 ? { "data-page-break": "true" } : {})}>
                   <HotelCard
                     hotel={hotel}
                     index={idx}
@@ -280,11 +280,8 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
         </div>
       )}
 
-      {/* Spacer to push note to bottom of last page */}
-      <div className="flex-grow"></div>
-
       {/* AVAILABILITY NOTE - At the end of last page */}
-      <div className="px-8 py-4">
+      <div className="px-8 py-4" data-pdf-note>
         <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 flex items-start gap-2">
           <Info className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
           <p className="text-[10px] text-slate-600 leading-tight">
