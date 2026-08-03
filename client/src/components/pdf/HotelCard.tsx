@@ -159,7 +159,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                   >
                     <div className="flex items-start gap-0.5">
                       <div className="text-left flex-1">
-                        <div className={`text-[8px] font-bold mb-0.5 uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
+                        <div className={`text-[8px] font-bold uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
                           {label}
                         </div>
                         <div className={`text-xs font-bold ${tier.highlighted ? "text-amber-600" : "text-blue-600"}`}>
@@ -170,10 +170,10 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         </div>
                       </div>
                       {tier.benefits && tier.benefits.length > 0 && (
-                        <div className="text-[7px] text-slate-500 flex gap-0.25">
-                          {Array.from({ length: Math.ceil(tier.benefits.length / 4) }).map((_, colIdx) => (
-                            <div key={colIdx} className="flex flex-col gap-0.25">
-                              {tier.benefits && tier.benefits.slice(colIdx * 4, (colIdx + 1) * 4).map((benefit, idx) => {
+                        <div className="text-[7px] text-slate-500 flex gap-0.5">
+                          {Array.from({ length: Math.ceil(tier.benefits.length / 3) }).map((_, colIdx) => (
+                            <div key={colIdx} className="flex flex-col gap-0">
+                              {tier.benefits && tier.benefits.slice(colIdx * 3, (colIdx + 1) * 3).map((benefit, idx) => {
                                 const benefitIcons: Record<string, { icon: string; color: string }> = {
                                   "mala de mao": { icon: "🧳", color: "text-blue-500" },
                                   "mala despachada": { icon: "📦", color: "text-orange-500" },
