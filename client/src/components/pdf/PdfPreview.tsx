@@ -140,46 +140,47 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    {/* Left: Price info */}
-                    <div className="text-left flex-1">
-                      <div className={`text-[9px] font-bold mb-0.5 uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
-                        {tier.name}
-                      </div>
-                      <div className={`text-sm font-bold ${tier.highlighted ? "text-amber-600" : "text-blue-600"}`}>
-                        {formatCurrency(totalPrice)}
-                      </div>
-                      <div className={`text-[8px] ${tier.highlighted ? "text-amber-600/70" : "text-blue-600/70"}`}>
-                        {formatCurrency(perPersonPrice)} / pessoa
-                      </div>
-                    </div>
-                    {/* Right: Benefits with icons */}
-                    {tier.benefits && tier.benefits.length > 0 && (
-                      <div className="text-[8px] text-slate-500 flex flex-wrap gap-1 justify-end items-start">
-                        {tier.benefits.map((benefit, idx) => {
-                          const benefitIcons: Record<string, string> = {
-                            "mala de mao": "🧳",
-                            "mala despachada": "📦",
-                            "selecao de assento": "💺",
-                            "alteracoes": "🔄",
-                            "reembolso": "💰",
-                            "carry on": "🧳",
-                            "checked bag": "📦",
-                            "seat selection": "💺",
-                            "changes": "🔄",
-                          };
-                          const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                          const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "✓";
-                          return (
-                            <div key={idx} className="flex items-center gap-0.5 whitespace-nowrap">
-                              <span>{icon}</span>
-                              <span>{benefit}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                  {/* Title in one line */}
+                  <div className={`text-[9px] font-bold mb-1 uppercase whitespace-nowrap ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
+                    {tier.name}
                   </div>
+                  
+                  {/* Price info */}
+                  <div className={`text-sm font-bold mb-0.5 ${tier.highlighted ? "text-amber-600" : "text-blue-600"}`}>
+                    {formatCurrency(totalPrice)}
+                  </div>
+                  <div className={`text-[8px] mb-2 ${tier.highlighted ? "text-amber-600/70" : "text-blue-600/70"}`}>
+                    {formatCurrency(perPersonPrice)} / pessoa
+                  </div>
+                  
+                  {/* Benefits with icons - max 3 per line */}
+                  {tier.benefits && tier.benefits.length > 0 && (
+                    <div className="text-[8px] text-slate-500 flex flex-wrap gap-1">
+                      {tier.benefits.map((benefit, idx) => {
+                        const benefitIcons: Record<string, string> = {
+                          "mala de mao": "🧳",
+                          "mala despachada": "📦",
+                          "selecao de assento": "💺",
+                          "alteracoes": "🔄",
+                          "reembolso": "💰",
+                          "carry on": "🧳",
+                          "checked bag": "📦",
+                          "seat selection": "💺",
+                          "changes": "🔄",
+                        };
+                        const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                        const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "✓";
+                        // Max 3 items per line
+                        const isLineBreak = idx > 0 && idx % 3 === 0;
+                        return (
+                          <div key={idx} className={`flex items-center gap-0.5 ${isLineBreak ? "basis-full" : ""}`}>
+                            <span>{icon}</span>
+                            <span>{benefit}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })}
