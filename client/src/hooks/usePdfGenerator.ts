@@ -40,11 +40,6 @@ export function usePdfGenerator() {
       // Wait for layout to settle
       await new Promise(resolve => setTimeout(resolve, 150));
 
-      // Debug: check clone dimensions
-      const cloneRect = clone.getBoundingClientRect();
-      console.log("🔍 Clone dimensions:", clone.offsetWidth, "x", clone.offsetHeight, "| BoundingRect:", cloneRect.width, "x", cloneRect.height);
-      console.log("🔍 Container dimensions:", captureContainer.offsetWidth, "x", captureContainer.offsetHeight);
-
       // Capture the entire document as one tall canvas
       const canvas = await html2canvas(clone, {
         useCORS: true,
@@ -67,70 +62,71 @@ export function usePdfGenerator() {
       const pageHeightPx = pdfPageHeightMm * pxPerMm; // A4 height in pixels
       const imgWidth = pdfWidthMm; // alias for readability
 
-      // If the content is shorter than one A4 page, just use one page
-      const effectivePageHeightPx = canvas.height < pageHeightPx ? canvas.height : pageHeightPx;
-
-      // Find all elements marked with data-page-break to use as break points
-      const breakElements = element.querySelectorAll("[data-page-break='true']");
-      const breakPoints: number[] = [];
-
       // Get the element's position on the page to calculate offsets
       const elementRect = element.getBoundingClientRect();
 
+      // ─── Collect hotel card positions in canvas pixel coordinates ───
+      const hotelCards = element.querySelectorAll("[data-hotel-card='true']");
+      const hotelPositions: Array<{ top: number; bottom: number }> = [];
+      hotelCards.forEach((el) => {
+        const rect = (el as HTMLElement).getBoundingClientRect();
+        const topInCanvas = (rect.top - elementRect.top) * (canvas.height / elementRect.height);
+        const bottomInCanvas = (rect.bottom - elementRect.top) * (canvas.height / elementRect.height);
+        hotelPositions.push({
+          top: Math.round(topInCanvas),
+          bottom: Math.round(bottomInCanvas),
+        });
+      });
+      hotelPositions.sort((a, b) => a.top - b.top);
+      console.log("✓ Hotel positions:", hotelPositions.length, hotelPositions);
+
+      // ─── Collect manual break points (data-page-break) ───
+      const breakElements = element.querySelectorAll("[data-page-break='true']");
+      const manualBreakPoints: number[] = [];
       breakElements.forEach((el) => {
         const rect = (el as HTMLElement).getBoundingClientRect();
         const yInCanvas = (rect.top - elementRect.top) * (canvas.height / elementRect.height);
-        breakPoints.push(Math.round(yInCanvas));
+        manualBreakPoints.push(Math.round(yInCanvas));
       });
+      manualBreakPoints.sort((a, b) => a - b);
+      console.log("✓ Manual break points:", manualBreakPoints.length, manualBreakPoints);
 
-      // Sort break points
-      breakPoints.sort((a, b) => a - b);
-
-      console.log("✓ Break points found:", breakPoints.length, breakPoints);
-
-      // Build page segments: each segment is [startY, endY] in canvas pixels
+      // ─── Build page segments respecting hotel boundaries ───
+      // A segment is [startY, endY] in canvas pixels. Each segment becomes one PDF page.
       const segments: Array<{ start: number; end: number }> = [];
+      let currentY = 0;
 
-      if (breakPoints.length === 0) {
-        // No break points - use fixed A4 height
-        let y = 0;
-        while (y < canvas.height) {
-          const end = Math.min(y + effectivePageHeightPx, canvas.height);
-          if (end - y > 10) {
-            segments.push({ start: y, end });
-          }
-          y += effectivePageHeightPx;
-        }
-      } else {
-        // Use break points to create segments
-        let currentY = 0;
+      while (currentY < canvas.height) {
+        const pageEnd = Math.min(currentY + pageHeightPx, canvas.height);
 
-        for (const bp of breakPoints) {
-          // If there's content before the break point, fill with A4-height pages
-          while (currentY + effectivePageHeightPx < bp) {
-            segments.push({ start: currentY, end: currentY + effectivePageHeightPx });
-            currentY += effectivePageHeightPx;
+        // Check if any hotel card would be cut by this page boundary
+        let adjustedEnd = pageEnd;
+        for (const hp of hotelPositions) {
+          // If the hotel starts on this page but ends on the next page → cut!
+          if (hp.top >= currentY && hp.top < pageEnd && hp.bottom > pageEnd) {
+            // End the page just before this hotel starts
+            adjustedEnd = hp.top;
+            break;
           }
-          // Add the remaining content before the break point as a page
-          if (bp > currentY) {
-            segments.push({ start: currentY, end: bp });
-          }
-          currentY = bp;
         }
 
-        // After the last break point, fill remaining content with A4-height pages
-        while (currentY < canvas.height) {
-          const end = Math.min(currentY + effectivePageHeightPx, canvas.height);
-          if (end - currentY > 10) {
-            segments.push({ start: currentY, end });
+        // Also respect manual break points: if a manual break falls within this page, end there
+        for (const bp of manualBreakPoints) {
+          if (bp > currentY && bp < adjustedEnd) {
+            adjustedEnd = bp;
+            break;
           }
-          currentY += effectivePageHeightPx;
         }
+
+        if (adjustedEnd - currentY > 10) {
+          segments.push({ start: currentY, end: adjustedEnd });
+        }
+        currentY = adjustedEnd;
       }
 
       console.log("✓ Segments:", segments.length, segments);
 
-      // Create PDF
+      // ─── Create PDF ───
       // Pre-compute all segment images and heights
       const segmentData: Array<{ imgData: string; widthMm: number; heightMm: number }> = [];
       for (const seg of segments) {
@@ -151,14 +147,14 @@ export function usePdfGenerator() {
       // Create PDF with A4 format (210mm x 297mm) for all pages
       const pdf = new jsPDF({
         unit: "mm",
-        format: "a4", // Use standard A4 format
+        format: "a4",
       });
 
       // Add each segment as a page with A4 height
       for (let i = 0; i < segmentData.length; i++) {
         const seg = segmentData[i];
         if (i > 0) {
-          pdf.addPage("a4"); // Add A4 page
+          pdf.addPage("a4");
         }
         // Scale image to fit A4 width (210mm) and maintain aspect ratio
         const scaledHeight = (pdfPageHeightMm * seg.heightMm) / pdfPageHeightMm;
@@ -200,7 +196,6 @@ export function usePdfGenerator() {
 
         if (pageNum < totalPages) {
           pdf.setPage(pageNum + 1);
-          // Adicionar link com target="_blank" para abrir em nova página
           pdf.link(xMm, yOnPage, wMm, hMm, { url: link, pageNumber: undefined });
         }
       });
