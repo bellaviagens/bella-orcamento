@@ -136,33 +136,50 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
               return (
                 <div
                   key={tier.id}
-                  className={`rounded-lg border-l-4 border border-slate-200 p-3 shadow-sm flex gap-3 ${
-                    tier.highlighted ? "bg-amber-50 border-l-amber-400 border-amber-300" : "bg-white border-l-blue-400"
+                  className={`rounded-lg border p-2 shadow-sm ${
+                    tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"
                   }`}
                 >
-                  {/* Left column: Price info */}
-                  <div className="flex-shrink-0">
-                    <div className={`text-[10px] font-bold mb-1 uppercase tracking-wide ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
-                      {tier.name}
+                  <div className="flex items-start justify-between gap-2">
+                    {/* Left: Price info */}
+                    <div className="text-left flex-1">
+                      <div className={`text-[9px] font-bold mb-0.5 uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
+                        {tier.name}
+                      </div>
+                      <div className={`text-sm font-bold ${tier.highlighted ? "text-amber-600" : "text-blue-600"}`}>
+                        {formatCurrency(totalPrice)}
+                      </div>
+                      <div className={`text-[8px] ${tier.highlighted ? "text-amber-600/70" : "text-blue-600/70"}`}>
+                        {formatCurrency(perPersonPrice)} / pessoa
+                      </div>
                     </div>
-                    <div className={`text-lg font-bold mb-0.5 ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>
-                      {formatCurrency(totalPrice)}
-                    </div>
-                    <div className={`text-[9px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-500"}`}>
-                      {formatCurrency(perPersonPrice)} / pessoa
-                    </div>
+                    {/* Right: Benefits with icons */}
+                    {tier.benefits && tier.benefits.length > 0 && (
+                      <div className="text-[8px] text-slate-500 flex flex-wrap gap-1 justify-end items-start">
+                        {tier.benefits.map((benefit, idx) => {
+                          const benefitIcons: Record<string, string> = {
+                            "mala de mao": "🧳",
+                            "mala despachada": "📦",
+                            "selecao de assento": "💺",
+                            "alteracoes": "🔄",
+                            "reembolso": "💰",
+                            "carry on": "🧳",
+                            "checked bag": "📦",
+                            "seat selection": "💺",
+                            "changes": "🔄",
+                          };
+                          const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                          const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "✓";
+                          return (
+                            <div key={idx} className="flex items-center gap-0.5 whitespace-nowrap">
+                              <span>{icon}</span>
+                              <span>{benefit}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                  {/* Right column: Benefits */}
-                  {tier.benefits && tier.benefits.length > 0 && (
-                    <div className="text-[9px] text-slate-700 space-y-0.5 flex-1">
-                      {tier.benefits.map((benefit, idx) => (
-                        <div key={idx} className="flex items-start gap-1">
-                          <span className="flex-shrink-0">•</span>
-                          <span>{benefit}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               );
             })}
