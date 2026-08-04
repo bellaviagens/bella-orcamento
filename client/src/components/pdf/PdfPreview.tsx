@@ -24,8 +24,8 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
   const passengerCount = parseInt(tripInfo.passengers) || 1;
 
   // Calculate total aéreo (flight) price
-  const flightTotal = includeAirfare ? fareComparison.tiers.reduce((sum, tier) => sum + tier.flightPrice, 0) : 0;
-  const flightPerPerson = fareComparison.tiers.length > 0 ? flightTotal / fareComparison.tiers.length : 0;
+  const flightTotal = includeAirfare ? fareComparison.tiers.reduce((sum, tier) => sum + (tier.flightPrice * passengerCount), 0) : 0;
+  const flightPerPerson = fareComparison.tiers.length > 0 ? flightTotal / fareComparison.tiers.length / passengerCount : 0;
 
   // Calculate total hotel price
   const hotelTotal = includeHotel ? hotels.reduce((sum, hotel) => {

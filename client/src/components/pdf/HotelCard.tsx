@@ -147,7 +147,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
           {includeAirfare && tiers.length > 0 ? (
             <div className="space-y-1">
               {tiers.slice(0, 2).map((tier) => {
-                const basePrice = includeAirfare ? effectiveTotalPrice + tier.flightPrice : effectiveTotalPrice;
+                const basePrice = includeAirfare ? effectiveTotalPrice + (tier.flightPrice * passengers) : effectiveTotalPrice;
                 const totalPrice = basePrice;
                 const perPersonPrice = basePrice / passengers;
                 const label = includeAirfare ? `Com Aéreo ${tier.name}` : tier.name;
