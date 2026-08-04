@@ -163,6 +163,12 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
               );
             })}
           </div>
+          {/* Observations for flight-only section */}
+          {installments?.observations && (
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded text-xs text-slate-700">
+              {installments.observations}
+            </div>
+          )}
         </div>
       )}
 
