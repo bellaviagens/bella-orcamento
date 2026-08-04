@@ -33,18 +33,18 @@ export function TripInfoForm() {
                 } else if (value.length <= 8) {
                   value = value.slice(0, 2) + '/' + value.slice(2, 4) + '/' + value.slice(4, 8);
                 } else if (value.length <= 10) {
-                  value = value.slice(0, 2) + '/' + value.slice(2, 4) + '/' + value.slice(4, 8) + ' \u00e0 ' + value.slice(8, 10);
+                  value = value.slice(0, 2) + '/' + value.slice(2, 4) + '/' + value.slice(4, 8) + ' à ' + value.slice(8, 10);
                 } else if (value.length <= 12) {
-                  value = value.slice(0, 2) + '/' + value.slice(2, 4) + '/' + value.slice(4, 8) + ' \u00e0 ' + value.slice(8, 10) + '/' + value.slice(10, 12);
-                } else {
-                  value = value.slice(0, 2) + '/' + value.slice(2, 4) + '/' + value.slice(4, 8) + ' \u00e0 ' + value.slice(8, 10) + '/' + value.slice(10, 12) + '/' + value.slice(12, 16);
+                  value = value.slice(0, 2) + '/' + value.slice(2, 4) + '/' + value.slice(4, 8) + ' à ' + value.slice(8, 10) + '/' + value.slice(10, 12);
+                } else if (value.length <= 16) {
+                  value = value.slice(0, 2) + '/' + value.slice(2, 4) + '/' + value.slice(4, 8) + ' à ' + value.slice(8, 10) + '/' + value.slice(10, 12) + '/' + value.slice(12, 16);
                 }
               }
               updateTripInfo("period", value);
             }}
-            placeholder="__/__/____ \u00e0 __/__/____"
+            placeholder="__/__/____ à __/__/____"
             className="mt-1"
-            maxLength={27}
+            maxLength={29}
           />
         </div>
       </div>
