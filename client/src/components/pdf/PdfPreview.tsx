@@ -136,24 +136,28 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
               return (
                 <div
                   key={tier.id}
-                  className={`rounded-lg border-l-4 border border-slate-200 p-4 text-center shadow-sm ${
+                  className={`rounded-lg border-l-4 border border-slate-200 p-3 shadow-sm flex gap-3 ${
                     tier.highlighted ? "bg-amber-50 border-l-amber-400 border-amber-300" : "bg-white border-l-blue-400"
                   }`}
                 >
-                  <div className={`text-[10px] font-bold mb-2 uppercase tracking-wide ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
-                    {tier.name}
+                  {/* Left column: Price info */}
+                  <div className="flex-shrink-0">
+                    <div className={`text-[10px] font-bold mb-1 uppercase tracking-wide ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
+                      {tier.name}
+                    </div>
+                    <div className={`text-lg font-bold mb-0.5 ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>
+                      {formatCurrency(totalPrice)}
+                    </div>
+                    <div className={`text-[9px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-500"}`}>
+                      {formatCurrency(perPersonPrice)} / pessoa
+                    </div>
                   </div>
-                  <div className={`text-lg font-bold mb-1 ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>
-                    {formatCurrency(totalPrice)}
-                  </div>
-                  <div className={`text-[9px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-500"}`}>
-                    {formatCurrency(perPersonPrice)} / pessoa
-                  </div>
+                  {/* Right column: Benefits */}
                   {tier.benefits && tier.benefits.length > 0 && (
-                    <div className="text-[7px] text-slate-500 mt-2 pt-2 border-t border-slate-200 space-y-0.5">
+                    <div className="text-[9px] text-slate-700 space-y-0.5 flex-1">
                       {tier.benefits.map((benefit, idx) => (
-                        <div key={idx} className="flex items-center justify-center gap-1">
-                          <span>•</span>
+                        <div key={idx} className="flex items-start gap-1">
+                          <span className="flex-shrink-0">•</span>
                           <span>{benefit}</span>
                         </div>
                       ))}
