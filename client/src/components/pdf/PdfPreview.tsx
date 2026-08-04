@@ -24,8 +24,9 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
   const passengerCount = parseInt(tripInfo.passengers) || 1;
 
   // Calculate total aéreo (flight) price
-  const flightTotal = includeAirfare ? fareComparison.tiers.reduce((sum, tier) => sum + tier.flightPrice, 0) : 0;
-  const flightPerPerson = fareComparison.tiers.length > 0 ? flightTotal / fareComparison.tiers.length : 0;
+  // Each tier.flightPrice is per person, so multiply by passengerCount for total
+  const flightTotal = includeAirfare ? fareComparison.tiers.reduce((sum, tier) => sum + (tier.flightPrice * passengerCount), 0) : 0;
+  const flightPerPerson = fareComparison.tiers.length > 0 ? flightTotal / fareComparison.tiers.length / passengerCount : 0;
 
   // Calculate total hotel price
   const hotelTotal = includeHotel ? hotels.reduce((sum, hotel) => {
@@ -130,8 +131,8 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
         <div className="px-8 py-4" {...(pageBreaks.fares ? { "data-page-break": "true" } : {})}>
           <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(fareComparison.tiers.length, 3)}, 1fr)` }}>
             {fareComparison.tiers.map((tier) => {
-              const totalPrice = tier.flightPrice;
-              const perPersonPrice = tier.flightPrice / passengerCount;
+              const totalPrice = tier.flightPrice * passengerCount;
+              const perPersonPrice = tier.flightPrice;
               return (
                 <div
                   key={tier.id}
@@ -177,7 +178,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
           <div className="space-y-8">
             {hotels.map((hotel, idx) => {
               return (
-                <div key={hotel.id} className="pb-8 border-b-4 border-slate-100 last:border-b-0" {...(hotel.startOnNewPage && idx > 0 ? { "data-page-break": "true" } : {})}>
+                <div key={hotel.id} data-hotel-card="true" className="pb-8 border-b-4 border-slate-100 last:border-b-0" {...(hotel.startOnNewPage && idx > 0 ? { "data-page-break": "true" } : {})}>
                   <HotelCard
                     hotel={hotel}
                     index={idx}

@@ -147,7 +147,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
           {includeAirfare && tiers.length > 0 ? (
             <div className="space-y-1">
               {tiers.slice(0, 2).map((tier) => {
-                const basePrice = includeAirfare ? effectiveTotalPrice + tier.flightPrice : effectiveTotalPrice;
+                const basePrice = includeAirfare ? effectiveTotalPrice + (tier.flightPrice * passengers) : effectiveTotalPrice;
                 const totalPrice = basePrice;
                 const perPersonPrice = basePrice / passengers;
                 const label = includeAirfare ? `Com Aéreo ${tier.name}` : tier.name;
@@ -231,7 +231,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
               <div className="text-xs font-semibold text-slate-500 uppercase mb-1">Aéreo + Hotel</div>
               <div className="text-base font-bold text-[#1a2e4a]">
                 {tiers[0]?.flightPrice && effectiveTotalPrice ? (() => {
-                  const flightTotal = tiers[0].flightPrice;
+                  const flightTotal = tiers[0].flightPrice * passengers;
                   const hotelTotal = effectiveTotalPrice;
                   const totalAmount = flightTotal + hotelTotal;
                   
@@ -246,7 +246,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 })() : "N/A"}
               </div>
               <div className="text-xs text-slate-500 mt-0.5">
-                Total: {tiers[0]?.flightPrice && effectiveTotalPrice ? formatCurrency(tiers[0].flightPrice + effectiveTotalPrice) : "N/A"}
+                Total: {tiers[0]?.flightPrice && effectiveTotalPrice ? formatCurrency((tiers[0].flightPrice * passengers) + effectiveTotalPrice) : "N/A"}
               </div>
               <div className="flex flex-wrap gap-1 mt-1.5">
                 {flightPaymentMethods && flightPaymentMethods.length > 0 && flightPaymentMethods.map((method) => (
@@ -264,14 +264,17 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 <div className="rounded-lg border border-slate-200 p-2 bg-slate-50">
                   <div className="text-xs font-semibold text-slate-500 uppercase mb-1">Aéreo</div>
                   <div className="text-base font-bold text-[#1a2e4a]">
-                    {tiers[0]?.flightPrice ? (
-                      flightDownpayment && flightDownpaymentAmount && flightDownpaymentAmount > 0
-                        ? `1x de ${formatCurrency(flightDownpaymentAmount)} + ${flightInstallments}x de ${formatCurrency((tiers[0].flightPrice - flightDownpaymentAmount) / flightInstallments)}`
-                        : `${flightInstallments}x de ${formatCurrency(tiers[0].flightPrice / flightInstallments)}`
-                    ) : "N/A"}
+                    {tiers[0]?.flightPrice ? (() => {
+                      const flightTotal = tiers[0].flightPrice * passengers;
+                      if (flightDownpayment && flightDownpaymentAmount && flightDownpaymentAmount > 0) {
+                        return `1x de ${formatCurrency(flightDownpaymentAmount)} + ${flightInstallments}x de ${formatCurrency((flightTotal - flightDownpaymentAmount) / flightInstallments)}`;
+                      } else {
+                        return `${flightInstallments}x de ${formatCurrency(flightTotal / flightInstallments)}`;
+                      }
+                    })() : "N/A"}
                   </div>
                   <div className="text-xs text-slate-500 mt-0.5">
-                    Total: {tiers[0]?.flightPrice ? formatCurrency(tiers[0].flightPrice) : "N/A"}
+                    Total: {tiers[0]?.flightPrice ? formatCurrency(tiers[0].flightPrice * passengers) : "N/A"}
                   </div>
                   {flightPaymentMethods && flightPaymentMethods.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1.5">
