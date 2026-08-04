@@ -117,7 +117,6 @@ export function FareForm() {
         highlighted,
         paymentMethods,
         installments,
-        benefits: getBenefits(),
       });
       toast.success("Tarifa atualizada com sucesso!");
       setShowForm(false);

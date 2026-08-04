@@ -53,7 +53,25 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
       className="bg-slate-50 mx-auto flex flex-col min-h-screen"
       style={{ width: "100%", maxWidth: "800px", fontFamily: "Inter, sans-serif" }}
     >
-
+      {/* HEADER */}
+      <div className="bg-[#1a2e4a] text-white px-8 py-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
+            Bella Viagens e Milhas
+          </h1>
+          <p className="text-sm text-amber-400 font-medium tracking-wide mt-0.5">
+            Acumule. Viaje. Viva.
+          </p>
+        </div>
+        <div className="text-right">
+          <h2 className="text-lg font-bold" style={{ fontFamily: "Poppins, sans-serif" }}>
+            Comparativo de Tarifas & Hospedagem
+          </h2>
+          {tripInfo.destination && (
+            <p className="text-sm text-white/80 mt-0.5">{tripInfo.destination}</p>
+          )}
+        </div>
+      </div>
 
       {/* TRIP INFO BAR */}
       <div className="bg-slate-100 px-8 py-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -121,48 +139,25 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     tier.highlighted ? "bg-amber-50 border-l-amber-400 border-amber-300" : "bg-white border-l-blue-400"
                   }`}
                 >
-                  <div className="flex items-start gap-0.25">
-                    <div className="text-left flex-1">
-                      <div className={`text-[8px] font-bold uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
-                        {tier.name}
-                      </div>
-                      <div className={`text-xs font-bold ${tier.highlighted ? "text-amber-600" : "text-blue-600"}`}>
-                        {formatCurrency(totalPrice)}
-                      </div>
-                      <div className={`text-[7px] ${tier.highlighted ? "text-amber-600/70" : "text-blue-600/70"}`}>
-                        {formatCurrency(perPersonPrice)} / pessoa
-                      </div>
-                    </div>
-                    {tier.benefits && tier.benefits.length > 0 && (
-                      <div className="text-[9px] text-slate-700 flex gap-0.25">
-                        {Array.from({ length: Math.ceil(tier.benefits.length / 3) }).map((_, colIdx) => (
-                          <div key={colIdx} className="flex flex-col gap-0.5">
-                            {tier.benefits && tier.benefits.slice(colIdx * 3, (colIdx + 1) * 3).map((benefit, idx) => {
-                              const benefitIcons: Record<string, { icon: string; color: string }> = {
-                                "mala de mao": { icon: "🧳", color: "text-blue-600" },
-                                "mala despachada": { icon: "📦", color: "text-orange-600" },
-                                "selecao de assento": { icon: "💺", color: "text-blue-600" },
-                                "alteracoes": { icon: "🔄", color: "text-purple-600" },
-                                "reembolso": { icon: "💰", color: "text-green-600" },
-                                "carry on": { icon: "🧳", color: "text-blue-600" },
-                                "checked bag": { icon: "📦", color: "text-orange-600" },
-                                "seat selection": { icon: "💺", color: "text-blue-600" },
-                                "changes": { icon: "🔄", color: "text-purple-600" },
-                              };
-                              const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                              const iconData = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || { icon: "✓", color: "text-gray-600" };
-                              return (
-                                <div key={idx} className="flex items-center gap-0.5 whitespace-nowrap">
-                                  <span className={`text-[11px] ${iconData.color}`}>{iconData.icon}</span>
-                                  <span className="text-[9px] font-medium text-slate-700">{benefit}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                  <div className={`text-[10px] font-bold mb-2 uppercase tracking-wide ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
+                    {tier.name}
                   </div>
+                  <div className={`text-lg font-bold mb-1 ${tier.highlighted ? "text-amber-600" : "text-[#1a2e4a]"}`}>
+                    {formatCurrency(totalPrice)}
+                  </div>
+                  <div className={`text-[9px] ${tier.highlighted ? "text-amber-600/70" : "text-slate-500"}`}>
+                    {formatCurrency(perPersonPrice)} / pessoa
+                  </div>
+                  {tier.benefits && tier.benefits.length > 0 && (
+                    <div className="text-[7px] text-slate-500 mt-2 pt-2 border-t border-slate-200 space-y-0.5">
+                      {tier.benefits.map((benefit, idx) => (
+                        <div key={idx} className="flex items-center justify-center gap-1">
+                          <span>•</span>
+                          <span>{benefit}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -182,7 +177,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
           <div className="space-y-8">
             {hotels.map((hotel, idx) => {
               return (
-                <div key={hotel.id} className="pb-8 border-b-4 border-slate-100 last:border-b-0" data-hotel-card {...(hotel.startOnNewPage && idx > 0 ? { "data-page-break": "true" } : {})}>
+                <div key={hotel.id} className="pb-8 border-b-4 border-slate-100 last:border-b-0" {...(hotel.startOnNewPage && idx > 0 ? { "data-page-break": "true" } : {})}>
                   <HotelCard
                     hotel={hotel}
                     index={idx}
@@ -303,13 +298,26 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
         </div>
       )}
 
-      {/* AVAILABILITY NOTE - At the end of last page */}
-      <div className="px-8 py-4" data-pdf-note>
+      {/* SPACER - Push content up */}
+      <div className="flex-grow"></div>
+
+      {/* AVAILABILITY NOTE - Before footer (rodapé da primeira página) */}
+      <div className="px-8 py-2">
         <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 flex items-start gap-2">
           <Info className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
           <p className="text-[10px] text-slate-600 leading-tight">
             <span className="font-bold text-[#1a2e4a]">Nota:</span> Os valores apresentados neste orçamento estão sujeitos a alteração sem aviso prévio, conforme disponibilidade e variação cambial. A confirmação da reserva está condicionada ao pagamento e emissão dentro do prazo de validade informado.
           </p>
+        </div>
+      </div>
+
+      {/* FOOTER */}
+      <div className="bg-[#1a2e4a] text-white px-8 py-4 mt-8">
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-white/70">
+            Bella Viagens e Milhas | Acumule. Viaje. Viva.
+          </p>
+          <p className="text-xs text-white/70">Página 1</p>
         </div>
       </div>
     </div>
