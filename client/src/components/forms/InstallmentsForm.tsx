@@ -15,8 +15,7 @@ export function InstallmentsForm() {
   const { installments, pageBreaks } = budget;
 
   // Calculate totals for preview
-  const passengerCount = parseInt(budget.tripInfo.passengers) || 1;
-  const flightTotal = budget.fareComparison.tiers.reduce((sum, tier) => sum + (tier.flightPrice * passengerCount), 0);
+  const flightTotal = budget.fareComparison.tiers.reduce((sum, tier) => sum + tier.flightPrice, 0);
   const hotelTotal = budget.hotels.reduce((sum, hotel) => {
     const effectivePrice = hotel.priceMode === "daily" && hotel.dailyPrice && hotel.nights
       ? hotel.dailyPrice * hotel.nights

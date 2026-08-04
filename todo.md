@@ -93,3 +93,5 @@
 - [x] Adicionar ícones correspondentes aos benefícios (mala 🧳, assento 💺, alterações 🔄, etc)
 
 - [x] Reorganizar ícones e benefícios para layout horizontal (flex-wrap, gap-1)
+
+- [x] Reorganizar benefícios para lado direito do bloco de tarifas (layout flex, justify-end)
