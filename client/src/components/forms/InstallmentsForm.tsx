@@ -50,6 +50,64 @@ export function InstallmentsForm() {
             {installments.flight}x de {formatCurrency(flightTotal / installments.flight)}
           </p>
         )}
+        {/* Machine Rate Calculator */}
+        <div className="mt-4 pt-3 border-t border-slate-200">
+          <Label className="text-[11px] font-semibold text-slate-500 uppercase">Calculadora de Taxa (Maquininha)</Label>
+          <div className="mt-2 space-y-2">
+            <div>
+              <Label className="text-xs text-slate-600">Valor à Vista (R$)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={installments?.flightCashPrice || ""}
+                onChange={(e) => updateInstallments("flightCashPrice", e.target.value ? parseFloat(e.target.value) : undefined)}
+                placeholder="Ex: 1000.00"
+                className="h-8 text-sm mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-slate-600">Taxa da Maquininha (%)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.1"
+                value={installments?.flightMachineRate || ""}
+                onChange={(e) => updateInstallments("flightMachineRate", e.target.value ? parseFloat(e.target.value) : undefined)}
+                placeholder="Ex: 2.5"
+                className="h-8 text-sm mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-slate-600">Número de Parcelas</Label>
+              <Input
+                type="number"
+                min="1"
+                value={installments?.flightInstallmentsWithRate || ""}
+                onChange={(e) => updateInstallments("flightInstallmentsWithRate", e.target.value ? parseInt(e.target.value) : undefined)}
+                placeholder="Ex: 4"
+                className="h-8 text-sm mt-1"
+              />
+            </div>
+            {installments?.flightCashPrice && installments?.flightMachineRate !== undefined && installments?.flightInstallmentsWithRate && (
+              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+                {(() => {
+                  const cashPrice = installments.flightCashPrice;
+                  const rate = installments.flightMachineRate / 100;
+                  const withRate = cashPrice * (1 + rate);
+                  const installmentValue = withRate / installments.flightInstallmentsWithRate;
+                  return (
+                    <div className="text-xs space-y-1">
+                      <p className="text-slate-600">Valor com taxa: <span className="font-bold text-slate-800">{formatCurrency(withRate)}</span></p>
+                      <p className="text-slate-600">{installments.flightInstallmentsWithRate}x de: <span className="font-bold text-blue-600">{formatCurrency(installmentValue)}</span></p>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Payment Methods for Flight */}
         <div className="mt-3 space-y-2">
           <div className="flex items-center gap-2">

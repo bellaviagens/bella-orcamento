@@ -104,6 +104,10 @@ export interface BudgetData {
     combinedDownpayment?: boolean; // Se true, tem entrada quando parcelar tudo junto
     combinedDownpaymentAmount?: number; // Valor da entrada quando parcelar tudo junto
     observations?: string; // Observações customizáveis para o parcelamento (aparece em todos os blocos)
+    // Calculadora de taxas para aéreo
+    flightCashPrice?: number; // Valor à vista do aéreo (para calcular com taxa)
+    flightMachineRate?: number; // Taxa da maquininha em % (ex: 2.5 para 2.5%)
+    flightInstallmentsWithRate?: number; // Número de parcelas com taxa
   };
   pageBreaks?: {
     flights?: boolean; // Iniciar voos em nova página
