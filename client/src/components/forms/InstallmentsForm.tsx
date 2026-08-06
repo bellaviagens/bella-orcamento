@@ -31,107 +31,54 @@ export function InstallmentsForm() {
 
   return (
     <div className="space-y-4">
-      {/* Installments */}
-      <div>
-        <Label className="text-[11px] font-semibold text-slate-500 uppercase">Parcelamento do Aéreo</Label>
-        <div className="flex items-center gap-2 mt-2">
-          <Input
-            type="number"
-            min="1"
-            value={installments?.flight || ""}
-            onChange={(e) => updateInstallments("flight", e.target.value ? parseInt(e.target.value) : undefined)}
-            placeholder="Ex: 4"
-            className="h-8 text-sm"
-          />
-          <span className="text-xs text-slate-500">vezes</span>
-        </div>
-        {flightTotal > 0 && installments?.flight && (
-          <p className="text-[10px] text-slate-500 mt-1">
-            {installments.flight}x de {formatCurrency(flightTotal / installments.flight)}
-          </p>
+      {/* FORMA DE PAGAMENTO DO AÉREO - OPÇÃO 1: À VISTA */}
+      <div className="border-2 border-blue-300 rounded-lg p-4 bg-blue-50">
+        <Label className="text-[11px] font-semibold text-blue-700 uppercase">Forma de Pagamento do Aéreo - À Vista</Label>
+        
+        {flightTotal > 0 && (
+          <div className="mt-3 p-2 bg-white rounded border border-blue-200">
+            <p className="text-sm font-bold text-[#1a2e4a]">Valor Total: {formatCurrency(flightTotal)}</p>
+          </div>
         )}
-        {/* Machine Rate Calculator */}
-        <div className="mt-4 pt-3 border-t border-slate-200">
-          <Label className="text-[11px] font-semibold text-slate-500 uppercase">Calculadora de Taxa (Maquininha)</Label>
-          <div className="mt-2 space-y-2">
+
+        {/* Entrada do Aéreo - Opção 1 */}
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="flight-downpayment-option1"
+              checked={installments?.flightDownpayment || false}
+              onCheckedChange={(checked) => updateInstallments("flightDownpayment", checked as boolean)}
+            />
+            <Label htmlFor="flight-downpayment-option1" className="text-xs cursor-pointer">Tem entrada?</Label>
+          </div>
+          {installments?.flightDownpayment && (
             <div>
-              <Label className="text-xs text-slate-600">Valor à Vista (R$)</Label>
+              <Label className="text-xs text-slate-600">Valor da Entrada (R$)</Label>
               <Input
                 type="number"
                 min="0"
                 step="0.01"
-                value={installments?.flightCashPrice || ""}
-                onChange={(e) => updateInstallments("flightCashPrice", e.target.value ? parseFloat(e.target.value) : undefined)}
+                value={installments?.flightDownpaymentAmount || ""}
+                onChange={(e) => updateInstallments("flightDownpaymentAmount", e.target.value ? parseFloat(e.target.value) : undefined)}
                 placeholder="Ex: 1000.00"
                 className="h-8 text-sm mt-1"
               />
+              {flightTotal > 0 && installments?.flightDownpaymentAmount && (
+                <p className="text-[10px] text-slate-500 mt-2">
+                  Entrada: {formatCurrency(installments.flightDownpaymentAmount)} + Saldo: {formatCurrency(flightTotal - installments.flightDownpaymentAmount)}
+                </p>
+              )}
             </div>
-            <div>
-              <Label className="text-xs text-slate-600">Taxa da Maquininha (%)</Label>
-              <Input
-                type="number"
-                min="0"
-                step="0.1"
-                value={installments?.flightMachineRate || ""}
-                onChange={(e) => updateInstallments("flightMachineRate", e.target.value ? parseFloat(e.target.value) : undefined)}
-                placeholder="Ex: 2.5"
-                className="h-8 text-sm mt-1"
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-slate-600">Número de Parcelas</Label>
-              <Input
-                type="number"
-                min="1"
-                value={installments?.flightInstallmentsWithRate || ""}
-                onChange={(e) => updateInstallments("flightInstallmentsWithRate", e.target.value ? parseInt(e.target.value) : undefined)}
-                placeholder="Ex: 4"
-                className="h-8 text-sm mt-1"
-              />
-            </div>
-            {installments?.flightCashPrice && installments?.flightMachineRate !== undefined && installments?.flightInstallmentsWithRate && (
-              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
-                {(() => {
-                  const cashPrice = installments.flightCashPrice;
-                  const rate = installments.flightMachineRate / 100;
-                  const withRate = cashPrice * (1 + rate);
-                  const installmentValue = withRate / installments.flightInstallmentsWithRate;
-                  return (
-                    <div className="text-xs space-y-1">
-                      <p className="text-slate-600">Valor com taxa: <span className="font-bold text-slate-800">{formatCurrency(withRate)}</span></p>
-                      <p className="text-slate-600">{installments.flightInstallmentsWithRate}x de: <span className="font-bold text-blue-600">{formatCurrency(installmentValue)}</span></p>
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* Payment Methods for Flight */}
+        {/* Formas de Pagamento - Opção 1 (Dinheiro e PIX) */}
         <div className="mt-3 space-y-2">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="payment-flight-all"
-              checked={(
-                installments?.paymentMethods?.includes("dinheiro") &&
-                installments?.paymentMethods?.includes("cartao") &&
-                installments?.paymentMethods?.includes("pix")
-              ) || false}
-              onCheckedChange={(checked) => {
-                if (checked) {
-                  updatePaymentMethods(["dinheiro", "cartao", "pix"]);
-                } else {
-                  updatePaymentMethods([]);
-                }
-              }}
-            />
-            <Label htmlFor="payment-flight-all" className="text-xs cursor-pointer font-semibold">Selecionar Tudo</Label>
-          </div>
+          <Label className="text-xs font-semibold text-slate-600">Formas de Pagamento</Label>
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
               <Checkbox
-                id="payment-cash"
+                id="payment-cash-option1"
                 checked={installments?.paymentMethods?.includes("dinheiro") || false}
                 onCheckedChange={(checked) => {
                   const current = installments?.paymentMethods || [];
@@ -142,26 +89,11 @@ export function InstallmentsForm() {
                   }
                 }}
               />
-              <Label htmlFor="payment-cash" className="text-xs cursor-pointer">Dinheiro</Label>
+              <Label htmlFor="payment-cash-option1" className="text-xs cursor-pointer">Dinheiro</Label>
             </div>
             <div className="flex items-center gap-2">
               <Checkbox
-                id="payment-card"
-                checked={installments?.paymentMethods?.includes("cartao") || false}
-                onCheckedChange={(checked) => {
-                  const current = installments?.paymentMethods || [];
-                  if (checked) {
-                    updatePaymentMethods([...current, "cartao"]);
-                  } else {
-                    updatePaymentMethods(current.filter((m) => m !== "cartao"));
-                  }
-                }}
-              />
-              <Label htmlFor="payment-card" className="text-xs cursor-pointer">Cartão</Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="payment-pix"
+                id="payment-pix-option1"
                 checked={installments?.paymentMethods?.includes("pix") || false}
                 onCheckedChange={(checked) => {
                   const current = installments?.paymentMethods || [];
@@ -172,15 +104,124 @@ export function InstallmentsForm() {
                   }
                 }}
               />
-              <Label htmlFor="payment-pix" className="text-xs cursor-pointer">PIX</Label>
+              <Label htmlFor="payment-pix-option1" className="text-xs cursor-pointer">PIX</Label>
             </div>
           </div>
         </div>
       </div>
 
-      <div>
-        <Label className="text-[11px] font-semibold text-slate-500 uppercase">Parcelamento do Hotel</Label>
-        <div className="flex items-center gap-2 mt-2">
+      {/* FORMA DE PAGAMENTO DO AÉREO - OPÇÃO 2: COM TAXA (MAQUININHA) */}
+      <div className="border-2 border-amber-300 rounded-lg p-4 bg-amber-50">
+        <Label className="text-[11px] font-semibold text-amber-700 uppercase">Forma de Pagamento do Aéreo - Com Taxa</Label>
+        
+        {flightTotal > 0 && (
+          <div className="mt-3 p-2 bg-white rounded border border-amber-200">
+            <p className="text-sm font-bold text-[#1a2e4a]">Valor Base: {formatCurrency(flightTotal)}</p>
+          </div>
+        )}
+
+        {/* Calculadora de Taxa */}
+        <div className="mt-3 space-y-2">
+          <div>
+            <Label className="text-xs text-slate-600">Número de Parcelas</Label>
+            <Input
+              type="number"
+              min="1"
+              value={installments?.flightInstallmentsWithRate || ""}
+              onChange={(e) => updateInstallments("flightInstallmentsWithRate", e.target.value ? parseInt(e.target.value) : undefined)}
+              placeholder="Ex: 4"
+              className="h-8 text-sm mt-1"
+            />
+          </div>
+          <div>
+            <Label className="text-xs text-slate-600">Taxa da Maquininha (%)</Label>
+            <Input
+              type="number"
+              min="0"
+              step="0.1"
+              value={installments?.flightMachineRate || ""}
+              onChange={(e) => updateInstallments("flightMachineRate", e.target.value ? parseFloat(e.target.value) : undefined)}
+              placeholder="Ex: 2.5"
+              className="h-8 text-sm mt-1"
+            />
+          </div>
+          {installments?.flightInstallmentsWithRate && installments?.flightMachineRate !== undefined && flightTotal > 0 && (
+            <div className="mt-2 p-2 bg-white rounded border border-amber-200">
+              {(() => {
+                const rate = installments.flightMachineRate / 100;
+                const withRate = flightTotal * (1 + rate);
+                const installmentValue = withRate / installments.flightInstallmentsWithRate;
+                return (
+                  <div className="text-xs space-y-1">
+                    <p className="text-slate-600">Valor com taxa: <span className="font-bold text-slate-800">{formatCurrency(withRate)}</span></p>
+                    <p className="text-slate-600">{installments.flightInstallmentsWithRate}x de: <span className="font-bold text-amber-600">{formatCurrency(installmentValue)}</span></p>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+        </div>
+
+        {/* Entrada do Aéreo - Opção 2 */}
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="flight-downpayment-option2"
+              checked={installments?.flightDownpayment || false}
+              onCheckedChange={(checked) => updateInstallments("flightDownpayment", checked as boolean)}
+            />
+            <Label htmlFor="flight-downpayment-option2" className="text-xs cursor-pointer">Tem entrada?</Label>
+          </div>
+          {installments?.flightDownpayment && (
+            <div>
+              <Label className="text-xs text-slate-600">Valor da Entrada (R$)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={installments?.flightDownpaymentAmount || ""}
+                onChange={(e) => updateInstallments("flightDownpaymentAmount", e.target.value ? parseFloat(e.target.value) : undefined)}
+                placeholder="Ex: 1000.00"
+                className="h-8 text-sm mt-1"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Formas de Pagamento - Opção 2 (Cartão) */}
+        <div className="mt-3 space-y-2">
+          <Label className="text-xs font-semibold text-slate-600">Forma de Pagamento</Label>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="payment-card-option2"
+              checked={installments?.paymentMethods?.includes("cartao") || false}
+              onCheckedChange={(checked) => {
+                const current = installments?.paymentMethods || [];
+                if (checked) {
+                  updatePaymentMethods([...current, "cartao"]);
+                } else {
+                  updatePaymentMethods(current.filter((m) => m !== "cartao"));
+                }
+              }}
+            />
+            <Label htmlFor="payment-card-option2" className="text-xs cursor-pointer">Cartão</Label>
+          </div>
+        </div>
+      </div>
+
+      {/* FORMA DE PAGAMENTO DO HOTEL */}
+      <div className="border-2 border-green-300 rounded-lg p-4 bg-green-50">
+        <Label className="text-[11px] font-semibold text-green-700 uppercase">Forma de Pagamento do Hotel</Label>
+        
+        {hotelTotal > 0 && (
+          <div className="mt-3 p-2 bg-white rounded border border-green-200">
+            <p className="text-sm font-bold text-[#1a2e4a]">Valor Total: {formatCurrency(hotelTotal)}</p>
+          </div>
+        )}
+
+        {/* Parcelamento do Hotel */}
+        <div className="mt-3 space-y-2">
+          <Label className="text-xs text-slate-600">Número de Parcelas</Label>
           <Input
             type="number"
             min="1"
@@ -189,33 +230,47 @@ export function InstallmentsForm() {
             placeholder="Ex: 10"
             className="h-8 text-sm"
           />
-          <span className="text-xs text-slate-500">vezes</span>
+          {hotelTotal > 0 && installments?.hotel && (
+            <p className="text-[10px] text-slate-500 mt-1">
+              {installments.hotel}x de {formatCurrency(hotelTotal / installments.hotel)}
+            </p>
+          )}
         </div>
-        {hotelTotal > 0 && installments?.hotel && (
-          <p className="text-[10px] text-slate-500 mt-1">
-            {installments.hotel}x de {formatCurrency(hotelTotal / installments.hotel)}
-          </p>
-        )}
-        {/* Payment Methods for Hotel */}
+
+        {/* Entrada do Hotel */}
         <div className="mt-3 space-y-2">
           <div className="flex items-center gap-2">
             <Checkbox
-              id="payment-hotel-all"
-              checked={(
-                installments?.hotelPaymentMethods?.includes("dinheiro") &&
-                installments?.hotelPaymentMethods?.includes("cartao") &&
-                installments?.hotelPaymentMethods?.includes("pix")
-              ) || false}
-              onCheckedChange={(checked) => {
-                if (checked) {
-                  updateHotelPaymentMethods(["dinheiro", "cartao", "pix"]);
-                } else {
-                  updateHotelPaymentMethods([]);
-                }
-              }}
+              id="hotel-downpayment"
+              checked={installments?.hotelDownpayment || false}
+              onCheckedChange={(checked) => updateInstallments("hotelDownpayment", checked as boolean)}
             />
-            <Label htmlFor="payment-hotel-all" className="text-xs cursor-pointer font-semibold">Selecionar Tudo</Label>
+            <Label htmlFor="hotel-downpayment" className="text-xs cursor-pointer">Tem entrada?</Label>
           </div>
+          {installments?.hotelDownpayment && (
+            <div>
+              <Label className="text-xs text-slate-600">Valor da Entrada (R$)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={installments?.hotelDownpaymentAmount || ""}
+                onChange={(e) => updateInstallments("hotelDownpaymentAmount", e.target.value ? parseFloat(e.target.value) : undefined)}
+                placeholder="Ex: 1000.00"
+                className="h-8 text-sm mt-1"
+              />
+              {hotelTotal > 0 && installments?.hotelDownpaymentAmount && installments?.hotel && (
+                <p className="text-[10px] text-slate-500 mt-2">
+                  Entrada: {formatCurrency(installments.hotelDownpaymentAmount)} + {installments.hotel}x de {formatCurrency((hotelTotal - installments.hotelDownpaymentAmount) / installments.hotel)}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Formas de Pagamento - Hotel */}
+        <div className="mt-3 space-y-2">
+          <Label className="text-xs font-semibold text-slate-600">Formas de Pagamento</Label>
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
               <Checkbox
@@ -266,38 +321,7 @@ export function InstallmentsForm() {
         </div>
       </div>
 
-      {/* Flight Downpayment */}
-      <div className="border-t border-slate-200 pt-4">
-        <Label className="text-[11px] font-semibold text-slate-500 uppercase">Entrada do Aéreo</Label>
-        <div className="flex items-center gap-2 mt-2">
-          <Checkbox
-            id="flight-downpayment"
-            checked={installments?.flightDownpayment || false}
-            onCheckedChange={(checked) => updateInstallments("flightDownpayment", checked as boolean)}
-          />
-          <Label htmlFor="flight-downpayment" className="text-xs cursor-pointer">Tem entrada?</Label>
-        </div>
-        {installments?.flightDownpayment && (
-          <div className="mt-3">
-            <Label className="text-xs text-slate-600">Valor da Entrada (R$)</Label>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={installments?.flightDownpaymentAmount || ""}
-              onChange={(e) => updateInstallments("flightDownpaymentAmount", e.target.value ? parseFloat(e.target.value) : undefined)}
-              placeholder="Ex: 1000.00"
-              className="h-8 text-sm mt-1"
-            />
-            {flightTotal > 0 && installments?.flightDownpaymentAmount && installments?.flight && (
-              <p className="text-[10px] text-slate-500 mt-2">
-                Entrada: {formatCurrency(installments.flightDownpaymentAmount)} + {installments.flight}x de {formatCurrency((flightTotal - installments.flightDownpaymentAmount) / installments.flight)}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-
+      {/* PARCELAR TUDO JUNTO */}
       <div className="border-t border-slate-200 pt-4">
         <div className="flex items-center gap-2">
           <Checkbox
@@ -305,7 +329,7 @@ export function InstallmentsForm() {
             checked={installments?.combined || false}
             onCheckedChange={(checked) => updateInstallments("combined", checked as boolean)}
           />
-          <Label htmlFor="combined-installments" className="text-xs cursor-pointer">
+          <Label htmlFor="combined-installments" className="text-xs cursor-pointer font-semibold">
             Parcelar tudo junto (aéreo + hotel)
           </Label>
         </div>
@@ -345,38 +369,6 @@ export function InstallmentsForm() {
                   </p>
                 )}
               </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Hotel Downpayment */}
-      <div className="border-t border-slate-200 pt-4">
-        <Label className="text-[11px] font-semibold text-slate-500 uppercase">Entrada do Hotel</Label>
-        <div className="flex items-center gap-2 mt-2">
-          <Checkbox
-            id="hotel-downpayment"
-            checked={installments?.hotelDownpayment || false}
-            onCheckedChange={(checked) => updateInstallments("hotelDownpayment", checked as boolean)}
-          />
-          <Label htmlFor="hotel-downpayment" className="text-xs cursor-pointer">Tem entrada?</Label>
-        </div>
-        {installments?.hotelDownpayment && (
-          <div className="mt-3">
-            <Label className="text-xs text-slate-600">Valor da Entrada (R$)</Label>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={installments?.hotelDownpaymentAmount || ""}
-              onChange={(e) => updateInstallments("hotelDownpaymentAmount", e.target.value ? parseFloat(e.target.value) : undefined)}
-              placeholder="Ex: 1000.00"
-              className="h-8 text-sm mt-1"
-            />
-            {hotelTotal > 0 && installments?.hotelDownpaymentAmount && installments?.hotel && (
-              <p className="text-[10px] text-slate-500 mt-2">
-                Entrada: {formatCurrency(installments.hotelDownpaymentAmount)} + {installments.hotel}x de {formatCurrency((hotelTotal - installments.hotelDownpaymentAmount) / installments.hotel)}
-              </p>
             )}
           </div>
         )}
