@@ -320,6 +320,37 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     )}
                   </div>
                 )}
+                {includeAirfare && installments?.flightCashPrice && installments?.flightMachineRate !== undefined && installments?.flightInstallmentsWithRate && (
+                  <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
+                    <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Aéreo</div>
+                    <div className="text-xl font-bold text-[#1a2e4a]">
+                      {(() => {
+                        const cashPrice = installments.flightCashPrice;
+                        const rate = installments.flightMachineRate / 100;
+                        const withRate = cashPrice * (1 + rate);
+                        const installmentValue = withRate / installments.flightInstallmentsWithRate;
+                        return `${installments.flightInstallmentsWithRate}x de ${formatCurrency(installmentValue)}`;
+                      })()}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      {(() => {
+                        const cashPrice = installments.flightCashPrice;
+                        const rate = installments.flightMachineRate / 100;
+                        const withRate = cashPrice * (1 + rate);
+                        return `Total: ${formatCurrency(withRate)}`;
+                      })()}
+                    </div>
+                    {installments?.paymentMethods && installments.paymentMethods.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {installments.paymentMethods.map((method) => (
+                          <span key={method} className="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                            {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
