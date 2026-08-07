@@ -33,14 +33,7 @@ export function InstallmentsForm() {
     <div className="space-y-4">
       {/* FORMA DE PAGAMENTO DO AÉREO - OPÇÃO 1: À VISTA */}
       <div className="border-2 border-blue-300 rounded-lg p-4 bg-blue-50">
-        <div className="flex items-center gap-2 mb-3">
-          <Checkbox
-            id="show-cash-option"
-            checked={installments?.showCashOption || false}
-            onCheckedChange={(checked) => updateInstallments("showCashOption", checked as boolean)}
-          />
-          <Label htmlFor="show-cash-option" className="text-[11px] font-semibold text-blue-700 uppercase cursor-pointer">Incluir Opção À Vista</Label>
-        </div>
+        <Label className="text-[11px] font-semibold text-blue-700 uppercase">Forma de Pagamento do Aéreo - À Vista</Label>
         
         {flightTotal > 0 && (
           <div className="mt-3 p-2 bg-white rounded border border-blue-200">
@@ -169,25 +162,25 @@ export function InstallmentsForm() {
           )}
         </div>
 
-        {/* Entrada do Aéreo - Opção 2 (Com Taxa) */}
+        {/* Entrada do Aéreo - Opção 2 */}
         <div className="mt-3 space-y-2">
           <div className="flex items-center gap-2">
             <Checkbox
-              id="flight-downpayment-with-rate"
-              checked={installments?.flightDownpaymentWithRate || false}
-              onCheckedChange={(checked) => updateInstallments("flightDownpaymentWithRate", checked as boolean)}
+              id="flight-downpayment-option2"
+              checked={installments?.flightDownpayment || false}
+              onCheckedChange={(checked) => updateInstallments("flightDownpayment", checked as boolean)}
             />
-            <Label htmlFor="flight-downpayment-with-rate" className="text-xs cursor-pointer">Tem entrada?</Label>
+            <Label htmlFor="flight-downpayment-option2" className="text-xs cursor-pointer">Tem entrada?</Label>
           </div>
-          {installments?.flightDownpaymentWithRate && (
+          {installments?.flightDownpayment && (
             <div>
               <Label className="text-xs text-slate-600">Valor da Entrada (R$)</Label>
               <Input
                 type="number"
                 min="0"
                 step="0.01"
-                value={installments?.flightDownpaymentWithRateAmount || ""}
-                onChange={(e) => updateInstallments("flightDownpaymentWithRateAmount", e.target.value ? parseFloat(e.target.value) : undefined)}
+                value={installments?.flightDownpaymentAmount || ""}
+                onChange={(e) => updateInstallments("flightDownpaymentAmount", e.target.value ? parseFloat(e.target.value) : undefined)}
                 placeholder="Ex: 1000.00"
                 className="h-8 text-sm mt-1"
               />

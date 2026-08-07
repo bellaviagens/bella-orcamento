@@ -99,10 +99,8 @@ export interface BudgetData {
     hotelPaymentMethods?: string[]; // Formas de pagamento do hotel: "dinheiro", "cartao", "pix"
     hotelDownpayment?: boolean; // Se true, tem entrada no hotel
     hotelDownpaymentAmount?: number; // Valor da entrada do hotel
-    flightDownpayment?: boolean; // Se true, tem entrada no aéreo à vista
-    flightDownpaymentAmount?: number; // Valor da entrada do aéreo à vista
-    flightDownpaymentWithRate?: boolean; // Se true, tem entrada no aéreo com taxa
-    flightDownpaymentWithRateAmount?: number; // Valor da entrada do aéreo com taxa
+    flightDownpayment?: boolean; // Se true, tem entrada no aéreo
+    flightDownpaymentAmount?: number; // Valor da entrada do aéreo
     combinedDownpayment?: boolean; // Se true, tem entrada quando parcelar tudo junto
     combinedDownpaymentAmount?: number; // Valor da entrada quando parcelar tudo junto
     observations?: string; // Observações customizáveis para o parcelamento (aparece em todos os blocos)
@@ -110,7 +108,6 @@ export interface BudgetData {
     flightCashPrice?: number; // Valor à vista do aéreo (para calcular com taxa)
     flightMachineRate?: number; // Taxa da maquininha em % (ex: 2.5 para 2.5%)
     flightInstallmentsWithRate?: number; // Número de parcelas com taxa
-    showCashOption?: boolean; // Se true, mostra opção À Vista no PDF
   };
   pageBreaks?: {
     flights?: boolean; // Iniciar voos em nova página
