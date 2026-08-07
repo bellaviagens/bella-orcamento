@@ -33,7 +33,14 @@ export function InstallmentsForm() {
     <div className="space-y-4">
       {/* FORMA DE PAGAMENTO DO AÉREO - OPÇÃO 1: À VISTA */}
       <div className="border-2 border-blue-300 rounded-lg p-4 bg-blue-50">
-        <Label className="text-[11px] font-semibold text-blue-700 uppercase">Forma de Pagamento do Aéreo - À Vista</Label>
+        <div className="flex items-center gap-2 mb-3">
+          <Checkbox
+            id="show-cash-option"
+            checked={installments?.showCashOption || false}
+            onCheckedChange={(checked) => updateInstallments("showCashOption", checked as boolean)}
+          />
+          <Label htmlFor="show-cash-option" className="text-[11px] font-semibold text-blue-700 uppercase cursor-pointer">Incluir Opção À Vista</Label>
+        </div>
         
         {flightTotal > 0 && (
           <div className="mt-3 p-2 bg-white rounded border border-blue-200">
