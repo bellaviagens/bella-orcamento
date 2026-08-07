@@ -301,7 +301,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
             ) : (
               <div>
                 {/* Duas opções de Aéreo lado a lado com OU */}
-                {includeAirfare && installments?.flight && flightTotal > 0 && installments?.flightCashPrice && installments?.flightMachineRate !== undefined && installments?.flightInstallmentsWithRate && (
+                {includeAirfare && installments?.flight && flightTotal > 0 && installments?.flightMachineRate !== undefined && installments?.flightInstallmentsWithRate && (
                   <div className="flex items-center gap-3 mb-4">
                     {/* Opção 1: Com Taxa */}
                     <div className="flex-1 rounded-lg border border-slate-200 p-4 bg-slate-50">
@@ -358,7 +358,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                 )}
 
                 {/* Apenas uma opção de Aéreo - Com Taxa */}
-                {includeAirfare && installments?.flightCashPrice && installments?.flightMachineRate !== undefined && installments?.flightInstallmentsWithRate && !installments?.flight && (
+                {includeAirfare && installments?.flightMachineRate !== undefined && installments?.flightInstallmentsWithRate && !installments?.flight && (
                   <div className="rounded-lg border border-slate-200 p-4 bg-slate-50 mb-4">
                     <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Aéreo</div>
                     <div className="text-xl font-bold text-[#1a2e4a]">
