@@ -300,11 +300,11 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
               </div>
             ) : (
               <div>
-                {/* AÉREO PARCELADO - Sempre aparece */}
+                {/* AÉREO - Parcelado sempre, À Vista apenas quando marcado */}
                 {includeAirfare && (installments?.flight || installments?.flightMachineRate !== undefined) && flightTotal > 0 && (
-                  <div className="flex items-center gap-3 mb-4">
+                  <div className={installments?.flight ? "flex items-center gap-3 mb-4" : ""}>
                     {/* AÉREO PARCELADO */}
-                    <div className="flex-1 rounded-lg border border-slate-200 p-4 bg-slate-50">
+                    <div className={installments?.flight ? "flex-1 rounded-lg border border-slate-200 p-4 bg-slate-50" : "rounded-lg border border-slate-200 p-4 bg-slate-50 mb-4"}>
                       <div className="text-xs font-semibold text-slate-500 uppercase mb-2">AÉREO PARCELADO</div>
                       <div className="text-xl font-bold text-[#1a2e4a]">
                         {(() => {
@@ -340,7 +340,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                       )}
                     </div>
 
-                    {/* OU - Apenas se À Vista estiver marcado */}
+                    {/* OU + AÉREO À VISTA - Apenas se À Vista estiver marcado */}
                     {installments?.flight && (
                       <>
                         <div className="text-sm font-bold text-slate-400">ou</div>
