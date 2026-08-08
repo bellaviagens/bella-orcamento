@@ -1,4 +1,5 @@
 import { Check, X, Plane, Briefcase, Luggage, Info } from "lucide-react";
+// Forma de pagamento integrada dentro de cada bloco de tarifa
 import type { BudgetData } from "@shared/budgetTypes";
 import { FlightCard } from "./FlightCard";
 import { HotelCard } from "./HotelCard";
