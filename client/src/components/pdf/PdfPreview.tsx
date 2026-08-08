@@ -38,7 +38,8 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
 
   // Installment calculation
   const installments = data.installments;
-  const flightInstallments = installments?.flight || 1;
+  // Use flightInstallmentsWithRate if filled, otherwise use flight
+  const flightInstallments = installments?.flightInstallmentsWithRate !== undefined ? installments.flightInstallmentsWithRate : (installments?.flight || 1);
   const hotelInstallments = installments?.hotel || 1;
 
   const flightInstallmentValue = flightTotal > 0 ? flightTotal / flightInstallments : 0;
@@ -190,15 +191,14 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                       <div className="flex-1">
                         <div className="font-bold text-slate-700">
                           {(() => {
-                            // Usar flightInstallmentsWithRate quando preenchido, senão usar flightInstallments
-                            const installmentCount = installments?.flightInstallmentsWithRate !== undefined ? installments.flightInstallmentsWithRate : flightInstallments;
+                            // Use flightInstallments which is already set correctly above
                             if (installments?.flightMachineRate !== undefined && installments?.flightInstallmentsWithRate !== undefined) {
                               const rate = installments.flightMachineRate / 100;
                               const withRate = totalPrice * (1 + rate);
-                              const installmentValue = withRate / installmentCount;
-                              return `${installmentCount}x de ${formatCurrency(installmentValue)}`;
+                              const installmentValue = withRate / flightInstallments;
+                              return `${flightInstallments}x de ${formatCurrency(installmentValue)}`;
                             } else {
-                              return `${installmentCount}x de ${formatCurrency(totalPrice / installmentCount)}`;
+                              return `${flightInstallments}x de ${formatCurrency(totalPrice / flightInstallments)}`;
                             }
                           })()}
                         </div>
