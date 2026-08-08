@@ -108,6 +108,7 @@ export interface BudgetData {
     flightCashPrice?: number; // Valor à vista do aéreo (para calcular com taxa)
     flightMachineRate?: number; // Taxa da maquininha em % (ex: 2.5 para 2.5%)
     flightInstallmentsWithRate?: number; // Número de parcelas com taxa
+    showCashOption?: boolean; // Se true, mostra a opção de pagamento à vista no PDF
   };
   pageBreaks?: {
     flights?: boolean; // Iniciar voos em nova página

@@ -181,6 +181,41 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                       })}
                     </div>
                   )}
+                  
+                  {/* FORMA DE PAGAMENTO - dentro de cada tarifa */}
+                  <div className="mt-3 pt-3 border-t border-slate-200">
+                    <div className="text-[8px] font-semibold text-slate-600 uppercase mb-2">Forma de Pagamento</div>
+                    <div className="flex gap-2 text-[8px]">
+                      {/* Aéreo Parcelado - SEMPRE */}
+                      <div className="flex-1">
+                        <div className="font-bold text-slate-700">
+                          {(() => {
+                            if (installments?.flightMachineRate !== undefined && installments?.flightInstallmentsWithRate) {
+                              const rate = installments.flightMachineRate / 100;
+                              const withRate = totalPrice * (1 + rate);
+                              const installmentValue = withRate / installments.flightInstallmentsWithRate;
+                              return `${installments.flightInstallmentsWithRate}x de ${formatCurrency(installmentValue)}`;
+                            } else {
+                              return `${flightInstallments}x de ${formatCurrency(totalPrice / flightInstallments)}`;
+                            }
+                          })()}
+                        </div>
+                      </div>
+                      
+                      {/* OU */}
+                      {installments?.showCashOption && (
+                        <>
+                          <div className="text-slate-400 font-bold">ou</div>
+                          {/* Aéreo À Vista - APENAS SE MARCADO */}
+                          <div className="flex-1">
+                            <div className="font-bold text-slate-700">
+                              1x de {formatCurrency(totalPrice)}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
               );
             })}

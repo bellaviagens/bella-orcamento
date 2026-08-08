@@ -31,6 +31,18 @@ export function InstallmentsForm() {
 
   return (
     <div className="space-y-4">
+      {/* CHECKBOX: Incluir Opção À Vista */}
+      <div className="border-2 border-amber-300 rounded-lg p-4 bg-amber-50">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="show-cash-option"
+            checked={installments?.showCashOption || false}
+            onCheckedChange={(checked) => updateInstallments("showCashOption", checked as boolean)}
+          />
+          <Label htmlFor="show-cash-option" className="text-sm font-semibold text-amber-700 cursor-pointer">Incluir Opção de Pagamento À Vista no PDF</Label>
+        </div>
+      </div>
+
       {/* FORMA DE PAGAMENTO DO AÉREO - OPÇÃO 1: À VISTA */}
       <div className="border-2 border-blue-300 rounded-lg p-4 bg-blue-50">
         <Label className="text-[11px] font-semibold text-blue-700 uppercase">Forma de Pagamento do Aéreo - À Vista</Label>
