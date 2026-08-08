@@ -196,7 +196,7 @@ export function usePdfGenerator() {
 
         if (pageNum < totalPages) {
           pdf.setPage(pageNum + 1);
-          pdf.link(xMm, yOnPage, wMm, hMm, { url: link, pageNumber: undefined });
+          pdf.link(xMm, yOnPage, wMm, hMm, { url: link, pageNumber: undefined, isExternal: true });
         }
       });
 
