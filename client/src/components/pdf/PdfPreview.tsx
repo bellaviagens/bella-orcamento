@@ -190,13 +190,15 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                       <div className="flex-1">
                         <div className="font-bold text-slate-700">
                           {(() => {
+                            // Use flightInstallmentsWithRate if available (com taxa), otherwise use flightInstallments
+                            const installmentCount = installments?.flightInstallmentsWithRate || installments?.flight || flightInstallments;
                             if (installments?.flightMachineRate !== undefined && installments?.flightInstallmentsWithRate) {
                               const rate = installments.flightMachineRate / 100;
                               const withRate = totalPrice * (1 + rate);
-                              const installmentValue = withRate / installments.flightInstallmentsWithRate;
-                              return `${installments.flightInstallmentsWithRate}x de ${formatCurrency(installmentValue)}`;
+                              const installmentValue = withRate / installmentCount;
+                              return `${installmentCount}x de ${formatCurrency(installmentValue)}`;
                             } else {
-                              return `${flightInstallments}x de ${formatCurrency(totalPrice / flightInstallments)}`;
+                              return `${installmentCount}x de ${formatCurrency(totalPrice / installmentCount)}`;
                             }
                           })()}
                         </div>
