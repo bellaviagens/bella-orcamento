@@ -119,3 +119,10 @@
 - [x] Posição da Tarifa Única: Card alinhado à extrema direita com flex justify-end
 - [x] Mapeamento de Ícones: Expandido com variações (mala 10kg, 23kg, embarque prioritário, check-in prioritário)
 - [x] Layout de Opcionais: Mantido fluxo contínuo (flex-wrap: wrap; gap: 1)
+
+- [x] CSS Rígido: Container de tarifas com display:flex; justify-content:flex-end; gap:8px; width:100%; flex-wrap:nowrap
+- [x] CSS Rígido: Cards de tarifa com width:280px; max-width:300px; flex-shrink:0; box-sizing:border-box
+- [x] CSS Rígido: Fontes fixas (título 8pt, preço 11pt, opcionais 7pt, parcelamento 8pt)
+- [x] Mapeamento Estático: Dicionário fixo BENEFIT_ICON_MAP com 40+ variações cobrindo todas as opções do FareForm
+- [x] Função getBenefitIcon: Match exato + match sem acentos + fallback fixo (nunca genérico)
+- [x] Padronização: PdfPreview FARES SECTION atualizada com mesmas classes rígidas e mapeamento

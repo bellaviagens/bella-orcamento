@@ -33,6 +33,78 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
+// ===== MAPEAMENTO ESTÁTICO E FIXO DE ÍCONES =====
+// Mapeia cada palavra-chave ao seu ícone colorido correspondente.
+// PROIBIDO remover ou substituir por checkboxes ou texto puro.
+const BENEFIT_ICON_MAP: Record<string, string> = {
+  // Bagagem - mala de mão / bolsa
+  "bolsa ou mochila de ate 10kg": "🎒",
+  "bolsa ou mochila de até 10kg": "🎒",
+  "bolsa ou mochila": "🎒",
+  "mala de mao": "🧳",
+  "mala de mão": "🧳",
+  "bagagem de mao": "🧳",
+  "bagagem de mão": "🧳",
+  "carry on": "🧳",
+  "bagagem de 10 kg": "🧳",
+  "bagagem de 10kg": "🧳",
+  "mala de 10kg": "🧳",
+  "mala de 10 kg": "🧳",
+  // Bagagem despachada
+  "bagagem de 23 kg": "📦",
+  "bagagem de 23kg": "📦",
+  "mala de 23kg": "📦",
+  "mala de 23 kg": "📦",
+  "mala despachada": "📦",
+  "checked bag": "📦",
+  "bagagem despachada": "📦",
+  "mala": "📦",
+  "bagagem": "📦",
+  // Assento
+  "selecao de assento": "💺",
+  "seleção de assento": "💺",
+  "assento": "💺",
+  "seat selection": "💺",
+  // Alterações / Reembolso
+  "alteracao/reembolso sem taxa": "🔄",
+  "alteração/reembolso sem taxa": "🔄",
+  "alteracao/reembolso com taxa": "🔄",
+  "alteração/reembolso com taxa": "🔄",
+  "alteracoes": "🔄",
+  "alterações": "🔄",
+  "alteracoes/reembolso": "🔄",
+  "alterações/reembolso": "🔄",
+  "reembolso": "💰",
+  "changes": "🔄",
+  // Embarque / Check-in prioritário
+  "embarque prioritario": "⚡",
+  "embarque prioritário": "⚡",
+  "check-in prioritario": "⚡",
+  "check-in prioritário": "⚡",
+  "check in prioritario": "⚡",
+  "check in prioritário": "⚡",
+  "embarque": "⚡",
+  "check": "⚡",
+  "priority boarding": "⚡",
+  "priority check-in": "⚡",
+};
+
+function getBenefitIcon(benefit: string): string {
+  const normalized = benefit.toLowerCase().trim();
+  // Tenta match exato primeiro
+  if (BENEFIT_ICON_MAP[normalized]) return BENEFIT_ICON_MAP[normalized];
+  // Tenta match por inclusão (sem acentos)
+  const noAccent = normalized.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  for (const [key, icon] of Object.entries(BENEFIT_ICON_MAP)) {
+    const keyNoAccent = key.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (noAccent.includes(keyNoAccent) || keyNoAccent.includes(noAccent)) {
+      return icon;
+    }
+  }
+  // Fallback fixo - nunca genérico
+  return "🧳";
+}
+
 export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, includeHotel = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "", hotelInstallments = 1, hotelDownpayment = false, hotelDownpaymentAmount = 0, flightInstallments = 1, flightDownpayment = false, flightDownpaymentAmount = 0, combinedInstallments = 1, combinedDownpayment = false, combinedDownpaymentAmount = 0, observations = "" }: HotelCardProps) {
   const [proxiedPhotoUrl, setProxiedPhotoUrl] = useState<string | null>(hotel.photoUrl || null);
   const imageProxyQuery = trpc.imageProxy.useQuery(
@@ -54,6 +126,37 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
       ? hotel.dailyPrice * hotel.nights
       : hotel.totalPrice;
 
+  // ===== STYLES RÍGIDOS E FIXOS =====
+  const tarifaContainerStyle: React.CSSProperties = {
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: "8px",
+    width: "100%",
+    alignItems: "stretch",
+    flexWrap: "nowrap",
+  };
+
+  const cardTarifaStyle: React.CSSProperties = {
+    width: "280px",
+    maxWidth: "300px",
+    flexShrink: 0,
+    boxSizing: "border-box",
+  };
+
+  const beneficiosContainerStyle: React.CSSProperties = {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "6px",
+    width: "100%",
+  };
+
+  const beneficioItemStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: "3px",
+    lineHeight: "1.2",
+    whiteSpace: "nowrap",
+  };
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm p-3 mb-3 w-full">
@@ -139,10 +242,10 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
           )}
         </div>
 
-        {/* Right: Tarifas - Alinhamento flex com justify-content: flex-end */}
-        <div className="flex-1">
+        {/* Right: Tarifas - Container RÍGIDO com flex justify-end */}
+        <div className="flex-1 min-w-0">
           {includeAirfare && tiers.length > 0 ? (
-            <div className="flex flex-wrap gap-2 w-full justify-end">
+            <div style={tarifaContainerStyle}>
               {tiers.slice(0, 2).map((tier) => {
                 const basePrice = includeAirfare ? effectiveTotalPrice + (tier.flightPrice * passengers) : effectiveTotalPrice;
                 const totalPrice = basePrice;
@@ -152,62 +255,51 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 return (
                   <div
                     key={tier.id}
-                    className={`rounded-lg border p-1.5 overflow-hidden ${ tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
+                    style={cardTarifaStyle}
+                    className={`rounded-lg border p-2 overflow-hidden ${ tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
                   >
-                    {/* Tarifa Info */}
-                    <div className="flex items-start justify-between gap-1.5 mb-1 pb-1 border-b border-slate-300">
-                      <div className="text-left flex-1">
-                        <div className={`text-[8px] font-bold mb-0.5 uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
+                    {/* Tarifa Info - Título + Preço */}
+                    <div className="flex items-start justify-between gap-1 mb-1 pb-1 border-b border-slate-300">
+                      <div className="text-left flex-1 min-w-0">
+                        <div
+                          className="font-bold mb-0.5 uppercase truncate"
+                          style={{
+                            fontSize: "8pt",
+                            color: tier.highlighted ? "#b45309" : "#1d4ed8",
+                          }}
+                        >
                           {label}
                         </div>
-                        <div className={`text-xs font-bold ${tier.highlighted ? "text-amber-600" : "text-blue-600"}`}>
+                        <div
+                          className="font-bold"
+                          style={{
+                            fontSize: "11pt",
+                            color: tier.highlighted ? "#d97706" : "#2563eb",
+                          }}
+                        >
                           {formatCurrency(totalPrice)}
                         </div>
-                        <div className={`text-[7px] ${tier.highlighted ? "text-amber-600/70" : "text-blue-600/70"}`}>
+                        <div
+                          style={{
+                            fontSize: "7pt",
+                            color: tier.highlighted ? "#d97706" : "#2563eb",
+                            opacity: 0.7,
+                          }}
+                        >
                           {formatCurrency(perPersonPrice)} / pessoa
                         </div>
                       </div>
                     </div>
 
-                    {/* Benefícios - Fluxo contínuo (inline/flex-wrap) como no voo */}
+                    {/* Benefícios - Fluxo contínuo (inline/flex-wrap) com ícones fixos */}
                     {tier.benefits && tier.benefits.length > 0 && (
-                      <div className="text-[7px] text-slate-600 flex flex-wrap gap-1 mb-1 w-full">
+                      <div style={beneficiosContainerStyle} className="mb-1">
                         {tier.benefits.map((benefit, idx) => {
-                          const benefitIcons: Record<string, string> = {
-                            "mala de mao": "🧳",
-                            "mala de 10kg": "🧳",
-                            "mala de 23kg": "📦",
-                            "mala despachada": "📦",
-                            "selecao de assento": "💺",
-                            "alteracoes": "🔄",
-                            "reembolso": "💰",
-                            "bolsa ou mochila": "🎒",
-                            "embarque prioritario": "⚡",
-                            "embarque prioritário": "⚡",
-                            "check in prioritario": "⚡",
-                            "check-in prioritario": "⚡",
-                            "check in prioritário": "⚡",
-                            "check-in prioritário": "⚡",
-                            "bagagem de mao": "🧳",
-                            "alteracoes/reembolso": "🔄",
-                            "carry on": "🧳",
-                            "checked bag": "📦",
-                            "seat selection": "💺",
-                            "changes": "🔄",
-                            "priority boarding": "⚡",
-                            "priority check-in": "⚡",
-                            "mala": "📦",
-                            "assento": "💺",
-                            "bagagem": "📦",
-                            "embarque": "⚡",
-                            "check": "⚡",
-                          };
-                          const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                          const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "🧳";
+                          const icon = getBenefitIcon(benefit);
                           return (
-                            <div key={idx} className="flex items-center gap-0.5 leading-tight">
-                              <span className="flex-shrink-0 leading-tight">{icon}</span>
-                              <span className="text-[7px] leading-tight">{benefit}</span>
+                            <div key={idx} style={beneficioItemStyle}>
+                              <span style={{ fontSize: "8pt", flexShrink: 0 }}>{icon}</span>
+                              <span style={{ fontSize: "7pt", color: "#475569" }}>{benefit}</span>
                             </div>
                           );
                         })}
@@ -217,11 +309,19 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                     {/* Forma de Pagamento dentro do card */}
                     {((includeAirfare && flightPaymentMethods?.length > 0) || (includeHotel && hotelPaymentMethods?.length > 0)) && (
                       <div className="space-y-0.5 mt-1 pt-1 border-t border-slate-300">
-                        {/* AÉREO */}
+                        {/* AÉREO PARCELADO */}
                         {includeAirfare && tiers.length > 0 && (
                           <div>
-                            <div className="text-[6px] font-semibold text-slate-600 uppercase mb-0.5">Aéreo Parcelado</div>
-                            <div className="text-[7px] font-bold text-[#1a2e4a]">
+                            <div
+                              className="font-semibold uppercase mb-0.5"
+                              style={{ fontSize: "6pt", color: "#64748b" }}
+                            >
+                              Aéreo Parcelado
+                            </div>
+                            <div
+                              className="font-bold"
+                              style={{ fontSize: "8pt", color: "#1a2e4a" }}
+                            >
                               {tier.flightPrice ? (() => {
                                 const flightTotal = tier.flightPrice * passengers;
                                 const installmentValue = flightInstallments > 0 ? flightTotal / flightInstallments : 0;
@@ -234,8 +334,16 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         {/* HOTEL */}
                         {includeHotel && hotelPaymentMethods?.length > 0 && (
                           <div>
-                            <div className="text-[6px] font-semibold text-slate-600 uppercase mb-0.5">Hotel</div>
-                            <div className="text-[7px] font-bold text-[#1a2e4a]">
+                            <div
+                              className="font-semibold uppercase mb-0.5"
+                              style={{ fontSize: "6pt", color: "#64748b" }}
+                            >
+                              Hotel
+                            </div>
+                            <div
+                              className="font-bold"
+                              style={{ fontSize: "8pt", color: "#1a2e4a" }}
+                            >
                               {hotelInstallments > 0 ? `${hotelInstallments}x de ${formatCurrency(effectiveTotalPrice / hotelInstallments)}` : formatCurrency(effectiveTotalPrice)}
                             </div>
                           </div>

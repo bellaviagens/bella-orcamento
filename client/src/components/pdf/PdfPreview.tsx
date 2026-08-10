@@ -4,6 +4,68 @@ import type { BudgetData } from "@shared/budgetTypes";
 import { FlightCard } from "./FlightCard";
 import { HotelCard } from "./HotelCard";
 
+// ===== MAPEAMENTO ESTÁTICO E FIXO DE ÍCONES (igual ao HotelCard) =====
+const BENEFIT_ICON_MAP: Record<string, string> = {
+  "bolsa ou mochila de ate 10kg": "🎒",
+  "bolsa ou mochila de até 10kg": "🎒",
+  "bolsa ou mochila": "🎒",
+  "mala de mao": "🧳",
+  "mala de mão": "🧳",
+  "bagagem de mao": "🧳",
+  "bagagem de mão": "🧳",
+  "carry on": "🧳",
+  "bagagem de 10 kg": "🧳",
+  "bagagem de 10kg": "🧳",
+  "mala de 10kg": "🧳",
+  "mala de 10 kg": "🧳",
+  "bagagem de 23 kg": "📦",
+  "bagagem de 23kg": "📦",
+  "mala de 23kg": "📦",
+  "mala de 23 kg": "📦",
+  "mala despachada": "📦",
+  "checked bag": "📦",
+  "bagagem despachada": "📦",
+  "mala": "📦",
+  "bagagem": "📦",
+  "selecao de assento": "💺",
+  "seleção de assento": "💺",
+  "assento": "💺",
+  "seat selection": "💺",
+  "alteracao/reembolso sem taxa": "🔄",
+  "alteração/reembolso sem taxa": "🔄",
+  "alteracao/reembolso com taxa": "🔄",
+  "alteração/reembolso com taxa": "🔄",
+  "alteracoes": "🔄",
+  "alterações": "🔄",
+  "alteracoes/reembolso": "🔄",
+  "alterações/reembolso": "🔄",
+  "reembolso": "💰",
+  "changes": "🔄",
+  "embarque prioritario": "⚡",
+  "embarque prioritário": "⚡",
+  "check-in prioritario": "⚡",
+  "check-in prioritário": "⚡",
+  "check in prioritario": "⚡",
+  "check in prioritário": "⚡",
+  "embarque": "⚡",
+  "check": "⚡",
+  "priority boarding": "⚡",
+  "priority check-in": "⚡",
+};
+
+function getBenefitIcon(benefit: string): string {
+  const normalized = benefit.toLowerCase().trim();
+  if (BENEFIT_ICON_MAP[normalized]) return BENEFIT_ICON_MAP[normalized];
+  const noAccent = normalized.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  for (const [key, icon] of Object.entries(BENEFIT_ICON_MAP)) {
+    const keyNoAccent = key.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (noAccent.includes(keyNoAccent) || keyNoAccent.includes(noAccent)) {
+      return icon;
+    }
+  }
+  return "🧳";
+}
+
 interface PdfPreviewProps {
   data: BudgetData;
   includeAirfare?: boolean;
@@ -137,55 +199,49 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
           >
             Comparativo de Tarifas
           </h3>
-          <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(fareComparison.tiers.length, 3)}, 1fr)` }}>
-            {fareComparison.tiers.map((tier) => {
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", width: "100%", flexWrap: "nowrap" }}>
+            {fareComparison.tiers.slice(0, 2).map((tier) => {
               const totalPrice = tier.flightPrice * passengerCount;
               const perPersonPrice = tier.flightPrice;
               return (
                 <div
                   key={tier.id}
-                  className={`rounded-lg border p-3 shadow-sm ${
+                  style={{ width: "280px", maxWidth: "300px", flexShrink: 0, boxSizing: "border-box" }}
+                  className={`rounded-lg border p-2 shadow-sm ${
                     tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"
                   }`}
                 >
                   {/* Title */}
-                  <div className={`text-[10px] font-bold mb-1 uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
+                  <div
+                    className="font-bold mb-1 uppercase truncate"
+                    style={{ fontSize: "8pt", color: tier.highlighted ? "#b45309" : "#1d4ed8" }}
+                  >
                     {tier.name}
                   </div>
                   
                   {/* Price info */}
-                  <div className={`text-sm font-bold mb-0.5 ${tier.highlighted ? "text-amber-600" : "text-blue-600"}`}>
+                  <div
+                    className="font-bold mb-0.5"
+                    style={{ fontSize: "11pt", color: tier.highlighted ? "#d97706" : "#2563eb" }}
+                  >
                     {formatCurrency(totalPrice)}
                   </div>
-                  <div className={`text-[8px] mb-2 ${tier.highlighted ? "text-amber-600/70" : "text-blue-600/70"}`}>
+                  <div
+                    className="mb-2"
+                    style={{ fontSize: "7pt", color: tier.highlighted ? "#d97706" : "#2563eb", opacity: 0.7 }}
+                  >
                     {formatCurrency(perPersonPrice)} / pessoa
                   </div>
                   
-                  {/* Benefits with icons - flex wrap */}
+                  {/* Benefits with icons - fluxo contínuo com mapeamento fixo */}
                   {tier.benefits && tier.benefits.length > 0 && (
-                    <div className="text-[7px] text-slate-600 flex flex-wrap gap-1 mb-2 w-full">
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", width: "100%" }} className="mb-2">
                       {tier.benefits.map((benefit, idx) => {
-                        const benefitIcons: Record<string, string> = {
-                          "mala de mao": "🧳",
-                          "mala despachada": "📦",
-                          "selecao de assento": "💺",
-                          "alteracoes": "🔄",
-                          "reembolso": "💰",
-                          "carry on": "🧳",
-                          "checked bag": "📦",
-                          "seat selection": "💺",
-                          "changes": "🔄",
-                          "bolsa ou mochila": "🎒",
-                          "embarque prioritario": "⚡",
-                          "check in prioritario": "⚡",
-                          "bagagem de mao": "🧳",
-                        };
-                        const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                        const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "📌";
+                        const icon = getBenefitIcon(benefit);
                         return (
-                          <div key={idx} className="flex items-center gap-0.5 leading-tight">
-                            <span className="flex-shrink-0">{icon}</span>
-                            <span className="text-[7px]">{benefit}</span>
+                          <div key={idx} style={{ display: "flex", alignItems: "center", gap: "3px", lineHeight: "1.2", whiteSpace: "nowrap" }}>
+                            <span style={{ fontSize: "8pt", flexShrink: 0 }}>{icon}</span>
+                            <span style={{ fontSize: "7pt", color: "#475569" }}>{benefit}</span>
                           </div>
                         );
                       })}
