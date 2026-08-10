@@ -139,10 +139,12 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
           )}
         </div>
 
-        {/* Right: Tarifas - Expandido em 2 colunas */}
+        {/* Right: Tarifas - Expandido em 2 colunas com alinhamento dinâmico */}
         <div className="flex-1">
           {includeAirfare && tiers.length > 0 ? (
-            <div className="grid grid-cols-2 gap-2 w-full">
+            <div className={`grid gap-2 w-full ${
+              tiers.length === 1 ? 'grid-cols-1 justify-items-end' : 'grid-cols-2'
+            }`}>
               {tiers.slice(0, 2).map((tier) => {
                 const basePrice = includeAirfare ? effectiveTotalPrice + (tier.flightPrice * passengers) : effectiveTotalPrice;
                 const totalPrice = basePrice;
@@ -179,17 +181,25 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                             "selecao de assento": "💺",
                             "alteracoes": "🔄",
                             "reembolso": "💰",
-                            "carry on": "🧳",
-                            "checked bag": "📦",
-                            "seat selection": "💺",
-                            "changes": "🔄",
                             "bolsa ou mochila": "🎒",
                             "embarque prioritario": "⚡",
                             "check in prioritario": "⚡",
                             "bagagem de mao": "🧳",
+                            "alteracoes/reembolso": "🔄",
+                            "carry on": "🧳",
+                            "checked bag": "📦",
+                            "seat selection": "💺",
+                            "changes": "🔄",
+                            "priority boarding": "⚡",
+                            "priority check-in": "⚡",
+                            "mala": "📦",
+                            "assento": "💺",
+                            "bagagem": "📦",
+                            "embarque": "⚡",
+                            "check": "⚡",
                           };
                           const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                          const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "📌";
+                          const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "🧳";
                           return (
                             <div key={idx} className="flex items-center gap-0.5 leading-tight">
                               <span className="flex-shrink-0 leading-tight">{icon}</span>

@@ -111,3 +111,7 @@
 - [x] Reformatação de Opcionais: Alterar de coluna vertical para fluxo contínuo (inline/flex-wrap) igual ao formato do voo
 - [x] Posicionamento de Opcionais: Colocar em largura total (100%) logo abaixo do Preço Total/Pessoa
 - [x] Validação: Garantir que ícones coloridos aparecem em ambos os formatos (coluna e inline)
+
+- [x] Fixação de Ícones: Garantir que ícones coloridos originais (🧳, 📦, 💺, 🔄, 💰, 🎒, ⚡) permaneçam consistentes
+- [x] Alinhamento Dinâmico: Quando 1 tarifa, posicionar à direita (justify-content: flex-end)
+- [x] Alinhamento Dinâmico: Quando 2+ tarifas, ocupar espaço lado a lado normalmente
