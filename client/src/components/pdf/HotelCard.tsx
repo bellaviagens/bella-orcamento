@@ -156,10 +156,10 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 return (
                   <div
                     key={tier.id}
-                    className={`rounded-lg border p-1.5 overflow-hidden ${ tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
+                    className={`rounded-lg border p-1 overflow-hidden ${ tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
                   >
                     {/* Tarifa Info */}
-                    <div className="flex items-start justify-between gap-2 mb-1.5 pb-1.5 border-b border-slate-300">
+                    <div className="flex items-start justify-between gap-1 mb-1 pb-1 border-b border-slate-300">
                       <div className="text-left flex-1">
                         <div className={`text-[8px] font-bold mb-0.5 uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
                           {label}
@@ -172,8 +172,8 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         </div>
                       </div>
                       {tier.benefits && tier.benefits.length > 0 && (
-                        <div className="text-[7px] text-slate-500 flex flex-wrap gap-1 justify-end items-start">
-                          {tier.benefits.map((benefit, idx) => {
+                        <div className="text-[7px] text-slate-500 grid grid-cols-2 gap-x-1 gap-y-0.5 justify-end items-start">
+                          {tier.benefits.slice(0, 12).map((benefit, idx) => {
                             const benefitIcons: Record<string, string> = {
                               "mala de mao": "🧳",
                               "mala despachada": "📦",
@@ -188,9 +188,9 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                             const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
                             const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "✓";
                             return (
-                              <div key={idx} className="flex items-start gap-0.5 break-words">
-                                <span className="flex-shrink-0">{icon}</span>
-                                <span className="text-[7px] break-words">{benefit}</span>
+                              <div key={idx} className="flex items-start gap-0.5 break-words leading-tight">
+                                <span className="flex-shrink-0 leading-tight">{icon}</span>
+                                <span className="text-[7px] break-words leading-tight">{benefit}</span>
                               </div>
                             );
                           })}
