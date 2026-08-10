@@ -120,7 +120,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
       </div>
 
       {/* Main content: Amenities left, Tarifas right */}
-      <div className="grid grid-cols-2 gap-3 mb-2">
+      <div className="grid gap-1 mb-2" style={{ gridTemplateColumns: '0.6fr 1.4fr' }}>
         {/* Left: Amenities - Compacto */}
         <div>
           <div className="text-xs font-bold text-[#1a2e4a] mb-1 uppercase">Comodidades:</div>
@@ -144,9 +144,9 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
         </div>
 
         {/* Right: Tarifas - Compacto em 2 colunas */}
-        <div>
+        <div className="w-full">
           {includeAirfare && tiers.length > 0 ? (
-            <div className="grid grid-cols-2 gap-2 w-full">
+            <div className="grid grid-cols-2 gap-1.5 w-full">
               {tiers.slice(0, 2).map((tier) => {
                 const basePrice = includeAirfare ? effectiveTotalPrice + (tier.flightPrice * passengers) : effectiveTotalPrice;
                 const totalPrice = basePrice;
@@ -172,7 +172,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         </div>
                       </div>
                       {tier.benefits && tier.benefits.length > 0 && (
-                        <div className="text-[7px] text-slate-500 grid grid-cols-2 gap-x-1 gap-y-0.5 justify-end items-start">
+                        <div className="text-[7px] text-slate-500 grid grid-cols-2 gap-x-0.5 gap-y-0.5 w-full">
                           {tier.benefits.slice(0, 12).map((benefit, idx) => {
                             const benefitIcons: Record<string, string> = {
                               "mala de mao": "🧳",
