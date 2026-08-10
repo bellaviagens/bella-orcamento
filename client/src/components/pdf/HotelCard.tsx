@@ -139,12 +139,10 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
           )}
         </div>
 
-        {/* Right: Tarifas - Expandido em 2 colunas com alinhamento dinâmico */}
+        {/* Right: Tarifas - Alinhamento flex com justify-content: flex-end */}
         <div className="flex-1">
           {includeAirfare && tiers.length > 0 ? (
-            <div className={`grid gap-2 w-full ${
-              tiers.length === 1 ? 'grid-cols-1 justify-items-end' : 'grid-cols-2'
-            }`}>
+            <div className="flex flex-wrap gap-2 w-full justify-end">
               {tiers.slice(0, 2).map((tier) => {
                 const basePrice = includeAirfare ? effectiveTotalPrice + (tier.flightPrice * passengers) : effectiveTotalPrice;
                 const totalPrice = basePrice;
@@ -177,13 +175,19 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         {tier.benefits.map((benefit, idx) => {
                           const benefitIcons: Record<string, string> = {
                             "mala de mao": "🧳",
+                            "mala de 10kg": "🧳",
+                            "mala de 23kg": "📦",
                             "mala despachada": "📦",
                             "selecao de assento": "💺",
                             "alteracoes": "🔄",
                             "reembolso": "💰",
                             "bolsa ou mochila": "🎒",
                             "embarque prioritario": "⚡",
+                            "embarque prioritário": "⚡",
                             "check in prioritario": "⚡",
+                            "check-in prioritario": "⚡",
+                            "check in prioritário": "⚡",
+                            "check-in prioritário": "⚡",
                             "bagagem de mao": "🧳",
                             "alteracoes/reembolso": "🔄",
                             "carry on": "🧳",

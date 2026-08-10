@@ -115,3 +115,7 @@
 - [x] Fixação de Ícones: Garantir que ícones coloridos originais (🧳, 📦, 💺, 🔄, 💰, 🎒, ⚡) permaneçam consistentes
 - [x] Alinhamento Dinâmico: Quando 1 tarifa, posicionar à direita (justify-content: flex-end)
 - [x] Alinhamento Dinâmico: Quando 2+ tarifas, ocupar espaço lado a lado normalmente
+
+- [x] Posição da Tarifa Única: Card alinhado à extrema direita com flex justify-end
+- [x] Mapeamento de Ícones: Expandido com variações (mala 10kg, 23kg, embarque prioritário, check-in prioritário)
+- [x] Layout de Opcionais: Mantido fluxo contínuo (flex-wrap: wrap; gap: 1)
