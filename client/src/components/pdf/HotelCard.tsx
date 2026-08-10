@@ -172,7 +172,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         </div>
                       </div>
                       {tier.benefits && tier.benefits.length > 0 && (
-                        <div className="text-[7px] text-slate-500 grid grid-cols-2 gap-x-0.5 gap-y-0.5 w-full">
+                        <div className="text-[7px] text-slate-600 grid grid-cols-2 gap-x-1 gap-y-0.5 w-full">
                           {tier.benefits.slice(0, 12).map((benefit, idx) => {
                             const benefitIcons: Record<string, string> = {
                               "mala de mao": "🧳",
@@ -184,9 +184,13 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                               "checked bag": "📦",
                               "seat selection": "💺",
                               "changes": "🔄",
+                              "bolsa ou mochila": "🎒",
+                              "embarque prioritario": "⚡",
+                              "check in prioritario": "⚡",
+                              "bagagem de mao": "🧳",
                             };
                             const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                            const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "✓";
+                            const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "📌";
                             return (
                               <div key={idx} className="flex items-start gap-0.5 break-words leading-tight">
                                 <span className="flex-shrink-0 leading-tight">{icon}</span>

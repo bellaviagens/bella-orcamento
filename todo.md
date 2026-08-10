@@ -95,3 +95,7 @@
 - [x] Reorganizar ícones e benefícios para layout horizontal (flex-wrap, gap-1)
 
 - [x] Reorganizar benefícios para lado direito do bloco de tarifas (layout flex, justify-end)
+
+- [x] Restauração de Ícones: Voltar a exibir ícones coloridos originais (🧳, 📦, 💺, 🔄, 💰, 🎒, ⚡) em ambos os cards (BÁSICA e PLUS)
+- [x] Padronização Visual: Garantir que ambos os cards sigam a mesma estrutura visual e alinhamento de topo
+- [x] Aumentar ligeiramente a largura dos cards para dar "respiro" às 2 colunas de opcionais
