@@ -55,7 +55,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
       : hotel.totalPrice;
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm p-3 mb-3">
+    <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm p-3 mb-3 w-full">
       {/* Header with left border + Photo */}
       <div className="flex gap-2 mb-2">
         <div className="w-1 bg-amber-400 rounded-full flex-shrink-0"></div>
@@ -120,7 +120,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
       </div>
 
       {/* Main content: Amenities left, Tarifas right */}
-      <div className="grid grid-cols-2 gap-2 mb-2">
+      <div className="grid grid-cols-2 gap-3 mb-2">
         {/* Left: Amenities - Compacto */}
         <div>
           <div className="text-xs font-bold text-[#1a2e4a] mb-1 uppercase">Comodidades:</div>
@@ -146,7 +146,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
         {/* Right: Tarifas - Compacto em 2 colunas */}
         <div>
           {includeAirfare && tiers.length > 0 ? (
-            <div className="grid grid-cols-2 gap-1">
+            <div className="grid grid-cols-2 gap-2 w-full">
               {tiers.slice(0, 2).map((tier) => {
                 const basePrice = includeAirfare ? effectiveTotalPrice + (tier.flightPrice * passengers) : effectiveTotalPrice;
                 const totalPrice = basePrice;
@@ -156,7 +156,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 return (
                   <div
                     key={tier.id}
-                    className={`rounded-lg border p-1.5 ${ tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
+                    className={`rounded-lg border p-1.5 overflow-hidden ${ tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
                   >
                     {/* Tarifa Info */}
                     <div className="flex items-start justify-between gap-2 mb-1.5 pb-1.5 border-b border-slate-300">
@@ -188,9 +188,9 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                             const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
                             const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "✓";
                             return (
-                              <div key={idx} className="flex items-center gap-0.5 whitespace-nowrap">
-                                <span>{icon}</span>
-                                <span>{benefit}</span>
+                              <div key={idx} className="flex items-start gap-0.5 break-words">
+                                <span className="flex-shrink-0">{icon}</span>
+                                <span className="text-[7px] break-words">{benefit}</span>
                               </div>
                             );
                           })}
