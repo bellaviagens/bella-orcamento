@@ -143,10 +143,10 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
           )}
         </div>
 
-        {/* Right: Tarifas - Compacto */}
+        {/* Right: Tarifas - Compacto em 2 colunas */}
         <div>
           {includeAirfare && tiers.length > 0 ? (
-            <div className="space-y-1">
+            <div className="grid grid-cols-2 gap-1">
               {tiers.slice(0, 2).map((tier) => {
                 const basePrice = includeAirfare ? effectiveTotalPrice + (tier.flightPrice * passengers) : effectiveTotalPrice;
                 const totalPrice = basePrice;
@@ -156,9 +156,10 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 return (
                   <div
                     key={tier.id}
-                    className={`rounded-lg border p-1.5 ${tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
+                    className={`rounded-lg border p-1.5 ${ tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
                   >
-                    <div className="flex items-start justify-between gap-2">
+                    {/* Tarifa Info */}
+                    <div className="flex items-start justify-between gap-2 mb-1.5 pb-1.5 border-b border-slate-300">
                       <div className="text-left flex-1">
                         <div className={`text-[8px] font-bold mb-0.5 uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
                           {label}
@@ -196,6 +197,56 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         </div>
                       )}
                     </div>
+
+                    {/* Forma de Pagamento dentro do card */}
+                    {((includeAirfare && flightPaymentMethods?.length > 0) || (includeHotel && hotelPaymentMethods?.length > 0)) && (
+                      <div className="space-y-1 mt-1.5">
+                        {/* AÉREO */}
+                        {includeAirfare && tiers.length > 0 && (
+                          <div>
+                            <div className="text-[7px] font-semibold text-slate-600 uppercase mb-0.5">Aéreo Parcelado</div>
+                            <div className="text-[8px] font-bold text-[#1a2e4a]">
+                              {tier.flightPrice ? (() => {
+                                const flightTotal = tier.flightPrice * passengers;
+                                if (flightDownpayment && flightDownpaymentAmount && flightDownpaymentAmount > 0) {
+                                  return `1x de ${formatCurrency(flightDownpaymentAmount)} + ${flightInstallments}x de ${formatCurrency((flightTotal - flightDownpaymentAmount) / flightInstallments)}`;
+                                } else {
+                                  return `${flightInstallments}x de ${formatCurrency(flightTotal / flightInstallments)}`;
+                                }
+                              })() : "N/A"}
+                            </div>
+                            {flightPaymentMethods && flightPaymentMethods.length > 0 && (
+                              <div className="flex flex-wrap gap-0.5 mt-0.5">
+                                {flightPaymentMethods.map((method) => (
+                                  <span key={method} className="inline-block px-1 py-0.25 rounded text-[6px] font-medium bg-blue-100 text-blue-700">
+                                    {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {/* HOTEL */}
+                        {includeHotel && hotelPaymentMethods && hotelPaymentMethods.length > 0 && (
+                          <div>
+                            <div className="text-[7px] font-semibold text-slate-600 uppercase mb-0.5">Hotel</div>
+                            <div className="text-[8px] font-bold text-[#1a2e4a]">
+                              {hotelDownpayment && hotelDownpaymentAmount && hotelDownpaymentAmount > 0
+                                ? `1x de ${formatCurrency(hotelDownpaymentAmount)} + ${hotelInstallments}x de ${formatCurrency((effectiveTotalPrice - hotelDownpaymentAmount) / hotelInstallments)}`
+                                : `${hotelInstallments}x de ${formatCurrency(effectiveTotalPrice / hotelInstallments)}`
+                              }
+                            </div>
+                            <div className="flex flex-wrap gap-0.5 mt-0.5">
+                              {hotelPaymentMethods.map((method) => (
+                                <span key={method} className="inline-block px-1 py-0.25 rounded text-[6px] font-medium bg-blue-100 text-blue-700">
+                                  {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -220,8 +271,8 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
 
 
 
-      {/* Payment Methods Block - Individual for each hotel with Aéreo + Hotel calculator */}
-      {((includeAirfare && flightPaymentMethods?.length > 0) || (includeHotel && hotelPaymentMethods?.length > 0)) && (
+      {/* Payment Methods Block - Removed (now inside each tarifa card) */}
+      {false && (
         <div className="mt-1.5 pt-2 border-t-2 border-amber-400">
           <div className="text-xs font-bold text-[#1a2e4a] uppercase mb-2 pb-1 border-b border-slate-200">
             Forma de Pagamento
