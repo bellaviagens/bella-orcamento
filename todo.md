@@ -99,3 +99,9 @@
 - [x] Restauração de Ícones: Voltar a exibir ícones coloridos originais (🧳, 📦, 💺, 🔄, 💰, 🎒, ⚡) em ambos os cards (BÁSICA e PLUS)
 - [x] Padronização Visual: Garantir que ambos os cards sigam a mesma estrutura visual e alinhamento de topo
 - [x] Aumentar ligeiramente a largura dos cards para dar "respiro" às 2 colunas de opcionais
+
+- [x] Expansão do Container Principal: Aumentar max-width para ocupar quase toda a tela, eliminando margens laterais grandes
+- [x] Reorganização de Opcionais: "Bolsa ou mochila de até 10kg" como primeiro item fixo (linha 1)
+- [x] Layout de Opcionais: Demais itens em 1 coluna vertical simples abaixo do item fixo
+- [x] Redução de Fonte dos Opcionais: Diminuir font-size e padding para cada item ocupar apenas 1 linha
+- [x] Validação: Garantir que nada quebra linha ou encoste nas bordas laterais do card

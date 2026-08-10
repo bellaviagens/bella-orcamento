@@ -54,7 +54,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
     <div
       id="pdf-document"
       className="bg-slate-50 mx-auto flex flex-col min-h-screen"
-      style={{ width: "100%", maxWidth: "800px", fontFamily: "Inter, sans-serif" }}
+      style={{ width: "100%", maxWidth: "1000px", fontFamily: "Inter, sans-serif" }}
     >
       {/* HEADER */}
       <div className="bg-[#1a2e4a] text-white px-8 py-6 flex items-center justify-between">

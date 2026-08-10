@@ -1,4 +1,4 @@
-import { MapPin, ExternalLink, Star } from "lucide-react";
+import { Star, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Hotel, FareTier } from "@shared/budgetTypes";
 import { trpc } from "@/lib/trpc";
@@ -54,6 +54,13 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
       ? hotel.dailyPrice * hotel.nights
       : hotel.totalPrice;
 
+  // Função para reorganizar benefícios com "Bolsa ou mochila" primeiro
+  const reorganizeBenefits = (benefits: string[]) => {
+    const bolsaBenefit = benefits.find(b => b.toLowerCase().includes("bolsa ou mochila"));
+    const otherBenefits = benefits.filter(b => !b.toLowerCase().includes("bolsa ou mochila")).slice(0, 11);
+    return bolsaBenefit ? [bolsaBenefit, ...otherBenefits] : benefits.slice(0, 12);
+  };
+
   return (
     <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm p-3 mb-3 w-full">
       {/* Header with left border + Photo */}
@@ -99,35 +106,30 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 <img src={proxiedPhotoUrl} alt={hotel.name} className="w-full h-full object-cover rounded" crossOrigin="anonymous" />
               </div>
             )}
-            {hotel.hotelUrl ? (
+            {hotel.hotelUrl && (
               <a
                 href={hotel.hotelUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                data-pdf-link={hotel.hotelUrl}
-                className="bg-[#1a2e4a] text-white py-1 px-1.5 rounded font-bold text-[9px] uppercase hover:bg-[#253d5c] transition inline-flex items-center justify-center gap-0.5 whitespace-nowrap"
+                data-pdf-link="true"
+                className="text-[9px] font-semibold bg-[#1a2e4a] text-white px-2 py-1 rounded whitespace-nowrap hover:bg-[#0f1a2e] transition-colors"
               >
-                Acessar Site e Fotos
-                <ExternalLink className="h-2.5 w-2.5" />
+                ACESSAR SITE E FOTOS
               </a>
-            ) : (
-              <button className="bg-[#1a2e4a] text-white py-1 px-1.5 rounded font-bold text-[9px] uppercase hover:bg-[#253d5c] transition whitespace-nowrap">
-                Acessar Site e Fotos
-              </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Main content: Amenities left, Tarifas right */}
-      <div className="grid gap-1 mb-2" style={{ gridTemplateColumns: '0.6fr 1.4fr' }}>
-        {/* Left: Amenities - Compacto */}
-        <div>
-          <div className="text-xs font-bold text-[#1a2e4a] mb-1 uppercase">Comodidades:</div>
-          {hotel.amenities.length > 0 ? (
-            <div className="flex flex-col gap-0.5">
+      {/* Main Content: Comodidades + Tarifas */}
+      <div className="flex gap-3 mt-2">
+        {/* Left: Comodidades */}
+        <div className="w-32 flex-shrink-0">
+          <div className="text-[9px] font-bold text-slate-700 mb-1 uppercase">Comodidades:</div>
+          {hotel.amenities && hotel.amenities.length > 0 ? (
+            <div className="space-y-0.5">
               {hotel.amenities.map((amenity, i) => {
-                const icons = ["☕", "🏊", "💪", "📶", "🍽️", "🎵", "💆", "📚", "🎮", "✓"];
+                const icons = ["📶", "🏊", "🏋️", "🍽️"];
                 const icon = icons[i % icons.length];
                 
                 return (
@@ -143,10 +145,10 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
           )}
         </div>
 
-        {/* Right: Tarifas - Compacto em 2 colunas */}
-        <div className="w-full">
+        {/* Right: Tarifas - Expandido em 2 colunas */}
+        <div className="flex-1">
           {includeAirfare && tiers.length > 0 ? (
-            <div className="grid grid-cols-2 gap-1.5 w-full">
+            <div className="grid grid-cols-2 gap-2 w-full">
               {tiers.slice(0, 2).map((tier) => {
                 const basePrice = includeAirfare ? effectiveTotalPrice + (tier.flightPrice * passengers) : effectiveTotalPrice;
                 const totalPrice = basePrice;
@@ -156,10 +158,10 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 return (
                   <div
                     key={tier.id}
-                    className={`rounded-lg border p-1 overflow-hidden ${ tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
+                    className={`rounded-lg border p-1.5 overflow-hidden ${ tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
                   >
                     {/* Tarifa Info */}
-                    <div className="flex items-start justify-between gap-1 mb-1 pb-1 border-b border-slate-300">
+                    <div className="flex items-start justify-between gap-1.5 mb-1 pb-1 border-b border-slate-300">
                       <div className="text-left flex-1">
                         <div className={`text-[8px] font-bold mb-0.5 uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
                           {label}
@@ -171,81 +173,62 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                           {formatCurrency(perPersonPrice)} / pessoa
                         </div>
                       </div>
-                      {tier.benefits && tier.benefits.length > 0 && (
-                        <div className="text-[7px] text-slate-600 grid grid-cols-2 gap-x-1 gap-y-0.5 w-full">
-                          {tier.benefits.slice(0, 12).map((benefit, idx) => {
-                            const benefitIcons: Record<string, string> = {
-                              "mala de mao": "🧳",
-                              "mala despachada": "📦",
-                              "selecao de assento": "💺",
-                              "alteracoes": "🔄",
-                              "reembolso": "💰",
-                              "carry on": "🧳",
-                              "checked bag": "📦",
-                              "seat selection": "💺",
-                              "changes": "🔄",
-                              "bolsa ou mochila": "🎒",
-                              "embarque prioritario": "⚡",
-                              "check in prioritario": "⚡",
-                              "bagagem de mao": "🧳",
-                            };
-                            const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                            const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "📌";
-                            return (
-                              <div key={idx} className="flex items-start gap-0.5 break-words leading-tight">
-                                <span className="flex-shrink-0 leading-tight">{icon}</span>
-                                <span className="text-[7px] break-words leading-tight">{benefit}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
                     </div>
+
+                    {/* Benefícios - Coluna vertical com "Bolsa ou mochila" primeiro */}
+                    {tier.benefits && tier.benefits.length > 0 && (
+                      <div className="text-[6px] text-slate-600 flex flex-col gap-0.5 mb-1">
+                        {reorganizeBenefits(tier.benefits).map((benefit, idx) => {
+                          const benefitIcons: Record<string, string> = {
+                            "mala de mao": "🧳",
+                            "mala despachada": "📦",
+                            "selecao de assento": "💺",
+                            "alteracoes": "🔄",
+                            "reembolso": "💰",
+                            "carry on": "🧳",
+                            "checked bag": "📦",
+                            "seat selection": "💺",
+                            "changes": "🔄",
+                            "bolsa ou mochila": "🎒",
+                            "embarque prioritario": "⚡",
+                            "check in prioritario": "⚡",
+                            "bagagem de mao": "🧳",
+                          };
+                          const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                          const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "📌";
+                          return (
+                            <div key={idx} className="flex items-start gap-0.5 leading-tight">
+                              <span className="flex-shrink-0 leading-tight text-[7px] mt-0.5">{icon}</span>
+                              <span className="text-[6px] leading-tight break-words">{benefit}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
 
                     {/* Forma de Pagamento dentro do card */}
                     {((includeAirfare && flightPaymentMethods?.length > 0) || (includeHotel && hotelPaymentMethods?.length > 0)) && (
-                      <div className="space-y-1 mt-1.5">
+                      <div className="space-y-0.5 mt-1 pt-1 border-t border-slate-300">
                         {/* AÉREO */}
                         {includeAirfare && tiers.length > 0 && (
                           <div>
-                            <div className="text-[7px] font-semibold text-slate-600 uppercase mb-0.5">Aéreo Parcelado</div>
-                            <div className="text-[8px] font-bold text-[#1a2e4a]">
+                            <div className="text-[6px] font-semibold text-slate-600 uppercase mb-0.5">Aéreo Parcelado</div>
+                            <div className="text-[7px] font-bold text-[#1a2e4a]">
                               {tier.flightPrice ? (() => {
                                 const flightTotal = tier.flightPrice * passengers;
-                                if (flightDownpayment && flightDownpaymentAmount && flightDownpaymentAmount > 0) {
-                                  return `1x de ${formatCurrency(flightDownpaymentAmount)} + ${flightInstallments}x de ${formatCurrency((flightTotal - flightDownpaymentAmount) / flightInstallments)}`;
-                                } else {
-                                  return `${flightInstallments}x de ${formatCurrency(flightTotal / flightInstallments)}`;
-                                }
+                                const installmentValue = flightInstallments > 0 ? flightTotal / flightInstallments : 0;
+                                return `${flightInstallments}x de ${formatCurrency(installmentValue)}`;
                               })() : "N/A"}
                             </div>
-                            {flightPaymentMethods && flightPaymentMethods.length > 0 && (
-                              <div className="flex flex-wrap gap-0.5 mt-0.5">
-                                {flightPaymentMethods.map((method) => (
-                                  <span key={method} className="inline-block px-1 py-0.25 rounded text-[6px] font-medium bg-blue-100 text-blue-700">
-                                    {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
                           </div>
                         )}
+
                         {/* HOTEL */}
-                        {includeHotel && hotelPaymentMethods && hotelPaymentMethods.length > 0 && (
+                        {includeHotel && hotelPaymentMethods?.length > 0 && (
                           <div>
-                            <div className="text-[7px] font-semibold text-slate-600 uppercase mb-0.5">Hotel</div>
-                            <div className="text-[8px] font-bold text-[#1a2e4a]">
-                              {hotelDownpayment && hotelDownpaymentAmount && hotelDownpaymentAmount > 0
-                                ? `1x de ${formatCurrency(hotelDownpaymentAmount)} + ${hotelInstallments}x de ${formatCurrency((effectiveTotalPrice - hotelDownpaymentAmount) / hotelInstallments)}`
-                                : `${hotelInstallments}x de ${formatCurrency(effectiveTotalPrice / hotelInstallments)}`
-                              }
-                            </div>
-                            <div className="flex flex-wrap gap-0.5 mt-0.5">
-                              {hotelPaymentMethods.map((method) => (
-                                <span key={method} className="inline-block px-1 py-0.25 rounded text-[6px] font-medium bg-blue-100 text-blue-700">
-                                  {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
-                                </span>
-                              ))}
+                            <div className="text-[6px] font-semibold text-slate-600 uppercase mb-0.5">Hotel</div>
+                            <div className="text-[7px] font-bold text-[#1a2e4a]">
+                              {hotelInstallments > 0 ? `${hotelInstallments}x de ${formatCurrency(effectiveTotalPrice / hotelInstallments)}` : formatCurrency(effectiveTotalPrice)}
                             </div>
                           </div>
                         )}
@@ -255,131 +238,11 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 );
               })}
             </div>
-          ) : effectiveTotalPrice > 0 ? (
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-2 text-center">
-              <div className="text-[9px] font-bold mb-0.5 uppercase text-blue-700">
-                Preço do Hotel
-              </div>
-              <div className="text-xs font-bold text-blue-600">
-                {formatCurrency(effectiveTotalPrice)}
-              </div>
-              <div className="text-[8px] text-blue-600/70">
-                {formatCurrency(effectiveTotalPrice / passengers)} / pessoa
-              </div>
-            </div>
           ) : (
-            <div className="text-xs text-slate-400">Nenhuma tarifa</div>
+            <div className="text-sm text-slate-500">Sem tarifas cadastradas</div>
           )}
         </div>
       </div>
-
-
-
-      {/* Payment Methods Block - Removed (now inside each tarifa card) */}
-      {false && (
-        <div className="mt-1.5 pt-2 border-t-2 border-amber-400">
-          <div className="text-xs font-bold text-[#1a2e4a] uppercase mb-2 pb-1 border-b border-slate-200">
-            Forma de Pagamento
-          </div>
-          {combined ? (
-            /* COMBINED Block - Aéreo + Hotel */
-            <div className="rounded-lg border border-slate-200 p-2 bg-slate-50">
-              <div className="text-xs font-semibold text-slate-500 uppercase mb-1">Aéreo + Hotel</div>
-              <div className="text-base font-bold text-[#1a2e4a]">
-                {tiers[0]?.flightPrice && effectiveTotalPrice ? (() => {
-                  const flightTotal = tiers[0].flightPrice * passengers;
-                  const hotelTotal = effectiveTotalPrice;
-                  const totalAmount = flightTotal + hotelTotal;
-                  
-                  // Calculate total downpayment (flight + hotel)
-                  const totalDownpayment = (flightDownpayment && flightDownpaymentAmount ? flightDownpaymentAmount : 0) + (combinedDownpayment && combinedDownpaymentAmount ? combinedDownpaymentAmount : 0);
-                  
-                  if (totalDownpayment > 0) {
-                    return `1x de ${formatCurrency(totalDownpayment)} + ${combinedInstallments}x de ${formatCurrency((totalAmount - totalDownpayment) / combinedInstallments)}`;
-                  } else {
-                    return `${combinedInstallments}x de ${formatCurrency(totalAmount / combinedInstallments)}`;
-                  }
-                })() : "N/A"}
-              </div>
-              <div className="text-xs text-slate-500 mt-0.5">
-                Total: {tiers[0]?.flightPrice && effectiveTotalPrice ? formatCurrency((tiers[0].flightPrice * passengers) + effectiveTotalPrice) : "N/A"}
-              </div>
-              <div className="flex flex-wrap gap-1 mt-1.5">
-                {flightPaymentMethods && flightPaymentMethods.length > 0 && flightPaymentMethods.map((method) => (
-                  <span key={method} className="inline-block px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
-                    {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : (
-            /* SEPARATE Blocks - Aéreo and Hotel */
-            <div className="grid grid-cols-2 gap-2">
-              {/* AÉREO Block */}
-              {includeAirfare && tiers.length > 0 && (
-                <div className="rounded-lg border border-slate-200 p-2 bg-slate-50">
-                  <div className="text-xs font-semibold text-slate-500 uppercase mb-1">Aéreo</div>
-                  <div className="text-base font-bold text-[#1a2e4a]">
-                    {tiers[0]?.flightPrice ? (() => {
-                      const flightTotal = tiers[0].flightPrice * passengers;
-                      if (flightDownpayment && flightDownpaymentAmount && flightDownpaymentAmount > 0) {
-                        return `1x de ${formatCurrency(flightDownpaymentAmount)} + ${flightInstallments}x de ${formatCurrency((flightTotal - flightDownpaymentAmount) / flightInstallments)}`;
-                      } else {
-                        return `${flightInstallments}x de ${formatCurrency(flightTotal / flightInstallments)}`;
-                      }
-                    })() : "N/A"}
-                  </div>
-                  <div className="text-xs text-slate-500 mt-0.5">
-                    Total: {tiers[0]?.flightPrice ? formatCurrency(tiers[0].flightPrice * passengers) : "N/A"}
-                  </div>
-                  {flightPaymentMethods && flightPaymentMethods.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                      {flightPaymentMethods.map((method) => (
-                        <span key={method} className="inline-block px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
-                          {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-              {/* HOTEL Block */}
-              {includeHotel && hotelPaymentMethods && hotelPaymentMethods.length > 0 && (
-                <div className="rounded-lg border border-slate-200 p-2 bg-slate-50">
-                  <div className="text-xs font-semibold text-slate-500 uppercase mb-1">Hotel</div>
-                  <div className="text-base font-bold text-[#1a2e4a]">
-                    {hotelDownpayment && hotelDownpaymentAmount && hotelDownpaymentAmount > 0
-                      ? `1x de ${formatCurrency(hotelDownpaymentAmount)} + ${hotelInstallments}x de ${formatCurrency((effectiveTotalPrice - hotelDownpaymentAmount) / hotelInstallments)}`
-                      : `${hotelInstallments}x de ${formatCurrency(effectiveTotalPrice / hotelInstallments)}`
-                    }
-                  </div>
-                  <div className="text-xs text-slate-500 mt-0.5">
-                    Total: {formatCurrency(effectiveTotalPrice)}
-                  </div>
-                  <div className="flex flex-wrap gap-1 mt-1.5">
-                    {hotelPaymentMethods.map((method) => (
-                      <span key={method} className="inline-block px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
-                        {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-          {/* Installment Observations */}
-          {observations && (
-            <div className="mt-1.5 mb-1.5 p-1.5 bg-amber-50 border border-amber-200 rounded text-xs text-slate-700 break-inside-avoid">
-              {observations}
-            </div>
-          )}
-          {hotel.paymentNotes && (
-            <div className="mt-1.5 mb-1.5 p-1.5 bg-amber-50 border border-amber-200 rounded text-xs text-slate-700 break-inside-avoid">
-              {hotel.paymentNotes}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
