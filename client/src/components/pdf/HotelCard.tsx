@@ -54,12 +54,6 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
       ? hotel.dailyPrice * hotel.nights
       : hotel.totalPrice;
 
-  // Função para reorganizar benefícios com "Bolsa ou mochila" primeiro
-  const reorganizeBenefits = (benefits: string[]) => {
-    const bolsaBenefit = benefits.find(b => b.toLowerCase().includes("bolsa ou mochila"));
-    const otherBenefits = benefits.filter(b => !b.toLowerCase().includes("bolsa ou mochila")).slice(0, 11);
-    return bolsaBenefit ? [bolsaBenefit, ...otherBenefits] : benefits.slice(0, 12);
-  };
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white overflow-hidden shadow-sm p-3 mb-3 w-full">
@@ -175,10 +169,10 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                       </div>
                     </div>
 
-                    {/* Benefícios - Coluna vertical com "Bolsa ou mochila" primeiro */}
+                    {/* Benefícios - Fluxo contínuo (inline/flex-wrap) como no voo */}
                     {tier.benefits && tier.benefits.length > 0 && (
-                      <div className="text-[6px] text-slate-600 flex flex-col gap-0.5 mb-1">
-                        {reorganizeBenefits(tier.benefits).map((benefit, idx) => {
+                      <div className="text-[7px] text-slate-600 flex flex-wrap gap-1 mb-1 w-full">
+                        {tier.benefits.map((benefit, idx) => {
                           const benefitIcons: Record<string, string> = {
                             "mala de mao": "🧳",
                             "mala despachada": "📦",
@@ -197,9 +191,9 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                           const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
                           const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "📌";
                           return (
-                            <div key={idx} className="flex items-start gap-0.5 leading-tight">
-                              <span className="flex-shrink-0 leading-tight text-[7px] mt-0.5">{icon}</span>
-                              <span className="text-[6px] leading-tight break-words">{benefit}</span>
+                            <div key={idx} className="flex items-center gap-0.5 leading-tight">
+                              <span className="flex-shrink-0 leading-tight">{icon}</span>
+                              <span className="text-[7px] leading-tight">{benefit}</span>
                             </div>
                           );
                         })}

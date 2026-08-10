@@ -105,3 +105,9 @@
 - [x] Layout de Opcionais: Demais itens em 1 coluna vertical simples abaixo do item fixo
 - [x] Redução de Fonte dos Opcionais: Diminuir font-size e padding para cada item ocupar apenas 1 linha
 - [x] Validação: Garantir que nada quebra linha ou encoste nas bordas laterais do card
+
+- [x] Remoção de Seção Duplicada: Remover cards de tarifa isolados abaixo da seção de voos (antes de "OPÇÕES DE HOSPEDAGEM")
+- [x] Tarifas em Voo Apenas: Quando deixar apenas voo, as tarifas devem aparecer normalmente (FARES SECTION restaurada)
+- [x] Reformatação de Opcionais: Alterar de coluna vertical para fluxo contínuo (inline/flex-wrap) igual ao formato do voo
+- [x] Posicionamento de Opcionais: Colocar em largura total (100%) logo abaixo do Preço Total/Pessoa
+- [x] Validação: Garantir que ícones coloridos aparecem em ambos os formatos (coluna e inline)

@@ -128,9 +128,15 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
         </div>
       )}
 
-      {/* FARES SECTION - Show when flight is included */}
-      {fareComparison.tiers.length > 0 && includeAirfare && (
+      {/* FARES SECTION - Show when flight is included and NO hotels */}
+      {fareComparison.tiers.length > 0 && includeAirfare && !includeHotel && (
         <div className="px-8 py-4" {...(pageBreaks.fares ? { "data-page-break": "true" } : {})}>
+          <h3
+            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
+            style={{ fontFamily: "Poppins, sans-serif" }}
+          >
+            Comparativo de Tarifas
+          </h3>
           <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(fareComparison.tiers.length, 3)}, 1fr)` }}>
             {fareComparison.tiers.map((tier) => {
               const totalPrice = tier.flightPrice * passengerCount;
@@ -138,12 +144,12 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
               return (
                 <div
                   key={tier.id}
-                  className={`rounded-lg border p-2 shadow-sm ${
+                  className={`rounded-lg border p-3 shadow-sm ${
                     tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"
                   }`}
                 >
-                  {/* Title in one line */}
-                  <div className={`text-[9px] font-bold mb-1 uppercase whitespace-nowrap ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
+                  {/* Title */}
+                  <div className={`text-[10px] font-bold mb-1 uppercase ${tier.highlighted ? "text-amber-700" : "text-blue-700"}`}>
                     {tier.name}
                   </div>
                   
@@ -155,9 +161,9 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     {formatCurrency(perPersonPrice)} / pessoa
                   </div>
                   
-                  {/* Benefits with icons - max 3 per line */}
+                  {/* Benefits with icons - flex wrap */}
                   {tier.benefits && tier.benefits.length > 0 && (
-                    <div className="text-[8px] text-slate-500 flex flex-wrap gap-1">
+                    <div className="text-[7px] text-slate-600 flex flex-wrap gap-1 mb-2 w-full">
                       {tier.benefits.map((benefit, idx) => {
                         const benefitIcons: Record<string, string> = {
                           "mala de mao": "🧳",
@@ -169,30 +175,31 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                           "checked bag": "📦",
                           "seat selection": "💺",
                           "changes": "🔄",
+                          "bolsa ou mochila": "🎒",
+                          "embarque prioritario": "⚡",
+                          "check in prioritario": "⚡",
+                          "bagagem de mao": "🧳",
                         };
                         const benefitLower = benefit.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                        const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "✓";
-                        // Max 3 items per line
-                        const isLineBreak = idx > 0 && idx % 3 === 0;
+                        const icon = Object.entries(benefitIcons).find(([key]) => benefitLower.includes(key))?.[1] || "📌";
                         return (
-                          <div key={idx} className={`flex items-center gap-0.5 ${isLineBreak ? "basis-full" : ""}`}>
-                            <span>{icon}</span>
-                            <span>{benefit}</span>
+                          <div key={idx} className="flex items-center gap-0.5 leading-tight">
+                            <span className="flex-shrink-0">{icon}</span>
+                            <span className="text-[7px]">{benefit}</span>
                           </div>
                         );
                       })}
                     </div>
                   )}
                   
-                  {/* FORMA DE PAGAMENTO - dentro de cada tarifa */}
-                  <div className="mt-3 pt-3 border-t border-slate-200">
-                    <div className="text-[8px] font-semibold text-slate-600 uppercase mb-2">Forma de Pagamento</div>
-                    <div className="flex gap-2 text-[8px]">
-                      {/* Aéreo Parcelado - SEMPRE */}
+                  {/* FORMA DE PAGAMENTO */}
+                  <div className="mt-2 pt-2 border-t border-slate-200">
+                    <div className="text-[8px] font-semibold text-slate-600 uppercase mb-1">Forma de Pagamento</div>
+                    <div className="flex gap-1 text-[8px]">
+                      {/* Aéreo Parcelado */}
                       <div className="flex-1">
                         <div className="font-bold text-slate-700">
                           {(() => {
-                            // Use flightInstallments which is already set correctly above
                             if (installments?.flightMachineRate !== undefined && installments?.flightInstallmentsWithRate !== undefined) {
                               const rate = installments.flightMachineRate / 100;
                               const withRate = totalPrice * (1 + rate);
@@ -205,11 +212,10 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                         </div>
                       </div>
                       
-                      {/* OU */}
+                      {/* À Vista */}
                       {installments?.showCashOption && (
                         <>
                           <div className="text-slate-400 font-bold">ou</div>
-                          {/* Aéreo À Vista - APENAS SE MARCADO */}
                           <div className="flex-1">
                             <div className="font-bold text-slate-700">
                               1x de {formatCurrency(totalPrice)}
@@ -223,9 +229,9 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
               );
             })}
           </div>
-          {/* Observations for flight-only section */}
+          {/* Observations */}
           {installments?.observations && (
-            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded text-xs text-slate-700">
+            <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-slate-700">
               {installments.observations}
             </div>
           )}
@@ -415,39 +421,11 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
           <p className="text-xs text-white/70">
             Bella Viagens e Milhas | Acumule. Viaje. Viva.
           </p>
-          <p className="text-xs text-white/70">Página 1</p>
+          <p className="text-xs text-white/70">
+            Orçamento válido por 7 dias
+          </p>
         </div>
       </div>
     </div>
-  );
-}
-
-function BenefitRow({
-  label,
-  tiers,
-  field,
-}: {
-  label: string;
-  tiers: any[];
-  field: "carryOn" | "checkedBag" | "seatSelection" | "changes";
-}) {
-  return (
-    <>
-      <div className="border-t border-slate-200 p-3 text-xs font-medium text-slate-600">{label}</div>
-      {tiers.map((tier) => (
-        <div
-          key={tier.id}
-          className={`border-t border-slate-200 p-3 flex items-center justify-center ${
-            tier.highlighted ? "bg-amber-400/10" : ""
-          }`}
-        >
-          {tier[field] ? (
-            <Check className={`h-4 w-4 ${tier.highlighted ? "text-amber-600" : "text-green-600"}`} />
-          ) : (
-            <X className="h-4 w-4 text-slate-300" />
-          )}
-        </div>
-      ))}
-    </>
   );
 }
