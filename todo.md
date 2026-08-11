@@ -126,3 +126,5 @@
 - [x] Mapeamento Estático: Dicionário fixo BENEFIT_ICON_MAP com 40+ variações cobrindo todas as opções do FareForm
 - [x] Função getBenefitIcon: Match exato + match sem acentos + fallback fixo (nunca genérico)
 - [x] Padronização: PdfPreview FARES SECTION atualizada com mesmas classes rígidas e mapeamento
+
+- [x] Corrigir Calculadora de Taxa: Passar flightInstallments derivado (com taxa) para HotelCard em vez de installments?.flight fixo

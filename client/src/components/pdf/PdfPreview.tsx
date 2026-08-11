@@ -317,13 +317,13 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     hotelPaymentMethods={installments?.hotelPaymentMethods}
                     flightPaymentMethods={installments?.paymentMethods}
                     combined={installments?.combined}
-                    hotelInstallments={installments?.hotel || 1}
+                    hotelInstallments={hotelInstallments}
                     hotelDownpayment={installments?.hotelDownpayment}
                     hotelDownpaymentAmount={installments?.hotelDownpaymentAmount}
-                    flightInstallments={installments?.flight || 1}
+                    flightInstallments={flightInstallments}
                     flightDownpayment={installments?.flightDownpayment}
                     flightDownpaymentAmount={installments?.flightDownpaymentAmount}
-                    combinedInstallments={Math.max(installments?.flight || 1, installments?.hotel || 1)}
+                    combinedInstallments={combinedInstallments}
                     combinedDownpayment={installments?.combinedDownpayment}
                     combinedDownpaymentAmount={installments?.combinedDownpaymentAmount}
                     observations={installments?.observations}
