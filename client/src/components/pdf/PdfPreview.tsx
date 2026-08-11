@@ -214,7 +214,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                   {/* Title */}
                   <div
                     className="font-bold mb-1 leading-tight"
-                    style={{ fontSize: "12px", color: tier.highlighted ? "#b45309" : "#1d4ed8", overflowWrap: "anywhere" }}
+                    style={{ fontSize: "13px", color: tier.highlighted ? "#b45309" : "#1d4ed8", overflowWrap: "anywhere" }}
                   >
                     {`Com Aéreo ${tier.name}`}
                   </div>
@@ -222,13 +222,13 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                   {/* Price info */}
                   <div
                     className="font-bold mb-0.5"
-                    style={{ fontSize: "16px", color: tier.highlighted ? "#d97706" : "#2563eb" }}
+                    style={{ fontSize: "18px", color: tier.highlighted ? "#d97706" : "#2563eb" }}
                   >
                     {formatCurrency(totalPrice)}
                   </div>
                   <div
                     className="mb-2"
-                    style={{ fontSize: "9px", color: tier.highlighted ? "#d97706" : "#2563eb", opacity: 0.7 }}
+                    style={{ fontSize: "10px", color: tier.highlighted ? "#d97706" : "#2563eb", opacity: 0.7 }}
                   >
                     {formatCurrency(perPersonPrice)} / pessoa
                   </div>
@@ -240,8 +240,8 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                         const icon = getBenefitIcon(benefit);
                         return (
                           <div key={idx} style={{ display: "flex", alignItems: "center", gap: "2px", lineHeight: "1.1", whiteSpace: "nowrap" }}>
-                            <span style={{ fontSize: "12px", flexShrink: 0, lineHeight: 1 }}>{icon}</span>
-                            <span style={{ fontSize: "9px", color: "#475569" }}>{benefit}</span>
+                            <span style={{ fontSize: "10px", flexShrink: 0, lineHeight: 1 }}>{icon}</span>
+                            <span style={{ fontSize: "8.5px", color: "#475569" }}>{benefit}</span>
                           </div>
                         );
                       })}
@@ -254,7 +254,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     <div className="flex gap-1 text-[9px]">
                       {/* Aéreo Parcelado */}
                       <div className="flex-1">
-                        <div className="font-bold text-slate-700">
+                        <div className="font-bold text-[11px] text-slate-700">
                           {(() => {
                             if (installments?.flightMachineRate !== undefined && installments?.flightInstallmentsWithRate !== undefined) {
                               const rate = installments.flightMachineRate / 100;
@@ -273,7 +273,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                         <>
                           <div className="text-slate-400 font-bold">ou</div>
                           <div className="flex-1">
-                            <div className="font-bold text-slate-700">
+                            <div className="font-bold text-[11px] text-slate-700">
                               1x de {formatCurrency(totalPrice)}
                             </div>
                           </div>

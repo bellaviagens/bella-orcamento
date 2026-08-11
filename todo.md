@@ -164,3 +164,8 @@
 - [x] Compactar os cards para largura máxima de 270px, fonte e espaçamentos solicitados
 - [x] Manter os cards lado a lado, alinhados à direita, sem alterar cálculos ou estrutura
 - [x] Validar visualmente e por testes a compactação dos cards
+
+- [x] Destacar título, preço principal e valor por pessoa conforme as novas medidas
+- [x] Aumentar a legibilidade dos valores e rótulos de pagamento sem alterar cálculos
+- [x] Compactar exclusivamente opcionais, ícones e espaçamentos verticais dos cards
+- [x] Validar a hierarquia visual preservando o alinhamento à direita e lado a lado

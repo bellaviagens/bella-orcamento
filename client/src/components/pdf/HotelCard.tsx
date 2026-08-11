@@ -154,7 +154,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
     display: "flex",
     alignItems: "center",
     gap: "1px",
-    lineHeight: "1.2",
+    lineHeight: "1.1",
     whiteSpace: "nowrap",
     minWidth: 0,
   };
@@ -265,7 +265,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         <div
                           className="font-bold mb-0.5 leading-tight"
                           style={{
-                            fontSize: "12px",
+                            fontSize: "13px",
                             color: tier.highlighted ? "#b45309" : "#1d4ed8",
                             overflowWrap: "anywhere",
                           }}
@@ -275,7 +275,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         <div
                           className="font-bold"
                           style={{
-                            fontSize: "16px",
+                            fontSize: "18px",
                             color: tier.highlighted ? "#d97706" : "#2563eb",
                           }}
                         >
@@ -283,7 +283,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         </div>
                         <div
                           style={{
-                            fontSize: "9px",
+                            fontSize: "10px",
                             color: tier.highlighted ? "#d97706" : "#2563eb",
                             opacity: 0.7,
                           }}
@@ -298,8 +298,8 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                             const icon = getBenefitIcon(benefit);
                             return (
                               <div key={idx} style={beneficioItemStyle}>
-                                <span style={{ fontSize: "12px", flexShrink: 0, lineHeight: 1 }}>{icon}</span>
-                                <span style={{ fontSize: "9px", color: "#475569" }}>{benefit}</span>
+                                <span style={{ fontSize: "10px", flexShrink: 0, lineHeight: 1 }}>{icon}</span>
+                                <span style={{ fontSize: "8.5px", color: "#475569" }}>{benefit}</span>
                               </div>
                             );
                           })}
@@ -320,7 +320,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                             </div>
                             <div
                               className="font-bold"
-                              style={{ fontSize: "9px", color: "#1a2e4a" }}
+                              style={{ fontSize: "11px", color: "#1a2e4a" }}
                             >
                               {(() => {
                                 const installmentValue = calculateCombinedInstallmentValue(
@@ -346,7 +346,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                             </div>
                             <div
                               className="font-bold"
-                              style={{ fontSize: "9px", color: "#1a2e4a" }}
+                              style={{ fontSize: "11px", color: "#1a2e4a" }}
                             >
                               {tier.flightPrice ? (() => {
                                 const flightTotal = tier.flightPrice * passengers;
@@ -368,7 +368,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                             </div>
                             <div
                               className="font-bold"
-                              style={{ fontSize: "9px", color: "#1a2e4a" }}
+                              style={{ fontSize: "11px", color: "#1a2e4a" }}
                             >
                               {hotelInstallments > 0 ? `${hotelInstallments}x de ${formatCurrency(effectiveTotalPrice / hotelInstallments)}` : formatCurrency(effectiveTotalPrice)}
                             </div>
