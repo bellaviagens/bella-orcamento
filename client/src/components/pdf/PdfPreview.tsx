@@ -116,10 +116,10 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
     <div
       id="pdf-document"
       className="bg-slate-50 mx-auto flex flex-col min-h-screen"
-      style={{ width: "100%", maxWidth: "1000px", fontFamily: "Inter, sans-serif" }}
+      style={{ width: "100%", maxWidth: "1120px", fontFamily: "Inter, sans-serif" }}
     >
       {/* HEADER */}
-      <div className="bg-[#1a2e4a] text-white px-8 py-6 flex items-center justify-between">
+      <div className="bg-[#1a2e4a] text-white px-4 py-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
             Bella Viagens e Milhas
@@ -139,7 +139,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
       </div>
 
       {/* TRIP INFO BAR */}
-      <div className="bg-slate-100 px-8 py-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+      <div className="bg-slate-100 px-4 py-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
         {tripInfo.destination && (
           <div>
             <div className="text-xs text-slate-500 font-semibold uppercase">Destino</div>
@@ -168,14 +168,14 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
 
       {/* INTRO TEXT */}
       {tripInfo.introText && (
-        <div className="px-8 py-4">
+        <div className="px-4 py-4">
           <p className="text-sm text-slate-600 leading-relaxed">{tripInfo.introText}</p>
         </div>
       )}
 
       {/* FLIGHTS SECTION */}
       {flights.length > 0 && includeAirfare && (
-        <div className="px-8 py-4" {...(pageBreaks.flights ? { "data-page-break": "true" } : {})}>
+        <div className="px-4 py-4" {...(pageBreaks.flights ? { "data-page-break": "true" } : {})}>
           <h3
             className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
             style={{ fontFamily: "Poppins, sans-serif" }}
@@ -192,7 +192,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
 
       {/* FARES SECTION - Show when flight is included and NO hotels */}
       {fareComparison.tiers.length > 0 && includeAirfare && !includeHotel && (
-        <div className="px-8 py-4" {...(pageBreaks.fares ? { "data-page-break": "true" } : {})}>
+        <div className="px-4 py-4" {...(pageBreaks.fares ? { "data-page-break": "true" } : {})}>
           <h3
             className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
             style={{ fontFamily: "Poppins, sans-serif" }}
@@ -206,15 +206,15 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
               return (
                 <div
                   key={tier.id}
-                  style={{ width: "280px", maxWidth: "300px", flexShrink: 0, boxSizing: "border-box" }}
+                  style={{ width: "292px", maxWidth: "292px", flexShrink: 0, boxSizing: "border-box" }}
                   className={`rounded-lg border p-2 shadow-sm ${
                     tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"
                   }`}
                 >
                   {/* Title */}
                   <div
-                    className="font-bold mb-1 uppercase truncate"
-                    style={{ fontSize: "8pt", color: tier.highlighted ? "#b45309" : "#1d4ed8" }}
+                    className="font-bold mb-1 leading-tight"
+                    style={{ fontSize: "8pt", color: tier.highlighted ? "#b45309" : "#1d4ed8", overflowWrap: "anywhere" }}
                   >
                     {tier.name}
                   </div>
@@ -296,7 +296,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
 
       {/* HOTELS SECTION */}
       {hotels.length > 0 && includeHotel && (
-        <div className="px-8 py-8" {...(pageBreaks.hotels ? { "data-page-break": "true" } : {})}>
+        <div className="px-4 py-8" {...(pageBreaks.hotels ? { "data-page-break": "true" } : {})}>
           <h3
             className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
             style={{ fontFamily: "Poppins, sans-serif" }}
@@ -337,7 +337,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
 
       {/* BAGGAGE GUIDE */}
       {baggage.some((b) => b.priceAdvance > 0 || b.priceAirport > 0) && (
-        <div className="px-8 py-4" {...(pageBreaks.baggage ? { "data-page-break": "true" } : {})}>
+        <div className="px-4 py-4" {...(pageBreaks.baggage ? { "data-page-break": "true" } : {})}>
           <h3
             className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
             style={{ fontFamily: "Poppins, sans-serif" }}
@@ -369,7 +369,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
 
       {/* INSTALLMENTS SECTION - Only for flights when hotels are not included */}
       {includeAirfare && !includeHotel && (installments?.flight || installments?.hotel) && (
-        <div className="px-8 py-4" {...(pageBreaks.payment ? { "data-page-break": "true" } : {})}>
+        <div className="px-4 py-4" {...(pageBreaks.payment ? { "data-page-break": "true" } : {})}>
           <h3
             className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
             style={{ fontFamily: "Poppins, sans-serif" }}
@@ -462,7 +462,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
       <div className="flex-grow"></div>
 
       {/* AVAILABILITY NOTE - Before footer (rodapé da primeira página) */}
-      <div className="px-8 py-2">
+      <div className="px-4 py-2">
         <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 flex items-start gap-2">
           <Info className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
           <p className="text-[10px] text-slate-600 leading-tight">
@@ -472,7 +472,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
       </div>
 
       {/* FOOTER */}
-      <div className="bg-[#1a2e4a] text-white px-8 py-4 mt-8">
+      <div className="bg-[#1a2e4a] text-white px-4 py-4 mt-8">
         <div className="flex items-center justify-between">
           <p className="text-xs text-white/70">
             Bella Viagens e Milhas | Acumule. Viaje. Viva.

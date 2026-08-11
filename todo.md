@@ -154,3 +154,8 @@
 - [x] Confirmar no arquivo final a coluna lateral compacta de opcionais dentro de cada card
 - [x] Validar visualmente a legibilidade dos opcionais compactados no preview
 - [x] Confirmar que ícones, valores, pagamentos e cálculos permanecem intactos após o refinamento
+
+- [x] Ampliar a área útil do preview/PDF reduzindo as margens laterais
+- [x] Aproximar a coluna de informações de preço da coluna lateral de opcionais
+- [x] Preservar exatamente o texto digitado no título da tarifa, sem complemento automático
+- [x] Validar que cálculos, cores, ícones e formas de pagamento permanecem intactos

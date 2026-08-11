@@ -135,8 +135,8 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
   };
 
   const cardTarifaStyle: React.CSSProperties = {
-    width: "280px",
-    maxWidth: "300px",
+    width: "292px",
+    maxWidth: "292px",
     flexShrink: 0,
     boxSizing: "border-box",
   };
@@ -146,7 +146,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
     flexDirection: "column",
     alignItems: "flex-start",
     gap: "2px",
-    flex: 1,
+    flex: "1 1 0",
     minWidth: 0,
   };
 
@@ -251,7 +251,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 const basePrice = includeAirfare ? effectiveTotalPrice + (tier.flightPrice * passengers) : effectiveTotalPrice;
                 const totalPrice = basePrice;
                 const perPersonPrice = basePrice / passengers;
-                const label = includeAirfare ? `Com Aéreo ${tier.name}` : tier.name;
+                const label = tier.name;
 
                 return (
                   <div
@@ -260,13 +260,14 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                     className={`rounded-lg border p-1.5 overflow-hidden ${ tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
                   >
                     {/* Tarifa Info + Opcionais: bloco compacto com lista lateral */}
-                    <div className="flex items-start gap-2 mb-1 pb-1">
-                      <div className="text-left flex-1 min-w-0">
+                    <div className="flex items-start gap-1 mb-1 pb-1">
+                      <div className="text-left min-w-0" style={{ flex: "0 0 105px" }}>
                         <div
-                          className="font-bold mb-0.5 uppercase truncate"
+                          className="font-bold mb-0.5 leading-tight"
                           style={{
                             fontSize: "8pt",
                             color: tier.highlighted ? "#b45309" : "#1d4ed8",
+                            overflowWrap: "anywhere",
                           }}
                         >
                           {label}
