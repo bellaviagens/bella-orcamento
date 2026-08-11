@@ -66,7 +66,7 @@ describe("HotelCard — parcelamento conjunto", () => {
     expect(markup).toContain("Com Aéreo Personalizado");
   });
 
-  it("mostra a entrada e a taxa da maquininha no parcelamento aéreo", () => {
+  it("desconta a entrada e mostra a taxa da maquininha no parcelamento aéreo", () => {
     const markup = renderToStaticMarkup(
       <HotelCard
         hotel={{
@@ -93,8 +93,84 @@ describe("HotelCard — parcelamento conjunto", () => {
       />,
     );
 
-    expect(markup).toContain("10x de R$ 205,00");
+    expect(markup).toContain("1 entrada de R$ 1.000,00 + 9x de R$ 116,67");
     expect(markup).toContain("Taxa da maquininha: 2,5%");
-    expect(markup).toContain("Entrada: R$ 1.000,00");
+  });
+
+  it("desconta a entrada antes de parcelar hotel e aéreo mais hotel", () => {
+    const hotel = {
+      id: "hotel-4",
+      name: "Hotel Exemplo",
+      stars: 4,
+      address: "Endereço",
+      description: "",
+      rating: 0,
+      ratingLabel: "",
+      amenities: [],
+      photoUrl: "",
+      totalPrice: 3000,
+      prices: {},
+    };
+
+    const hotelMarkup = renderToStaticMarkup(
+      <HotelCard
+        hotel={hotel}
+        index={0}
+        tiers={[{ id: "fare-4", name: "Completa", flightPrice: 1000, benefits: [] }]}
+        passengers={2}
+        includeHotel
+        hotelPaymentMethods={["cartao"]}
+        hotelInstallments={6}
+        hotelDownpayment
+        hotelDownpaymentAmount={1000}
+      />,
+    );
+
+    const combinedMarkup = renderToStaticMarkup(
+      <HotelCard
+        hotel={hotel}
+        index={0}
+        tiers={[{ id: "fare-5", name: "Completa", flightPrice: 1000, benefits: [] }]}
+        passengers={2}
+        combined
+        combinedInstallments={6}
+        combinedDownpayment
+        combinedDownpaymentAmount={1000}
+      />,
+    );
+
+    expect(hotelMarkup).toContain("1 entrada de R$ 1.000,00 + 5x de R$ 400,00");
+    expect(combinedMarkup).toContain("1 entrada de R$ 1.000,00 + 5x de R$ 800,00");
+  });
+
+  it("aplica a taxa da calculadora do aéreo antes de parcelar o total conjunto", () => {
+    const markup = renderToStaticMarkup(
+      <HotelCard
+        hotel={{
+          id: "hotel-5",
+          name: "Hotel Exemplo",
+          stars: 4,
+          address: "Endereço",
+          description: "",
+          rating: 0,
+          ratingLabel: "",
+          amenities: [],
+          photoUrl: "",
+          totalPrice: 3000,
+          prices: {},
+        }}
+        index={0}
+        tiers={[{ id: "fare-6", name: "Completa", flightPrice: 1000, benefits: [] }]}
+        passengers={2}
+        combined
+        combinedInstallments={6}
+        combinedDownpayment
+        combinedDownpaymentAmount={1000}
+        flightMachineRate={10}
+      />,
+    );
+
+    expect(markup).toContain("1 entrada de R$ 1.000,00 + 5x de R$ 840,00");
+    expect(markup).toContain("Taxa da maquininha: 10%");
   });
 });

@@ -1,7 +1,7 @@
 import { Star, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Hotel, FareTier } from "@shared/budgetTypes";
-import { calculateCombinedInstallmentValue, calculateEffectiveHotelTotal } from "@shared/paymentCalculations";
+import { calculateEffectiveHotelTotal, calculateInstallmentWithDownpayment } from "@shared/paymentCalculations";
 import { trpc } from "@/lib/trpc";
 
 interface HotelCardProps {
@@ -324,18 +324,22 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                               style={{ fontSize: "11px", color: "#1a2e4a" }}
                             >
                               {(() => {
-                                const installmentValue = calculateCombinedInstallmentValue(
-                                  tier.flightPrice,
-                                  passengers,
-                                  effectiveTotalPrice,
+                                const flightTotalWithRate = flightMachineRate !== undefined
+                                  ? (tier.flightPrice * passengers) * (1 + flightMachineRate / 100)
+                                  : tier.flightPrice * passengers;
+                                const breakdown = calculateInstallmentWithDownpayment(
+                                  flightTotalWithRate + effectiveTotalPrice,
                                   combinedInstallments,
+                                  combinedDownpayment ? combinedDownpaymentAmount : 0,
                                 );
-                                return `${combinedInstallments}x de ${formatCurrency(installmentValue)}`;
+                                return breakdown.downpaymentAmount > 0
+                                  ? `1 entrada de ${formatCurrency(breakdown.downpaymentAmount)} + ${breakdown.remainingInstallments}x de ${formatCurrency(breakdown.installmentValue)}`
+                                  : `${combinedInstallments}x de ${formatCurrency(breakdown.installmentValue)}`;
                               })()}
                             </div>
-                            {combinedDownpayment && combinedDownpaymentAmount > 0 && (
+                            {flightMachineRate !== undefined && (
                               <div style={{ fontSize: "9px", color: "#64748b", marginTop: "2px" }}>
-                                Entrada: {formatCurrency(combinedDownpaymentAmount)}
+                                Taxa da maquininha: {flightMachineRate.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
                               </div>
                             )}
                           </div>
@@ -359,18 +363,19 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                                 const totalWithRate = flightMachineRate !== undefined
                                   ? flightTotal * (1 + flightMachineRate / 100)
                                   : flightTotal;
-                                const installmentValue = flightInstallments > 0 ? totalWithRate / flightInstallments : 0;
-                                return `${flightInstallments}x de ${formatCurrency(installmentValue)}`;
+                                const breakdown = calculateInstallmentWithDownpayment(
+                                  totalWithRate,
+                                  flightInstallments,
+                                  flightDownpayment ? flightDownpaymentAmount : 0,
+                                );
+                                return breakdown.downpaymentAmount > 0
+                                  ? `1 entrada de ${formatCurrency(breakdown.downpaymentAmount)} + ${breakdown.remainingInstallments}x de ${formatCurrency(breakdown.installmentValue)}`
+                                  : `${flightInstallments}x de ${formatCurrency(breakdown.installmentValue)}`;
                               })() : "N/A"}
                             </div>
                             {flightMachineRate !== undefined && (
                               <div style={{ fontSize: "9px", color: "#64748b", marginTop: "2px" }}>
                                 Taxa da maquininha: {flightMachineRate.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
-                              </div>
-                            )}
-                            {flightDownpayment && flightDownpaymentAmount > 0 && (
-                              <div style={{ fontSize: "9px", color: "#64748b", marginTop: "2px" }}>
-                                Entrada: {formatCurrency(flightDownpaymentAmount)}
                               </div>
                             )}
                           </div>
@@ -389,13 +394,17 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                               className="font-bold"
                               style={{ fontSize: "11px", color: "#1a2e4a" }}
                             >
-                              {hotelInstallments > 0 ? `${hotelInstallments}x de ${formatCurrency(effectiveTotalPrice / hotelInstallments)}` : formatCurrency(effectiveTotalPrice)}
+                              {(() => {
+                                const breakdown = calculateInstallmentWithDownpayment(
+                                  effectiveTotalPrice,
+                                  hotelInstallments,
+                                  hotelDownpayment ? hotelDownpaymentAmount : 0,
+                                );
+                                return breakdown.downpaymentAmount > 0
+                                  ? `1 entrada de ${formatCurrency(breakdown.downpaymentAmount)} + ${breakdown.remainingInstallments}x de ${formatCurrency(breakdown.installmentValue)}`
+                                  : `${hotelInstallments}x de ${formatCurrency(breakdown.installmentValue)}`;
+                              })()}
                             </div>
-                            {hotelDownpayment && hotelDownpaymentAmount > 0 && (
-                              <div style={{ fontSize: "9px", color: "#64748b", marginTop: "2px" }}>
-                                Entrada: {formatCurrency(hotelDownpaymentAmount)}
-                              </div>
-                            )}
                           </div>
                         )}
                           </>

@@ -174,3 +174,8 @@
 - [x] Exibir no preview o valor de entrada informado em Parcelamento
 - [x] Exibir no preview a taxa de maquininha quando preenchida
 - [x] Validar visualmente e por testes as informações de pagamento dos cards
+
+- [x] Descontar a entrada do saldo antes de dividir as parcelas do aéreo
+- [x] Descontar a entrada do saldo antes de dividir as parcelas do hotel
+- [x] Descontar a entrada do saldo no parcelamento conjunto usando as parcelas do aéreo
+- [x] Validar por testes a exibição de entrada mais saldo parcelado

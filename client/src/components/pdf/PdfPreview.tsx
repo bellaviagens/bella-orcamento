@@ -1,6 +1,7 @@
 import { Check, X, Plane, Briefcase, Luggage, Info } from "lucide-react";
 // Forma de pagamento integrada dentro de cada bloco de tarifa
 import type { BudgetData } from "@shared/budgetTypes";
+import { calculateInstallmentWithDownpayment } from "@shared/paymentCalculations";
 import { FlightCard } from "./FlightCard";
 import { HotelCard } from "./HotelCard";
 
@@ -105,12 +106,30 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
   const flightInstallments = installments?.flightInstallmentsWithRate !== undefined ? installments.flightInstallmentsWithRate : (installments?.flight || 1);
   const hotelInstallments = installments?.hotel || 1;
 
-  const flightInstallmentValue = flightTotal > 0 ? flightTotal / flightInstallments : 0;
-  const hotelInstallmentValue = hotelTotal > 0 ? hotelTotal / hotelInstallments : 0;
+  const flightTotalWithRate = installments?.flightMachineRate !== undefined
+    ? flightTotal * (1 + installments.flightMachineRate / 100)
+    : flightTotal;
+  const flightBreakdown = calculateInstallmentWithDownpayment(
+    flightTotalWithRate,
+    flightInstallments,
+    installments?.flightDownpayment ? installments.flightDownpaymentAmount : 0,
+  );
+  const hotelBreakdown = calculateInstallmentWithDownpayment(
+    hotelTotal,
+    hotelInstallments,
+    installments?.hotelDownpayment ? installments.hotelDownpaymentAmount : 0,
+  );
+  const flightInstallmentValue = flightBreakdown.installmentValue;
+  const hotelInstallmentValue = hotelBreakdown.installmentValue;
 
-  const combinedTotal = flightTotal + hotelTotal;
+  const combinedTotal = flightTotalWithRate + hotelTotal;
   const combinedInstallments = flightInstallments;
-  const combinedInstallmentValue = combinedTotal > 0 ? combinedTotal / combinedInstallments : 0;
+  const combinedBreakdown = calculateInstallmentWithDownpayment(
+    combinedTotal,
+    combinedInstallments,
+    installments?.combinedDownpayment ? installments.combinedDownpaymentAmount : 0,
+  );
+  const combinedInstallmentValue = combinedBreakdown.installmentValue;
 
   return (
     <div
@@ -259,10 +278,23 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                             if (installments?.flightMachineRate !== undefined && installments?.flightInstallmentsWithRate !== undefined) {
                               const rate = installments.flightMachineRate / 100;
                               const withRate = totalPrice * (1 + rate);
-                              const installmentValue = withRate / flightInstallments;
-                              return `${flightInstallments}x de ${formatCurrency(installmentValue)}`;
+                              const breakdown = calculateInstallmentWithDownpayment(
+                                withRate,
+                                flightInstallments,
+                                installments.flightDownpayment ? installments.flightDownpaymentAmount : 0,
+                              );
+                              return breakdown.downpaymentAmount > 0
+                                ? `1 entrada de ${formatCurrency(breakdown.downpaymentAmount)} + ${breakdown.remainingInstallments}x de ${formatCurrency(breakdown.installmentValue)}`
+                                : `${flightInstallments}x de ${formatCurrency(breakdown.installmentValue)}`;
                             } else {
-                              return `${flightInstallments}x de ${formatCurrency(totalPrice / flightInstallments)}`;
+                              const breakdown = calculateInstallmentWithDownpayment(
+                                totalPrice,
+                                flightInstallments,
+                                installments?.flightDownpayment ? installments.flightDownpaymentAmount : 0,
+                              );
+                              return breakdown.downpaymentAmount > 0
+                                ? `1 entrada de ${formatCurrency(breakdown.downpaymentAmount)} + ${breakdown.remainingInstallments}x de ${formatCurrency(breakdown.installmentValue)}`
+                                : `${flightInstallments}x de ${formatCurrency(breakdown.installmentValue)}`;
                             }
                           })()}
                         </div>
@@ -283,11 +315,6 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     {installments?.flightMachineRate !== undefined && (
                       <div className="mt-0.5 text-[9px] text-slate-500">
                         Taxa da maquininha: {installments.flightMachineRate.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
-                      </div>
-                    )}
-                    {installments?.flightDownpayment && (installments.flightDownpaymentAmount ?? 0) > 0 && (
-                      <div className="text-[9px] text-slate-500">
-                        Entrada: {formatCurrency(installments.flightDownpaymentAmount ?? 0)}
                       </div>
                     )}
                   </div>
@@ -394,11 +421,18 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                   Parcelamento Total: Aéreo + Hotel
                 </div>
                 <div className="text-2xl font-bold text-[#1a2e4a]">
-                  {combinedInstallments}x de {formatCurrency(combinedInstallmentValue)}
+                  {combinedBreakdown.downpaymentAmount > 0
+                    ? `1 entrada de ${formatCurrency(combinedBreakdown.downpaymentAmount)} + ${combinedBreakdown.remainingInstallments}x de ${formatCurrency(combinedInstallmentValue)}`
+                    : `${combinedInstallments}x de ${formatCurrency(combinedInstallmentValue)}`}
                 </div>
                 <div className="text-xs text-slate-500 mt-1">
                   Valor total: {formatCurrency(combinedTotal)}
                 </div>
+                {installments?.flightMachineRate !== undefined && (
+                  <div className="text-xs text-slate-500 mt-1">
+                    Taxa da maquininha: {installments.flightMachineRate.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
+                  </div>
+                )}
                 {installments?.paymentMethods && installments.paymentMethods.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
                     {installments.paymentMethods.map((method) => (
@@ -415,7 +449,9 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                   <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
                     <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Aéreo</div>
                     <div className="text-xl font-bold text-[#1a2e4a]">
-                      {flightInstallments}x de {formatCurrency(flightInstallmentValue)}
+                      {flightBreakdown.downpaymentAmount > 0
+                        ? `1 entrada de ${formatCurrency(flightBreakdown.downpaymentAmount)} + ${flightBreakdown.remainingInstallments}x de ${formatCurrency(flightInstallmentValue)}`
+                        : `${flightInstallments}x de ${formatCurrency(flightInstallmentValue)}`}
                     </div>
                     <div className="text-xs text-slate-500 mt-1">
                       Total: {formatCurrency(flightTotal)}
@@ -439,8 +475,14 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                         const cashPrice = installments.flightCashPrice;
                         const rate = installments.flightMachineRate / 100;
                         const withRate = cashPrice * (1 + rate);
-                        const installmentValue = withRate / installments.flightInstallmentsWithRate;
-                        return `${installments.flightInstallmentsWithRate}x de ${formatCurrency(installmentValue)}`;
+                        const breakdown = calculateInstallmentWithDownpayment(
+                          withRate,
+                          installments.flightInstallmentsWithRate,
+                          installments.flightDownpayment ? installments.flightDownpaymentAmount : 0,
+                        );
+                        return breakdown.downpaymentAmount > 0
+                          ? `1 entrada de ${formatCurrency(breakdown.downpaymentAmount)} + ${breakdown.remainingInstallments}x de ${formatCurrency(breakdown.installmentValue)}`
+                          : `${installments.flightInstallmentsWithRate}x de ${formatCurrency(breakdown.installmentValue)}`;
                       })()}
                     </div>
                     <div className="text-xs text-slate-500 mt-1">
