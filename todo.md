@@ -131,3 +131,18 @@
 
 - [x] Configurar "Parcelar tudo junto (aéreo + hotel)": Considerar valor TOTAL (aéreo + hotel) com parcelamento do aéreo
 - [x] Validar que o parcelamento conjunto prioriza a quantidade da calculadora de taxa do aéreo quando ela estiver preenchida
+
+- [x] Corrigir o somatório do parcelamento conjunto para incluir corretamente o total de aéreo e hotel
+- [x] Validar no preview que o valor total parcelado corresponde à soma de aéreo e hotel
+- [x] Garantir que o formulário não some alternativas de tarifa e hotel como se fossem uma única compra
+- [x] Garantir a exibição do pagamento conjunto no card quando a opção estiver marcada
+- [x] Usar a mesma regra do cartão no formulário quando houver múltiplas tarifas e hotéis
+- [x] Cobrir o parcelamento conjunto com múltiplas alternativas sem somá-las como uma única compra
+- [x] Adicionar asserção renderizada para confirmar o valor exibido de Aéreo + Hotel no preview
+- [x] Criar teste integrado do PdfPreview para o parcelamento conjunto
+- [x] Executar e registrar o teste integrado do preview com parcelamento conjunto
+- [x] Incluir testes de componentes PDF na configuração de testes
+- [x] Atualizar asserções obsoletas dos dados de exemplo para preservar a suíte de testes
+- [x] Manter a tipagem segura do valor de entrada no parcelamento conjunto
+
+- [x] Exibir cada combinação de tarifa e hotel separadamente no formulário de parcelamento conjunto

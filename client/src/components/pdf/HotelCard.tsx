@@ -1,6 +1,7 @@
 import { Star, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Hotel, FareTier } from "@shared/budgetTypes";
+import { calculateCombinedInstallmentValue, calculateEffectiveHotelTotal } from "@shared/paymentCalculations";
 import { trpc } from "@/lib/trpc";
 
 interface HotelCardProps {
@@ -121,10 +122,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
   }, [imageProxyQuery.data]);
 
   // Calculate effective total price based on price mode
-  const effectiveTotalPrice =
-    hotel.priceMode === "daily" && hotel.dailyPrice && hotel.nights
-      ? hotel.dailyPrice * hotel.nights
-      : hotel.totalPrice;
+  const effectiveTotalPrice = calculateEffectiveHotelTotal(hotel);
 
   // ===== STYLES RÍGIDOS E FIXOS =====
   const tarifaContainerStyle: React.CSSProperties = {
@@ -307,8 +305,33 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                     )}
 
                     {/* Forma de Pagamento dentro do card */}
-                    {((includeAirfare && flightPaymentMethods?.length > 0) || (includeHotel && hotelPaymentMethods?.length > 0)) && (
+                    {(combined || (includeAirfare && flightPaymentMethods?.length > 0) || (includeHotel && hotelPaymentMethods?.length > 0)) && (
                       <div className="space-y-0.5 mt-1 pt-1 border-t border-slate-300">
+                        {combined && includeAirfare && includeHotel ? (
+                          <div>
+                            <div
+                              className="font-semibold uppercase mb-0.5"
+                              style={{ fontSize: "6pt", color: "#64748b" }}
+                            >
+                              Aéreo + Hotel
+                            </div>
+                            <div
+                              className="font-bold"
+                              style={{ fontSize: "8pt", color: "#1a2e4a" }}
+                            >
+                              {(() => {
+                                const installmentValue = calculateCombinedInstallmentValue(
+                                  tier.flightPrice,
+                                  passengers,
+                                  effectiveTotalPrice,
+                                  combinedInstallments,
+                                );
+                                return `${combinedInstallments}x de ${formatCurrency(installmentValue)}`;
+                              })()}
+                            </div>
+                          </div>
+                        ) : (
+                          <>
                         {/* AÉREO PARCELADO */}
                         {includeAirfare && tiers.length > 0 && (
                           <div>
@@ -347,6 +370,8 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                               {hotelInstallments > 0 ? `${hotelInstallments}x de ${formatCurrency(effectiveTotalPrice / hotelInstallments)}` : formatCurrency(effectiveTotalPrice)}
                             </div>
                           </div>
+                        )}
+                          </>
                         )}
                       </div>
                     )}

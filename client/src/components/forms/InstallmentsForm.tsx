@@ -2,6 +2,7 @@ import { useBudget } from "@/contexts/BudgetContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { calculateCombinedTotal, calculateEffectiveHotelTotal } from "@shared/paymentCalculations";
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("pt-BR", {
@@ -17,19 +18,25 @@ export function InstallmentsForm() {
   // Calculate totals for preview
   const passengerCount = parseInt(budget.tripInfo.passengers) || 1;
   const flightTotal = budget.fareComparison.tiers.reduce((sum, tier) => sum + (tier.flightPrice * passengerCount), 0);
-  const hotelTotal = budget.hotels.reduce((sum, hotel) => {
-    const effectivePrice = hotel.priceMode === "daily" && hotel.dailyPrice && hotel.nights
-      ? hotel.dailyPrice * hotel.nights
-      : hotel.totalPrice;
-    return sum + effectivePrice;
-  }, 0);
+  const hotelTotal = budget.hotels.reduce((sum, hotel) => sum + calculateEffectiveHotelTotal(hotel), 0);
 
   const flightInstallments = installments?.flightInstallmentsWithRate !== undefined
     ? installments.flightInstallmentsWithRate
     : (installments?.flight || 1);
   const hotelInstallments = installments?.hotel || 1;
-  const combinedTotal = flightTotal + hotelTotal;
   const combinedInstallments = flightInstallments;
+  const combinedDownpaymentAmount = installments?.combinedDownpaymentAmount ?? 0;
+  const combinedOptions = budget.fareComparison.tiers.flatMap((tier) =>
+    budget.hotels.map((hotel) => ({
+      id: `${tier.id}-${hotel.id}`,
+      label: `${tier.name} + ${hotel.name}`,
+      total: calculateCombinedTotal(
+        tier.flightPrice,
+        passengerCount,
+        calculateEffectiveHotelTotal(hotel),
+      ),
+    })),
+  );
 
   return (
     <div className="space-y-4">
@@ -350,11 +357,12 @@ export function InstallmentsForm() {
         <p className="text-[10px] text-slate-400 mt-2 ml-6">
           Se marcado, soma o valor do aéreo + hotel e divide pelo número de parcelas selecionado.
         </p>
-        {installments?.combined && combinedTotal > 0 && (
-          <p className="text-[10px] text-[#1a2e4a] font-semibold mt-2 ml-6">
-            {combinedInstallments}x de {formatCurrency(combinedTotal / combinedInstallments)}
+        {installments?.combined && combinedOptions.map((option) => (
+          <p key={option.id} className="text-[10px] text-[#1a2e4a] font-semibold mt-2 ml-6">
+            {combinedOptions.length > 1 ? `${option.label}: ` : ""}
+            {combinedInstallments}x de {formatCurrency(option.total / combinedInstallments)}
           </p>
-        )}
+        ))}
         {installments?.combined && (
           <div className="mt-3">
             <div className="flex items-center gap-2">
@@ -377,11 +385,12 @@ export function InstallmentsForm() {
                   placeholder="Ex: 2000.00"
                   className="h-8 text-sm mt-1"
                 />
-                {combinedTotal > 0 && installments?.combinedDownpaymentAmount && combinedInstallments && (
-                  <p className="text-[10px] text-slate-500 mt-2">
-                    Entrada: {formatCurrency(installments.combinedDownpaymentAmount)} + {combinedInstallments}x de {formatCurrency((combinedTotal - installments.combinedDownpaymentAmount) / combinedInstallments)}
+                {combinedDownpaymentAmount > 0 && combinedInstallments && combinedOptions.map((option) => (
+                  <p key={option.id} className="text-[10px] text-slate-500 mt-2">
+                    {combinedOptions.length > 1 ? `${option.label}: ` : ""}
+                    Entrada: {formatCurrency(combinedDownpaymentAmount)} + {combinedInstallments}x de {formatCurrency((option.total - combinedDownpaymentAmount) / combinedInstallments)}
                   </p>
-                )}
+                ))}
               </div>
             )}
           </div>
