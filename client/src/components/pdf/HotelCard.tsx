@@ -135,8 +135,8 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
   };
 
   const cardTarifaStyle: React.CSSProperties = {
-    width: "292px",
-    maxWidth: "292px",
+    width: "270px",
+    maxWidth: "270px",
     flexShrink: 0,
     boxSizing: "border-box",
   };
@@ -145,7 +145,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
-    gap: "2px",
+    gap: "1px",
     flex: "1 1 0",
     minWidth: 0,
   };
@@ -153,7 +153,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
   const beneficioItemStyle: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
-    gap: "2px",
+    gap: "1px",
     lineHeight: "1.2",
     whiteSpace: "nowrap",
     minWidth: 0,
@@ -251,21 +251,21 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 const basePrice = includeAirfare ? effectiveTotalPrice + (tier.flightPrice * passengers) : effectiveTotalPrice;
                 const totalPrice = basePrice;
                 const perPersonPrice = basePrice / passengers;
-                const label = tier.name;
+                const label = includeAirfare ? `Com Aéreo ${tier.name}` : tier.name;
 
                 return (
                   <div
                     key={tier.id}
                     style={cardTarifaStyle}
-                    className={`rounded-lg border p-1.5 overflow-hidden ${ tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
+                    className={`rounded-lg border p-2 overflow-hidden ${ tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
                   >
                     {/* Tarifa Info + Opcionais: bloco compacto com lista lateral */}
                     <div className="flex items-start gap-1 mb-1 pb-1">
-                      <div className="text-left min-w-0" style={{ flex: "0 0 105px" }}>
+                      <div className="text-left min-w-0" style={{ flex: "0 0 100px" }}>
                         <div
                           className="font-bold mb-0.5 leading-tight"
                           style={{
-                            fontSize: "8pt",
+                            fontSize: "12px",
                             color: tier.highlighted ? "#b45309" : "#1d4ed8",
                             overflowWrap: "anywhere",
                           }}
@@ -275,7 +275,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         <div
                           className="font-bold"
                           style={{
-                            fontSize: "11pt",
+                            fontSize: "16px",
                             color: tier.highlighted ? "#d97706" : "#2563eb",
                           }}
                         >
@@ -283,7 +283,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         </div>
                         <div
                           style={{
-                            fontSize: "7pt",
+                            fontSize: "9px",
                             color: tier.highlighted ? "#d97706" : "#2563eb",
                             opacity: 0.7,
                           }}
@@ -298,8 +298,8 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                             const icon = getBenefitIcon(benefit);
                             return (
                               <div key={idx} style={beneficioItemStyle}>
-                                <span style={{ fontSize: "7pt", flexShrink: 0 }}>{icon}</span>
-                                <span style={{ fontSize: "6.2pt", color: "#475569" }}>{benefit}</span>
+                                <span style={{ fontSize: "12px", flexShrink: 0, lineHeight: 1 }}>{icon}</span>
+                                <span style={{ fontSize: "9px", color: "#475569" }}>{benefit}</span>
                               </div>
                             );
                           })}
@@ -314,13 +314,13 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                           <div>
                             <div
                               className="font-semibold uppercase mb-0.5"
-                              style={{ fontSize: "6pt", color: "#64748b" }}
+                              style={{ fontSize: "9px", color: "#64748b" }}
                             >
                               Aéreo + Hotel
                             </div>
                             <div
                               className="font-bold"
-                              style={{ fontSize: "8pt", color: "#1a2e4a" }}
+                              style={{ fontSize: "9px", color: "#1a2e4a" }}
                             >
                               {(() => {
                                 const installmentValue = calculateCombinedInstallmentValue(
@@ -340,13 +340,13 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                           <div>
                             <div
                               className="font-semibold uppercase mb-0.5"
-                              style={{ fontSize: "6pt", color: "#64748b" }}
+                              style={{ fontSize: "9px", color: "#64748b" }}
                             >
                               Aéreo Parcelado
                             </div>
                             <div
                               className="font-bold"
-                              style={{ fontSize: "8pt", color: "#1a2e4a" }}
+                              style={{ fontSize: "9px", color: "#1a2e4a" }}
                             >
                               {tier.flightPrice ? (() => {
                                 const flightTotal = tier.flightPrice * passengers;
@@ -362,13 +362,13 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                           <div>
                             <div
                               className="font-semibold uppercase mb-0.5"
-                              style={{ fontSize: "6pt", color: "#64748b" }}
+                              style={{ fontSize: "9px", color: "#64748b" }}
                             >
                               Hotel
                             </div>
                             <div
                               className="font-bold"
-                              style={{ fontSize: "8pt", color: "#1a2e4a" }}
+                              style={{ fontSize: "9px", color: "#1a2e4a" }}
                             >
                               {hotelInstallments > 0 ? `${hotelInstallments}x de ${formatCurrency(effectiveTotalPrice / hotelInstallments)}` : formatCurrency(effectiveTotalPrice)}
                             </div>

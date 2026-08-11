@@ -159,3 +159,8 @@
 - [x] Aproximar a coluna de informações de preço da coluna lateral de opcionais
 - [x] Preservar exatamente o texto digitado no título da tarifa, sem complemento automático
 - [x] Validar que cálculos, cores, ícones e formas de pagamento permanecem intactos
+
+- [x] Restaurar o prefixo “Com Aéreo” antes do nome digitado em cada tarifa
+- [x] Compactar os cards para largura máxima de 270px, fonte e espaçamentos solicitados
+- [x] Manter os cards lado a lado, alinhados à direita, sem alterar cálculos ou estrutura
+- [x] Validar visualmente e por testes a compactação dos cards

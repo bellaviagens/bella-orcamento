@@ -206,42 +206,42 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
               return (
                 <div
                   key={tier.id}
-                  style={{ width: "292px", maxWidth: "292px", flexShrink: 0, boxSizing: "border-box" }}
-                  className={`rounded-lg border p-2 shadow-sm ${
+                  style={{ width: "270px", maxWidth: "270px", flexShrink: 0, boxSizing: "border-box" }}
+                    className={`rounded-lg border p-2 shadow-sm ${
                     tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"
                   }`}
                 >
                   {/* Title */}
                   <div
                     className="font-bold mb-1 leading-tight"
-                    style={{ fontSize: "8pt", color: tier.highlighted ? "#b45309" : "#1d4ed8", overflowWrap: "anywhere" }}
+                    style={{ fontSize: "12px", color: tier.highlighted ? "#b45309" : "#1d4ed8", overflowWrap: "anywhere" }}
                   >
-                    {tier.name}
+                    {`Com Aéreo ${tier.name}`}
                   </div>
                   
                   {/* Price info */}
                   <div
                     className="font-bold mb-0.5"
-                    style={{ fontSize: "11pt", color: tier.highlighted ? "#d97706" : "#2563eb" }}
+                    style={{ fontSize: "16px", color: tier.highlighted ? "#d97706" : "#2563eb" }}
                   >
                     {formatCurrency(totalPrice)}
                   </div>
                   <div
                     className="mb-2"
-                    style={{ fontSize: "7pt", color: tier.highlighted ? "#d97706" : "#2563eb", opacity: 0.7 }}
+                    style={{ fontSize: "9px", color: tier.highlighted ? "#d97706" : "#2563eb", opacity: 0.7 }}
                   >
                     {formatCurrency(perPersonPrice)} / pessoa
                   </div>
                   
                   {/* Benefits with icons - fluxo contínuo com mapeamento fixo */}
                   {tier.benefits && tier.benefits.length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", width: "100%" }} className="mb-2">
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", width: "100%" }} className="mb-1">
                       {tier.benefits.map((benefit, idx) => {
                         const icon = getBenefitIcon(benefit);
                         return (
-                          <div key={idx} style={{ display: "flex", alignItems: "center", gap: "3px", lineHeight: "1.2", whiteSpace: "nowrap" }}>
-                            <span style={{ fontSize: "8pt", flexShrink: 0 }}>{icon}</span>
-                            <span style={{ fontSize: "7pt", color: "#475569" }}>{benefit}</span>
+                          <div key={idx} style={{ display: "flex", alignItems: "center", gap: "2px", lineHeight: "1.1", whiteSpace: "nowrap" }}>
+                            <span style={{ fontSize: "12px", flexShrink: 0, lineHeight: 1 }}>{icon}</span>
+                            <span style={{ fontSize: "9px", color: "#475569" }}>{benefit}</span>
                           </div>
                         );
                       })}
@@ -249,9 +249,9 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                   )}
                   
                   {/* FORMA DE PAGAMENTO */}
-                  <div className="mt-2 pt-2 border-t border-slate-200">
-                    <div className="text-[8px] font-semibold text-slate-600 uppercase mb-1">Forma de Pagamento</div>
-                    <div className="flex gap-1 text-[8px]">
+                  <div className="mt-1 pt-1 border-t border-slate-200">
+                    <div className="text-[9px] font-semibold text-slate-600 uppercase mb-1">Forma de Pagamento</div>
+                    <div className="flex gap-1 text-[9px]">
                       {/* Aéreo Parcelado */}
                       <div className="flex-1">
                         <div className="font-bold text-slate-700">

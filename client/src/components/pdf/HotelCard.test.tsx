@@ -41,7 +41,7 @@ describe("HotelCard — parcelamento conjunto", () => {
     expect(markup).toContain("10x de R$ 500,00");
   });
 
-  it("preserva exatamente o título digitado da tarifa", () => {
+  it("insere o prefixo Com Aéreo antes do título digitado da tarifa", () => {
     const markup = renderToStaticMarkup(
       <HotelCard
         hotel={{
@@ -58,12 +58,11 @@ describe("HotelCard — parcelamento conjunto", () => {
           prices: {},
         }}
         index={0}
-        tiers={[{ id: "fare-2", name: "Aéreo Personalizado", flightPrice: 1000, benefits: [] }]}
+        tiers={[{ id: "fare-2", name: "Personalizado", flightPrice: 1000, benefits: [] }]}
         passengers={1}
       />,
     );
 
-    expect(markup).toContain("Aéreo Personalizado");
-    expect(markup).not.toContain("Com Aéreo Aéreo Personalizado");
+    expect(markup).toContain("Com Aéreo Personalizado");
   });
 });
