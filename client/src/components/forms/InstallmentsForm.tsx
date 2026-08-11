@@ -24,10 +24,12 @@ export function InstallmentsForm() {
     return sum + effectivePrice;
   }, 0);
 
-  const flightInstallments = installments?.flight || 1;
+  const flightInstallments = installments?.flightInstallmentsWithRate !== undefined
+    ? installments.flightInstallmentsWithRate
+    : (installments?.flight || 1);
   const hotelInstallments = installments?.hotel || 1;
   const combinedTotal = flightTotal + hotelTotal;
-  const combinedInstallments = Math.max(flightInstallments, hotelInstallments);
+  const combinedInstallments = flightInstallments;
 
   return (
     <div className="space-y-4">

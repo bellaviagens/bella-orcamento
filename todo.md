@@ -128,3 +128,6 @@
 - [x] Padronização: PdfPreview FARES SECTION atualizada com mesmas classes rígidas e mapeamento
 
 - [x] Corrigir Calculadora de Taxa: Passar flightInstallments derivado (com taxa) para HotelCard em vez de installments?.flight fixo
+
+- [x] Configurar "Parcelar tudo junto (aéreo + hotel)": Considerar valor TOTAL (aéreo + hotel) com parcelamento do aéreo
+- [x] Validar que o parcelamento conjunto prioriza a quantidade da calculadora de taxa do aéreo quando ela estiver preenchida

@@ -109,7 +109,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
   const hotelInstallmentValue = hotelTotal > 0 ? hotelTotal / hotelInstallments : 0;
 
   const combinedTotal = flightTotal + hotelTotal;
-  const combinedInstallments = Math.max(flightInstallments, hotelInstallments);
+  const combinedInstallments = flightInstallments;
   const combinedInstallmentValue = combinedTotal > 0 ? combinedTotal / combinedInstallments : 0;
 
   return (
