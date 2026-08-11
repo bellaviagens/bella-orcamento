@@ -21,6 +21,7 @@ interface HotelCardProps {
   flightInstallments?: number;
   flightDownpayment?: boolean;
   flightDownpaymentAmount?: number;
+  flightMachineRate?: number;
   combinedInstallments?: number;
   combinedDownpayment?: boolean;
   combinedDownpaymentAmount?: number;
@@ -106,7 +107,7 @@ function getBenefitIcon(benefit: string): string {
   return "🧳";
 }
 
-export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, includeHotel = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "", hotelInstallments = 1, hotelDownpayment = false, hotelDownpaymentAmount = 0, flightInstallments = 1, flightDownpayment = false, flightDownpaymentAmount = 0, combinedInstallments = 1, combinedDownpayment = false, combinedDownpaymentAmount = 0, observations = "" }: HotelCardProps) {
+export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, includeHotel = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "", hotelInstallments = 1, hotelDownpayment = false, hotelDownpaymentAmount = 0, flightInstallments = 1, flightDownpayment = false, flightDownpaymentAmount = 0, flightMachineRate, combinedInstallments = 1, combinedDownpayment = false, combinedDownpaymentAmount = 0, observations = "" }: HotelCardProps) {
   const [proxiedPhotoUrl, setProxiedPhotoUrl] = useState<string | null>(hotel.photoUrl || null);
   const imageProxyQuery = trpc.imageProxy.useQuery(
     { url: hotel.photoUrl || "" },
@@ -265,7 +266,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         <div
                           className="font-bold mb-0.5 leading-tight"
                           style={{
-                            fontSize: "13px",
+                            fontSize: "11px",
                             color: tier.highlighted ? "#b45309" : "#1d4ed8",
                             overflowWrap: "anywhere",
                           }}
@@ -275,7 +276,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                         <div
                           className="font-bold"
                           style={{
-                            fontSize: "18px",
+                            fontSize: "15px",
                             color: tier.highlighted ? "#d97706" : "#2563eb",
                           }}
                         >
@@ -332,6 +333,11 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                                 return `${combinedInstallments}x de ${formatCurrency(installmentValue)}`;
                               })()}
                             </div>
+                            {combinedDownpayment && combinedDownpaymentAmount > 0 && (
+                              <div style={{ fontSize: "9px", color: "#64748b", marginTop: "2px" }}>
+                                Entrada: {formatCurrency(combinedDownpaymentAmount)}
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <>
@@ -350,10 +356,23 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                             >
                               {tier.flightPrice ? (() => {
                                 const flightTotal = tier.flightPrice * passengers;
-                                const installmentValue = flightInstallments > 0 ? flightTotal / flightInstallments : 0;
+                                const totalWithRate = flightMachineRate !== undefined
+                                  ? flightTotal * (1 + flightMachineRate / 100)
+                                  : flightTotal;
+                                const installmentValue = flightInstallments > 0 ? totalWithRate / flightInstallments : 0;
                                 return `${flightInstallments}x de ${formatCurrency(installmentValue)}`;
                               })() : "N/A"}
                             </div>
+                            {flightMachineRate !== undefined && (
+                              <div style={{ fontSize: "9px", color: "#64748b", marginTop: "2px" }}>
+                                Taxa da maquininha: {flightMachineRate.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
+                              </div>
+                            )}
+                            {flightDownpayment && flightDownpaymentAmount > 0 && (
+                              <div style={{ fontSize: "9px", color: "#64748b", marginTop: "2px" }}>
+                                Entrada: {formatCurrency(flightDownpaymentAmount)}
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -372,6 +391,11 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                             >
                               {hotelInstallments > 0 ? `${hotelInstallments}x de ${formatCurrency(effectiveTotalPrice / hotelInstallments)}` : formatCurrency(effectiveTotalPrice)}
                             </div>
+                            {hotelDownpayment && hotelDownpaymentAmount > 0 && (
+                              <div style={{ fontSize: "9px", color: "#64748b", marginTop: "2px" }}>
+                                Entrada: {formatCurrency(hotelDownpaymentAmount)}
+                              </div>
+                            )}
                           </div>
                         )}
                           </>

@@ -214,7 +214,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                   {/* Title */}
                   <div
                     className="font-bold mb-1 leading-tight"
-                    style={{ fontSize: "13px", color: tier.highlighted ? "#b45309" : "#1d4ed8", overflowWrap: "anywhere" }}
+                    style={{ fontSize: "11px", color: tier.highlighted ? "#b45309" : "#1d4ed8", overflowWrap: "anywhere" }}
                   >
                     {`Com Aéreo ${tier.name}`}
                   </div>
@@ -222,7 +222,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                   {/* Price info */}
                   <div
                     className="font-bold mb-0.5"
-                    style={{ fontSize: "18px", color: tier.highlighted ? "#d97706" : "#2563eb" }}
+                    style={{ fontSize: "15px", color: tier.highlighted ? "#d97706" : "#2563eb" }}
                   >
                     {formatCurrency(totalPrice)}
                   </div>
@@ -280,6 +280,16 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                         </>
                       )}
                     </div>
+                    {installments?.flightMachineRate !== undefined && (
+                      <div className="mt-0.5 text-[9px] text-slate-500">
+                        Taxa da maquininha: {installments.flightMachineRate.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
+                      </div>
+                    )}
+                    {installments?.flightDownpayment && (installments.flightDownpaymentAmount ?? 0) > 0 && (
+                      <div className="text-[9px] text-slate-500">
+                        Entrada: {formatCurrency(installments.flightDownpaymentAmount ?? 0)}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -323,6 +333,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     flightInstallments={flightInstallments}
                     flightDownpayment={installments?.flightDownpayment}
                     flightDownpaymentAmount={installments?.flightDownpaymentAmount}
+                    flightMachineRate={installments?.flightMachineRate}
                     combinedInstallments={combinedInstallments}
                     combinedDownpayment={installments?.combinedDownpayment}
                     combinedDownpaymentAmount={installments?.combinedDownpaymentAmount}

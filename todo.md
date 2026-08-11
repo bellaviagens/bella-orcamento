@@ -169,3 +169,8 @@
 - [x] Aumentar a legibilidade dos valores e rótulos de pagamento sem alterar cálculos
 - [x] Compactar exclusivamente opcionais, ícones e espaçamentos verticais dos cards
 - [x] Validar a hierarquia visual preservando o alinhamento à direita e lado a lado
+
+- [x] Reduzir o tamanho do título e valor principal dos cards de tarifa
+- [x] Exibir no preview o valor de entrada informado em Parcelamento
+- [x] Exibir no preview a taxa de maquininha quando preenchida
+- [x] Validar visualmente e por testes as informações de pagamento dos cards
