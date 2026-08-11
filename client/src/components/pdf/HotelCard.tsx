@@ -143,17 +143,20 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
 
   const beneficiosContainerStyle: React.CSSProperties = {
     display: "flex",
-    flexWrap: "wrap",
-    gap: "6px",
-    width: "100%",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: "2px",
+    flex: 1,
+    minWidth: 0,
   };
 
   const beneficioItemStyle: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
-    gap: "3px",
+    gap: "2px",
     lineHeight: "1.2",
     whiteSpace: "nowrap",
+    minWidth: 0,
   };
 
   return (
@@ -254,10 +257,10 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                   <div
                     key={tier.id}
                     style={cardTarifaStyle}
-                    className={`rounded-lg border p-2 overflow-hidden ${ tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
+                    className={`rounded-lg border p-1.5 overflow-hidden ${ tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"}`}
                   >
-                    {/* Tarifa Info - Título + Preço */}
-                    <div className="flex items-start justify-between gap-1 mb-1 pb-1 border-b border-slate-300">
+                    {/* Tarifa Info + Opcionais: bloco compacto com lista lateral */}
+                    <div className="flex items-start gap-2 mb-1 pb-1">
                       <div className="text-left flex-1 min-w-0">
                         <div
                           className="font-bold mb-0.5 uppercase truncate"
@@ -287,22 +290,21 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                           {formatCurrency(perPersonPrice)} / pessoa
                         </div>
                       </div>
-                    </div>
 
-                    {/* Benefícios - Fluxo contínuo (inline/flex-wrap) com ícones fixos */}
-                    {tier.benefits && tier.benefits.length > 0 && (
-                      <div style={beneficiosContainerStyle} className="mb-1">
-                        {tier.benefits.map((benefit, idx) => {
-                          const icon = getBenefitIcon(benefit);
-                          return (
-                            <div key={idx} style={beneficioItemStyle}>
-                              <span style={{ fontSize: "8pt", flexShrink: 0 }}>{icon}</span>
-                              <span style={{ fontSize: "7pt", color: "#475569" }}>{benefit}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                      {tier.benefits && tier.benefits.length > 0 && (
+                        <div style={beneficiosContainerStyle}>
+                          {tier.benefits.map((benefit, idx) => {
+                            const icon = getBenefitIcon(benefit);
+                            return (
+                              <div key={idx} style={beneficioItemStyle}>
+                                <span style={{ fontSize: "7pt", flexShrink: 0 }}>{icon}</span>
+                                <span style={{ fontSize: "6.2pt", color: "#475569" }}>{benefit}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
 
                     {/* Forma de Pagamento dentro do card */}
                     {(combined || (includeAirfare && flightPaymentMethods?.length > 0) || (includeHotel && hotelPaymentMethods?.length > 0)) && (

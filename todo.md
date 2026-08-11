@@ -146,3 +146,11 @@
 - [x] Manter a tipagem segura do valor de entrada no parcelamento conjunto
 
 - [x] Exibir cada combinação de tarifa e hotel separadamente no formulário de parcelamento conjunto
+
+- [x] Reorganizar opcionais dos cards de tarifa em uma coluna lateral compacta
+- [x] Reduzir fonte, espaçamento e destaque visual dos opcionais sem perder legibilidade
+- [x] Preservar integralmente cálculos, valores, ícones, cores e formas de pagamento
+
+- [x] Confirmar no arquivo final a coluna lateral compacta de opcionais dentro de cada card
+- [x] Validar visualmente a legibilidade dos opcionais compactados no preview
+- [x] Confirmar que ícones, valores, pagamentos e cálculos permanecem intactos após o refinamento
