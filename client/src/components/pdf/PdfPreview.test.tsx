@@ -48,7 +48,7 @@ describe("PdfPreview — parcelamento conjunto", () => {
         tiers: [{ id: "fare-1", name: "Premium", flightPrice: 1000, benefits: ["Bagagem de 10kg", "Seleção de Assento"] }],
       },
       hotels: [],
-      installments: { ...defaultBudgetData.installments, flight: 10, paymentMethods: ["dinheiro", "cartao", "pix"] },
+      installments: { ...defaultBudgetData.installments, flight: 10, showCashOption: true, paymentMethods: ["dinheiro", "cartao", "pix"] },
     };
 
     const markup = renderToStaticMarkup(<PdfPreview data={data} includeAirfare includeHotel={false} />);
@@ -60,5 +60,35 @@ describe("PdfPreview — parcelamento conjunto", () => {
     expect(markup).not.toContain("Formas de Pagamento");
     expect(markup).toContain('flex:0 0 100px');
     expect(markup).toContain("Bagagem de 10kg");
+  });
+
+  it("exibe a condição à vista ao lado do parcelado somente quando ela é incluída no PDF", () => {
+    const data = {
+      ...defaultBudgetData,
+      fareComparison: {
+        tiers: [{ id: "fare-1", name: "Premium", flightPrice: 1000, benefits: [] }],
+      },
+      hotels: [],
+      installments: {
+        ...defaultBudgetData.installments,
+        flight: 10,
+        flightMachineRate: 10,
+        flightInstallmentsWithRate: 10,
+        showCashOption: true,
+        flightCashPrice: 1800,
+        paymentMethods: ["cartao"],
+        flightCashPaymentMethods: ["dinheiro", "pix"],
+      },
+    };
+
+    const markup = renderToStaticMarkup(<PdfPreview data={data} includeAirfare includeHotel={false} />);
+
+    expect(markup).toContain("Aéreo Parcelado");
+    expect(markup).toContain("Aéreo À Vista");
+    expect(markup).toContain("10x de R$ 220,00");
+    expect(markup).toContain("1x de R$ 1.800,00");
+    expect(markup).toContain("Cartão");
+    expect(markup).toContain("Dinheiro");
+    expect(markup).toContain("PIX");
   });
 });

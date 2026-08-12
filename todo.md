@@ -205,6 +205,8 @@
 - [ ] Validar a anotação de link externo do PDF
 - [x] Comparar versões anteriores para restaurar exatamente a abertura do link em nova aba
 - [x] Preservar integralmente layout, cálculos, PDF e demais funções durante o ajuste isolado do link
+- [ ] Confirmar se o jsPDF suporta ação URI que obrigue abertura em nova aba no visualizador de PDF
+- [ ] Registrar a limitação do visualizador caso não exista uma ação PDF compatível para nova aba
 
 - [x] Manter o preview do orçamento/PDF visível ao lado direito dos campos em tempo real
 - [x] Validar a disposição lateral sem alterar conteúdo, cálculos ou estilo do documento
@@ -213,3 +215,13 @@
 - [x] Exibir Dinheiro, Cartão e PIX dentro de cada card de tarifa conforme selecionado no Parcelamento
 - [x] Posicionar os opcionais do cenário somente aéreo na lateral do card, como no cenário com hotel
 - [x] Validar os cenários somente aéreo e aéreo com hotel sem alterar cálculos ou demais layouts
+
+- [x] Exibir a forma de pagamento aérea à vista ao lado da parcelada dentro de cada card quando incluída no PDF
+- [x] Usar o valor e as formas de pagamento configurados para a opção à vista
+- [x] Validar a convivência entre pagamento à vista e parcelado sem alterar o restante
+- [x] Aplicar o valor à vista configurado no card com fallback ao valor da tarifa quando estiver vazio
+- [x] Cobrir por teste o valor à vista diferente do parcelado com taxa de maquininha
+
+- [x] Guardar os métodos Dinheiro e PIX específicos da condição aérea à vista
+- [x] Manter o método Cartão específico da condição aérea parcelada
+- [x] Validar no preview as etiquetas separadas para as duas condições de pagamento

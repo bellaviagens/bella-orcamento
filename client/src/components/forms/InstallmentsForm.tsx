@@ -62,6 +62,22 @@ export function InstallmentsForm() {
           </div>
         )}
 
+        {installments?.showCashOption && (
+          <div className="mt-3">
+            <Label className="text-xs text-slate-600">Valor à Vista (R$)</Label>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              value={installments?.flightCashPrice ?? ""}
+              onChange={(e) => updateInstallments("flightCashPrice", e.target.value ? parseFloat(e.target.value) : undefined)}
+              placeholder={flightTotal > 0 ? `Ex: ${flightTotal.toFixed(2)}` : "Ex: 20000.00"}
+              className="h-8 text-sm mt-1"
+            />
+            <p className="text-[10px] text-slate-500 mt-1">Se não preencher, será usado o valor total da tarifa.</p>
+          </div>
+        )}
+
         {/* Entrada do Aéreo - Opção 1 */}
         <div className="mt-3 space-y-2">
           <div className="flex items-center gap-2">
@@ -100,13 +116,13 @@ export function InstallmentsForm() {
             <div className="flex items-center gap-2">
               <Checkbox
                 id="payment-cash-option1"
-                checked={installments?.paymentMethods?.includes("dinheiro") || false}
+                checked={(installments?.flightCashPaymentMethods ?? installments?.paymentMethods ?? []).includes("dinheiro")}
                 onCheckedChange={(checked) => {
-                  const current = installments?.paymentMethods || [];
+                  const current = installments?.flightCashPaymentMethods ?? installments?.paymentMethods ?? [];
                   if (checked) {
-                    updatePaymentMethods([...current, "dinheiro"]);
+                    updateInstallments("flightCashPaymentMethods", [...current, "dinheiro"]);
                   } else {
-                    updatePaymentMethods(current.filter((m) => m !== "dinheiro"));
+                    updateInstallments("flightCashPaymentMethods", current.filter((m) => m !== "dinheiro"));
                   }
                 }}
               />
@@ -115,13 +131,13 @@ export function InstallmentsForm() {
             <div className="flex items-center gap-2">
               <Checkbox
                 id="payment-pix-option1"
-                checked={installments?.paymentMethods?.includes("pix") || false}
+                checked={(installments?.flightCashPaymentMethods ?? installments?.paymentMethods ?? []).includes("pix")}
                 onCheckedChange={(checked) => {
-                  const current = installments?.paymentMethods || [];
+                  const current = installments?.flightCashPaymentMethods ?? installments?.paymentMethods ?? [];
                   if (checked) {
-                    updatePaymentMethods([...current, "pix"]);
+                    updateInstallments("flightCashPaymentMethods", [...current, "pix"]);
                   } else {
-                    updatePaymentMethods(current.filter((m) => m !== "pix"));
+                    updateInstallments("flightCashPaymentMethods", current.filter((m) => m !== "pix"));
                   }
                 }}
               />

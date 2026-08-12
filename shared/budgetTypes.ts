@@ -106,6 +106,7 @@ export interface BudgetData {
     observations?: string; // Observações customizáveis para o parcelamento (aparece em todos os blocos)
     // Calculadora de taxas para aéreo
     flightCashPrice?: number; // Valor à vista do aéreo (para calcular com taxa)
+    flightCashPaymentMethods?: string[]; // Formas de pagamento da condição aérea à vista: "dinheiro", "pix"
     flightMachineRate?: number; // Taxa da maquininha em % (ex: 2.5 para 2.5%)
     flightInstallmentsWithRate?: number; // Número de parcelas com taxa
     showCashOption?: boolean; // Se true, mostra a opção de pagamento à vista no PDF
