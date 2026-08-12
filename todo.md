@@ -183,3 +183,8 @@
 - [x] Manter integralmente a quantidade de parcelas informada quando houver entrada no aéreo
 - [x] Manter integralmente a quantidade de parcelas informada quando houver entrada no hotel e no combinado
 - [x] Validar por testes a exibição de entrada mais o número exato de parcelas escolhido
+
+- [x] Fazer o parcelamento conjunto usar a quantidade de parcelas configurada no aéreo
+- [x] Exibir e descontar a entrada do aéreo no parcelamento conjunto quando preenchida
+- [x] Aplicar a taxa de maquininha do aéreo ao saldo combinado quando preenchida
+- [x] Validar por testes o cenário Hotel + Aéreo com entrada e 10x

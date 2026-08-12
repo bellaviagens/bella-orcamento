@@ -173,4 +173,33 @@ describe("HotelCard — parcelamento conjunto", () => {
     expect(markup).toContain("1 entrada de R$ 1.000,00 + 6x de R$ 700,00");
     expect(markup).toContain("Taxa da maquininha: 10%");
   });
+
+  it("usa a entrada e o número de parcelas configurados no aéreo ao parcelar junto", () => {
+    const markup = renderToStaticMarkup(
+      <HotelCard
+        hotel={{
+          id: "hotel-6",
+          name: "Hotel Exemplo",
+          stars: 4,
+          address: "Endereço",
+          description: "",
+          rating: 0,
+          ratingLabel: "",
+          amenities: [],
+          photoUrl: "",
+          totalPrice: 3000,
+          prices: {},
+        }}
+        index={0}
+        tiers={[{ id: "fare-7", name: "Completa", flightPrice: 1000, benefits: [] }]}
+        passengers={2}
+        combined
+        combinedInstallments={10}
+        flightDownpayment
+        flightDownpaymentAmount={1000}
+      />,
+    );
+
+    expect(markup).toContain("1 entrada de R$ 1.000,00 + 10x de R$ 400,00");
+  });
 });

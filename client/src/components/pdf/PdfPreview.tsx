@@ -124,10 +124,18 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
 
   const combinedTotal = flightTotalWithRate + hotelTotal;
   const combinedInstallments = flightInstallments;
+  const combinedDownpayment = Boolean(
+    installments?.flightDownpayment || installments?.combinedDownpayment,
+  );
+  const combinedDownpaymentAmount = installments?.flightDownpayment
+    ? installments.flightDownpaymentAmount
+    : installments?.combinedDownpayment
+      ? installments.combinedDownpaymentAmount
+      : 0;
   const combinedBreakdown = calculateInstallmentWithDownpayment(
     combinedTotal,
     combinedInstallments,
-    installments?.combinedDownpayment ? installments.combinedDownpaymentAmount : 0,
+    combinedDownpaymentAmount,
   );
   const combinedInstallmentValue = combinedBreakdown.installmentValue;
 
@@ -362,8 +370,8 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     flightDownpaymentAmount={installments?.flightDownpaymentAmount}
                     flightMachineRate={installments?.flightMachineRate}
                     combinedInstallments={combinedInstallments}
-                    combinedDownpayment={installments?.combinedDownpayment}
-                    combinedDownpaymentAmount={installments?.combinedDownpaymentAmount}
+                    combinedDownpayment={combinedDownpayment}
+                    combinedDownpaymentAmount={combinedDownpaymentAmount}
                     observations={installments?.observations}
                   />
                 </div>

@@ -327,10 +327,15 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                                 const flightTotalWithRate = flightMachineRate !== undefined
                                   ? (tier.flightPrice * passengers) * (1 + flightMachineRate / 100)
                                   : tier.flightPrice * passengers;
+                                const combinedEntryAmount = flightDownpayment
+                                  ? flightDownpaymentAmount
+                                  : combinedDownpayment
+                                    ? combinedDownpaymentAmount
+                                    : 0;
                                 const breakdown = calculateInstallmentWithDownpayment(
                                   flightTotalWithRate + effectiveTotalPrice,
                                   combinedInstallments,
-                                  combinedDownpayment ? combinedDownpaymentAmount : 0,
+                                  combinedEntryAmount,
                                 );
                                 return breakdown.downpaymentAmount > 0
                                   ? `1 entrada de ${formatCurrency(breakdown.downpaymentAmount)} + ${breakdown.remainingInstallments}x de ${formatCurrency(breakdown.installmentValue)}`
