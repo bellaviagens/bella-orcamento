@@ -45,9 +45,7 @@ export function calculateInstallmentWithDownpayment(
   const safeDownpayment = Math.min(Math.max(0, downpaymentAmount), safeTotal);
   const safeInstallments = Math.max(1, Math.floor(installments) || 1);
   const remainingBalance = safeTotal - safeDownpayment;
-  const remainingInstallments = safeDownpayment > 0
-    ? Math.max(1, safeInstallments - 1)
-    : safeInstallments;
+  const remainingInstallments = safeInstallments;
 
   return {
     downpaymentAmount: safeDownpayment,

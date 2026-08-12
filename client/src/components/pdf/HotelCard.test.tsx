@@ -93,7 +93,7 @@ describe("HotelCard — parcelamento conjunto", () => {
       />,
     );
 
-    expect(markup).toContain("1 entrada de R$ 1.000,00 + 9x de R$ 116,67");
+    expect(markup).toContain("1 entrada de R$ 1.000,00 + 10x de R$ 105,00");
     expect(markup).toContain("Taxa da maquininha: 2,5%");
   });
 
@@ -139,8 +139,8 @@ describe("HotelCard — parcelamento conjunto", () => {
       />,
     );
 
-    expect(hotelMarkup).toContain("1 entrada de R$ 1.000,00 + 5x de R$ 400,00");
-    expect(combinedMarkup).toContain("1 entrada de R$ 1.000,00 + 5x de R$ 800,00");
+    expect(hotelMarkup).toContain("1 entrada de R$ 1.000,00 + 6x de R$ 333,33");
+    expect(combinedMarkup).toContain("1 entrada de R$ 1.000,00 + 6x de R$ 666,67");
   });
 
   it("aplica a taxa da calculadora do aéreo antes de parcelar o total conjunto", () => {
@@ -170,7 +170,7 @@ describe("HotelCard — parcelamento conjunto", () => {
       />,
     );
 
-    expect(markup).toContain("1 entrada de R$ 1.000,00 + 5x de R$ 840,00");
+    expect(markup).toContain("1 entrada de R$ 1.000,00 + 6x de R$ 700,00");
     expect(markup).toContain("Taxa da maquininha: 10%");
   });
 });

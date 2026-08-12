@@ -179,3 +179,7 @@
 - [x] Descontar a entrada do saldo antes de dividir as parcelas do hotel
 - [x] Descontar a entrada do saldo no parcelamento conjunto usando as parcelas do aéreo
 - [x] Validar por testes a exibição de entrada mais saldo parcelado
+
+- [x] Manter integralmente a quantidade de parcelas informada quando houver entrada no aéreo
+- [x] Manter integralmente a quantidade de parcelas informada quando houver entrada no hotel e no combinado
+- [x] Validar por testes a exibição de entrada mais o número exato de parcelas escolhido
