@@ -9,6 +9,7 @@ import { Plus, Trash2, Plane, Upload, Loader2, ChevronDown, ChevronRight, Edit2 
 import type { Flight, FlightSegment } from "@shared/budgetTypes";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
+import { selectFlightsFromScreenshot, type FlightScreenshotTarget, type ParsedFlight } from "@shared/flightScreenshot";
 
 export function FlightForm() {
   const { budget, addFlight, removeFlight, updateFlight } = useBudget();
@@ -16,6 +17,7 @@ export function FlightForm() {
   const [expandedFlights, setExpandedFlights] = useState<Set<string>>(new Set());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [parsing, setParsing] = useState(false);
+  const [screenshotTarget, setScreenshotTarget] = useState<FlightScreenshotTarget>("automatico");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
@@ -153,21 +155,44 @@ export function FlightForm() {
         const base64 = reader.result as string;
         try {
           const result = await parseFlightMutation.mutateAsync({ imageBase64: base64 });
-          if (result) {
-            setFlightType(result.type || "ida");
-            setIsDirect(result.isDirect ?? true);
-            setTotalDuration(result.totalDuration || "");
-            setOperatingAirline(result.operatingAirline || "");
-            if (result.segments && result.segments.length > 0) {
-              setSegments(result.segments);
+          const parsedFlights = result?.flights as ParsedFlight[] | undefined;
+          const selectedFlights = selectFlightsFromScreenshot(parsedFlights || [], screenshotTarget);
+
+          if (selectedFlights.length === 0) {
+            throw new Error("Nenhum voo foi identificado no screenshot.");
+          }
+
+          if (screenshotTarget === "automatico") {
+            selectedFlights.forEach((parsedFlight) => {
+              const existingFlight = budget.flights.find((flight) => flight.type === parsedFlight.type);
+              const flight: Flight = { ...parsedFlight, id: existingFlight?.id || nanoid() };
+
+              if (existingFlight) {
+                updateFlight(existingFlight.id, flight);
+              } else {
+                addFlight(flight);
+              }
+            });
+            toast.success(selectedFlights.length === 2 ? "Ida e volta preenchidas pelo screenshot!" : "Voo preenchido pelo screenshot!");
+            resetForm();
+            setShowForm(false);
+          } else {
+            const [parsedFlight] = selectedFlights;
+            if (parsedFlight) {
+              setFlightType(parsedFlight.type);
+              setIsDirect(parsedFlight.isDirect ?? true);
+              setTotalDuration(parsedFlight.totalDuration || "");
+              setOperatingAirline(parsedFlight.operatingAirline || "");
+              setSegments(parsedFlight.segments);
+              setShowForm(true);
             }
-            setShowForm(true);
           }
         } catch (err) {
           console.error("Parse error:", err);
           toast.error("Não foi possível analisar o screenshot. Tente novamente ou preencha manualmente.");
         }
         setParsing(false);
+        e.target.value = "";
       };
       reader.readAsDataURL(file);
     } catch (err) {
@@ -256,6 +281,17 @@ export function FlightForm() {
 
       {/* Screenshot upload */}
       <div className="rounded-lg border-2 border-dashed border-slate-300 p-4 text-center">
+        <div className="mb-3 text-left">
+          <Label className="text-xs">Preencher no screenshot</Label>
+          <Select value={screenshotTarget} onValueChange={(value) => setScreenshotTarget(value as FlightScreenshotTarget)}>
+            <SelectTrigger className="mt-1 h-9 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="automatico">Automático: ida e volta</SelectItem>
+              <SelectItem value="ida">Somente ida</SelectItem>
+              <SelectItem value="volta">Somente volta</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <input
           ref={fileInputRef}
           type="file"
@@ -282,7 +318,7 @@ export function FlightForm() {
           )}
         </Button>
         <p className="text-xs text-slate-400 mt-2">
-          Envie um print da tela do voo e a IA preenche automaticamente
+          Leia ida e volta automaticamente ou escolha somente ida/volta para reutilizar o mesmo print.
         </p>
       </div>
 

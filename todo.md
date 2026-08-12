@@ -192,3 +192,7 @@
 - [x] Encaminhar a observação da aba Parcelamento ao preview e PDF
 - [x] Renderizar a observação preenchida sem alterar as condições de pagamento
 - [x] Validar por testes e tipagem a exibição da observação
+
+- [x] Permitir que um print de voo preencha automaticamente ida e volta quando os dois trechos estiverem visíveis
+- [x] Permitir reutilizar o mesmo print para preencher manualmente apenas ida ou apenas volta
+- [x] Cobrir a leitura de dois trechos e o destino escolhido por testes

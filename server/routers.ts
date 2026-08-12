@@ -25,35 +25,44 @@ export const appRouter = router({
       const flightSchema = {
         type: "object",
         properties: {
-          type: { type: "string", enum: ["ida", "volta"] },
-          isDirect: { type: "boolean" },
-          totalDuration: { type: "string" },
-          operatingAirline: { type: "string" },
-          segments: {
+          flights: {
             type: "array",
             items: {
               type: "object",
               properties: {
-                airline: { type: "string" },
-                flightNumber: { type: "string" },
-                departureAirport: { type: "string" },
-                departureCity: { type: "string" },
-                departureTime: { type: "string" },
-                arrivalAirport: { type: "string" },
-                arrivalCity: { type: "string" },
-                arrivalTime: { type: "string" },
-                date: { type: "string" },
-                duration: { type: "string" },
+                type: { type: "string", enum: ["ida", "volta"] },
+                isDirect: { type: "boolean" },
+                totalDuration: { type: "string" },
+                operatingAirline: { type: "string" },
+                segments: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      airline: { type: "string" },
+                      flightNumber: { type: "string" },
+                      departureAirport: { type: "string" },
+                      departureCity: { type: "string" },
+                      departureTime: { type: "string" },
+                      arrivalAirport: { type: "string" },
+                      arrivalCity: { type: "string" },
+                      arrivalTime: { type: "string" },
+                      date: { type: "string" },
+                      duration: { type: "string" },
+                    },
+                    required: [
+                      "airline", "flightNumber", "departureAirport", "departureCity",
+                      "departureTime", "arrivalAirport", "arrivalCity", "arrivalTime",
+                      "date", "duration",
+                    ],
+                  },
+                },
               },
-              required: [
-                "airline", "flightNumber", "departureAirport", "departureCity",
-                "departureTime", "arrivalAirport", "arrivalCity", "arrivalTime",
-                "date", "duration",
-              ],
+              required: ["type", "isDirect", "totalDuration", "operatingAirline", "segments"],
             },
           },
         },
-        required: ["type", "isDirect", "totalDuration", "operatingAirline", "segments"],
+        required: ["flights"],
       };
 
       const response = await invokeLLM({
@@ -61,14 +70,14 @@ export const appRouter = router({
           {
             role: "system",
             content:
-              "You are a travel agent assistant. Extract flight information from screenshots of flight booking pages. Return structured JSON with all flight details including segments for connecting flights. Always respond in Portuguese.",
+              "You are a travel agent assistant. Extract flight information from screenshots of flight booking pages. A single screenshot may contain outbound (ida) and return (volta) itinerary cards. Return one separate flight object for each direction that is visible. Do not merge outbound and return into connecting-flight segments. Only treat legs within one itinerary card as connecting segments. Always respond in Portuguese.",
           },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: "Extract all flight information from this screenshot. Identify if it's a one-way (ida) or return (volta) flight. For flights with connections (escalas), extract each segment separately. Include airline, flight number, airports (codes), cities, departure/arrival times, dates, and duration for each segment. Also provide total duration and operating airline.",
+                text: "Extract every flight direction visible in this screenshot. If the screen shows both outbound and return, return two objects in flights: first type ida and second type volta. Use the section headings and route direction to identify them. For a screenshot with only one direction, return exactly one object with its detected type. For flights with connections (escalas), extract each leg of that same direction as a segment. Include airline, flight number (empty string if not shown), airports (codes), cities, departure/arrival times, dates, and duration for each segment. Also provide total duration and operating airline for each direction.",
               },
               {
                 type: "image_url",
@@ -91,8 +100,8 @@ export const appRouter = router({
       if (typeof content === "string") {
         try {
           const parsed = JSON.parse(content);
-          if (!parsed.segments || !Array.isArray(parsed.segments) || parsed.segments.length === 0) {
-            throw new Error("Invalid flight data: missing segments");
+          if (!parsed.flights || !Array.isArray(parsed.flights) || parsed.flights.length === 0 || parsed.flights.some((flight: { segments?: unknown }) => !Array.isArray(flight.segments) || flight.segments.length === 0)) {
+            throw new Error("Invalid flight data: missing flights or segments");
           }
           return parsed;
         } catch (e) {
