@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useBudget } from "@/contexts/BudgetContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,7 @@ export function FareForm() {
   const [customBenefits, setCustomBenefits] = useState<string[]>([]);
   const [customBenefitInput, setCustomBenefitInput] = useState("");
   const [showBenefitEditor, setShowBenefitEditor] = useState(false);
+  const firstBenefitInputRef = useRef<HTMLInputElement>(null);
   const [flightPrice, setFlightPrice] = useState(0);
   const [highlighted, setHighlighted] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
@@ -80,6 +81,14 @@ export function FareForm() {
     setCheckIns((prev) => prev.filter((benefit) => benefit !== benefitToRemove));
     setChanges((prev) => prev.filter((benefit) => benefit !== benefitToRemove));
     setCustomBenefits((prev) => prev.filter((benefit) => benefit !== benefitToRemove));
+  };
+
+  const openBenefitEditor = () => {
+    setShowBenefitEditor(true);
+    window.requestAnimationFrame(() => {
+      firstBenefitInputRef.current?.focus();
+      firstBenefitInputRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
   };
 
   const toggleBagage = (bagage: string) => {
@@ -415,24 +424,37 @@ export function FareForm() {
               <p className="text-[10px] text-slate-500">
                 {getBenefits().length} opcional(is) selecionado(s). Edite somente se necessário.
               </p>
-              {getBenefits().length > 0 && (
+              {getBenefits().length > 0 && !showBenefitEditor && (
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowBenefitEditor((visible) => !visible)}
+                  onClick={openBenefitEditor}
                   className="h-7 shrink-0 text-xs"
                 >
                   <Edit2 className="h-3.5 w-3.5 mr-1" />
-                  {showBenefitEditor ? "Concluir edição" : "Editar opcionais"}
+                  Editar opcionais
+                </Button>
+              )}
+              {showBenefitEditor && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowBenefitEditor(false)}
+                  className="h-7 shrink-0 text-xs"
+                >
+                  <Edit2 className="h-3.5 w-3.5 mr-1" />
+                  Concluir edição
                 </Button>
               )}
             </div>
             {showBenefitEditor && getBenefits().length > 0 && (
               <div className="space-y-1.5">
                 {getBenefits().map((benefit, index) => (
-                  <div key={`${benefit}-${index}`} className="flex items-center gap-2">
+                  <div key={`selected-benefit-${index}`} className="flex items-center gap-2">
                     <Input
+                      ref={index === 0 ? firstBenefitInputRef : undefined}
                       value={benefit}
                       onChange={(event) => updateSelectedBenefit(benefit, event.target.value)}
                       className="h-8 text-xs"

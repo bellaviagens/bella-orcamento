@@ -6,6 +6,13 @@ export type PdfLinkWriter = (
   options: { url: string; pageNumber: undefined },
 ) => void;
 
+export function normalizeExternalUrl(url: string): string {
+  const trimmedUrl = url.trim();
+  if (/^https?:\/\//i.test(trimmedUrl)) return trimmedUrl;
+  if (trimmedUrl.startsWith("//")) return `https:${trimmedUrl}`;
+  return `https://${trimmedUrl}`;
+}
+
 /**
  * Mantém a configuração usada pela versão do PDF em que os links externos
  * abriam fora do visualizador, sem interferir na paginação ou no layout.
@@ -18,5 +25,8 @@ export function addExternalPdfLink(
   height: number,
   url: string,
 ) {
-  writeLink(x, y, width, height, { url, pageNumber: undefined });
+  writeLink(x, y, width, height, {
+    url: normalizeExternalUrl(url),
+    pageNumber: undefined,
+  });
 }

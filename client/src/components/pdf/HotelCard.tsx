@@ -2,6 +2,7 @@ import { Star, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Hotel, FareTier } from "@shared/budgetTypes";
 import { calculateEffectiveHotelTotal, calculateInstallmentWithDownpayment } from "@shared/paymentCalculations";
+import { normalizeExternalUrl } from "@shared/pdfExternalLink";
 import { trpc } from "@/lib/trpc";
 
 interface HotelCardProps {
@@ -116,6 +117,7 @@ function getBenefitIcon(benefit: string): string {
 
 export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, includeHotel = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "", hotelInstallments = 1, hotelDownpayment = false, hotelDownpaymentAmount = 0, flightInstallments = 1, flightDownpayment = false, flightDownpaymentAmount = 0, flightMachineRate, combinedInstallments = 1, combinedDownpayment = false, combinedDownpaymentAmount = 0, showCashOption = false, cashValue = 0, cashPaymentMethods = [], observations = "" }: HotelCardProps) {
   const [proxiedPhotoUrl, setProxiedPhotoUrl] = useState<string | null>(hotel.photoUrl || null);
+  const hotelExternalUrl = hotel.hotelUrl ? normalizeExternalUrl(hotel.hotelUrl) : "";
   const imageProxyQuery = trpc.imageProxy.useQuery(
     { url: hotel.photoUrl || "" },
     {
@@ -212,12 +214,12 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 <img src={proxiedPhotoUrl} alt={hotel.name} className="w-full h-full object-cover rounded" crossOrigin="anonymous" />
               </div>
             )}
-            {hotel.hotelUrl && (
+            {hotelExternalUrl && (
               <a
-                href={hotel.hotelUrl}
+                href={hotelExternalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                data-pdf-link={hotel.hotelUrl}
+                data-pdf-link={hotelExternalUrl}
                 className="text-[9px] font-semibold bg-[#1a2e4a] text-white px-2 py-1 rounded whitespace-nowrap hover:bg-[#0f1a2e] transition-colors"
               >
                 ACESSAR SITE E FOTOS

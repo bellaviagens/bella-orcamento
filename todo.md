@@ -244,3 +244,11 @@
 - [x] Ocultar a lista de campos de edição dos opcionais até o clique em Editar opcionais
 - [x] Manter a inclusão de novos opcionais visível e inalterada
 - [x] Validar a compactação do formulário sem alterar os demais campos
+
+- [x] Fazer Editar opcionais abrir os campos de texto dos opcionais selecionados
+- [x] Preservar a área de inclusão de novos opcionais sem alteração
+- [x] Revisar a abertura externa do link Acessar Site e Fotos no PDF
+- [x] Validar por testes e preview as correções solicitadas
+- [ ] Validar no visualizador de PDF da cliente se Acessar Site e Fotos abre fora do PDF ou em nova aba
+- [ ] Documentar a limitação do visualizador se ele continuar abrindo o link na mesma guia
+- [ ] Salvar a versão atual para conferência antes da publicação pelo painel
