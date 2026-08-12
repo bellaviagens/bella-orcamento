@@ -157,6 +157,8 @@ describe("HotelCard — parcelamento conjunto", () => {
     expect(markup).toContain("Cartão");
     expect(markup).toContain("Dinheiro");
     expect(markup).toContain("PIX");
+    expect(markup).toContain('class="flex gap-2 text-[9px]"');
+    expect(markup).toContain('class="flex-1 border-l border-slate-200 pl-2"');
   });
 
   it("desconta a entrada antes de parcelar hotel e aéreo mais hotel", () => {

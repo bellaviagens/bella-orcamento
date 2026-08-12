@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 import { defaultBudgetData, type BudgetData, type Flight, type Hotel, type FareTier } from "@shared/budgetTypes";
+import { reconcileFareBenefits } from "@shared/fareBenefits";
 import { nanoid } from "nanoid";
 
 interface BudgetContextType {
@@ -31,6 +32,39 @@ function calculateBenefits(tier: FareTier): string[] {
   if (tier.seatSelection) benefits.push("Seleção de Assento");
   if (tier.changes) benefits.push("Alterações/Reembolso");
   return benefits;
+}
+
+export function updateFareTierInBudget(
+  budget: BudgetData,
+  id: string,
+  updates: Partial<FareTier>,
+): BudgetData {
+  return {
+    ...budget,
+    fareComparison: {
+      ...budget.fareComparison,
+      tiers: budget.fareComparison.tiers.map((tier) => {
+        if (tier.id !== id) return tier;
+
+        const updated = { ...tier, ...updates };
+        const updatedCollections = updates.bagages !== undefined || updates.checkIns !== undefined || updates.changes !== undefined;
+        const legacyFieldsUpdated = (
+          updates.carryOn !== undefined ||
+          updates.checkedBag !== undefined ||
+          updates.seatSelection !== undefined ||
+          updates.changes !== undefined
+        );
+
+        if (updates.benefits === undefined && updatedCollections) {
+          updated.benefits = reconcileFareBenefits(tier, updated);
+        } else if (updates.benefits === undefined && legacyFieldsUpdated) {
+          updated.benefits = calculateBenefits(updated);
+        }
+
+        return updated;
+      }),
+    },
+  };
 }
 
 export function BudgetProvider({ children }: { children: ReactNode }) {
@@ -96,28 +130,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateFareTier = useCallback((id: string, updates: Partial<FareTier>) => {
-    setBudget((prev) => ({
-      ...prev,
-      fareComparison: {
-        ...prev.fareComparison,
-        tiers: prev.fareComparison.tiers.map((t) => {
-          if (t.id === id) {
-            const updated = { ...t, ...updates };
-            // Recalcular benefícios se algum checkbox foi alterado
-            if (
-              updates.carryOn !== undefined ||
-              updates.checkedBag !== undefined ||
-              updates.seatSelection !== undefined ||
-              updates.changes !== undefined
-            ) {
-              updated.benefits = calculateBenefits(updated);
-            }
-            return updated;
-          }
-          return t;
-        }),
-      },
-    }));
+    setBudget((prev) => updateFareTierInBudget(prev, id, updates));
   }, []);
 
   const removeFareTier = useCallback((id: string) => {

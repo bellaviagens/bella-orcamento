@@ -53,8 +53,12 @@ const BENEFIT_ICON_MAP: Record<string, string> = {
   "carry on": "🧳",
   "bagagem de 10 kg": "🧳",
   "bagagem de 10kg": "🧳",
+  "bagagem de 12 kg": "🧳",
+  "bagagem de 12kg": "🧳",
   "mala de 10kg": "🧳",
   "mala de 10 kg": "🧳",
+  "mala de 12kg": "🧳",
+  "mala de 12 kg": "🧳",
   // Bagagem despachada
   "bagagem de 23 kg": "📦",
   "bagagem de 23kg": "📦",
@@ -355,8 +359,9 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                           <>
                         {/* AÉREO PARCELADO */}
                         {includeAirfare && tiers.length > 0 && (
-                          <div>
-                            <div
+                          <div className={showCashOption ? "flex gap-2 text-[9px]" : ""}>
+                            <div className={showCashOption ? "flex-1" : ""}>
+                              <div
                               className="font-semibold uppercase mb-0.5"
                               style={{ fontSize: "9px", color: "#64748b" }}
                             >
@@ -391,31 +396,30 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                                 <span className="inline-block px-1.5 py-0.5 rounded text-[8px] font-medium bg-blue-100 text-blue-700">Cartão</span>
                               </div>
                             )}
-                          </div>
-                        )}
-
-                        {/* AÉREO À VISTA */}
-                        {includeAirfare && showCashOption && (
-                          <div>
-                            <div
-                              className="font-semibold uppercase mb-0.5"
-                              style={{ fontSize: "9px", color: "#64748b" }}
-                            >
-                              Aéreo À Vista
                             </div>
-                            <div
-                              className="font-bold"
-                              style={{ fontSize: "11px", color: "#1a2e4a" }}
-                            >
-                              1x de {formatCurrency(cashValue > 0 ? cashValue : tier.flightPrice * passengers)}
-                            </div>
-                            {(cashPaymentMethods.includes("dinheiro") || cashPaymentMethods.includes("pix")) && (
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {cashPaymentMethods.includes("dinheiro") && (
-                                  <span className="inline-block px-1.5 py-0.5 rounded text-[8px] font-medium bg-blue-100 text-blue-700">Dinheiro</span>
-                                )}
-                                {cashPaymentMethods.includes("pix") && (
-                                  <span className="inline-block px-1.5 py-0.5 rounded text-[8px] font-medium bg-blue-100 text-blue-700">PIX</span>
+                            {showCashOption && (
+                              <div className="flex-1 border-l border-slate-200 pl-2">
+                                <div
+                                  className="font-semibold uppercase mb-0.5"
+                                  style={{ fontSize: "9px", color: "#64748b" }}
+                                >
+                                  Aéreo À Vista
+                                </div>
+                                <div
+                                  className="font-bold"
+                                  style={{ fontSize: "11px", color: "#1a2e4a" }}
+                                >
+                                  1x de {formatCurrency(cashValue > 0 ? cashValue : tier.flightPrice * passengers)}
+                                </div>
+                                {(cashPaymentMethods.includes("dinheiro") || cashPaymentMethods.includes("pix")) && (
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {cashPaymentMethods.includes("dinheiro") && (
+                                      <span className="inline-block px-1.5 py-0.5 rounded text-[8px] font-medium bg-blue-100 text-blue-700">Dinheiro</span>
+                                    )}
+                                    {cashPaymentMethods.includes("pix") && (
+                                      <span className="inline-block px-1.5 py-0.5 rounded text-[8px] font-medium bg-blue-100 text-blue-700">PIX</span>
+                                    )}
+                                  </div>
                                 )}
                               </div>
                             )}

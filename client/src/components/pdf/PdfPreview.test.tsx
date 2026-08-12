@@ -118,4 +118,24 @@ describe("PdfPreview — parcelamento conjunto", () => {
     expect(markup).toContain("Dinheiro");
     expect(markup).toContain("PIX");
   });
+
+  it("exibe no preview os opcionais editados e personalizados de uma tarifa", () => {
+    const data = {
+      ...defaultBudgetData,
+      fareComparison: {
+        tiers: [{
+          id: "fare-custom-benefit",
+          name: "Personalizada",
+          flightPrice: 1000,
+          benefits: ["Bagagem de 12 kg", "Acesso à sala VIP"],
+        }],
+      },
+      hotels: [],
+    };
+
+    const markup = renderToStaticMarkup(<PdfPreview data={data} includeAirfare includeHotel={false} />);
+
+    expect(markup).toContain("Bagagem de 12 kg");
+    expect(markup).toContain("Acesso à sala VIP");
+  });
 });

@@ -230,3 +230,13 @@
 - [x] Replicar a opção aérea à vista dentro dos cards de tarifa quando houver hotel
 - [x] Manter valores e métodos à vista separados da condição parcelada nos cards com hotel
 - [x] Validar o cenário hotel com aéreo sem alterar os demais blocos
+
+- [x] Exibir Aéreo Parcelado e Aéreo À Vista lado a lado dentro do card com hotel
+- [x] Manter as etiquetas Cartão, Dinheiro e PIX nos pagamentos exibidos nos cards com hotel
+- [x] Alterar o opcional padrão Bagagem de 10 kg para Bagagem de 12 kg
+- [x] Permitir editar e incluir opcionais personalizados nas tarifas
+- [x] Validar visualmente e por testes os ajustes sem alterar cálculos, cores ou demais estruturas
+- [x] Sincronizar os benefícios ao editar opcionais em tarifas existentes no modo expandido
+- [x] Cobrir por testes a atualização dos benefícios e o padrão Bagagem de 12 kg
+- [x] Cobrir no contexto a atualização de benefícios ao editar uma tarifa existente
+- [x] Cobrir no formulário o padrão Bagagem de 12 kg e a inclusão de opcionais personalizados
