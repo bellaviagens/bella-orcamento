@@ -23,6 +23,7 @@ export function FareForm() {
   const [changes, setChanges] = useState<string[]>([]);
   const [customBenefits, setCustomBenefits] = useState<string[]>([]);
   const [customBenefitInput, setCustomBenefitInput] = useState("");
+  const [showBenefitEditor, setShowBenefitEditor] = useState(false);
   const [flightPrice, setFlightPrice] = useState(0);
   const [highlighted, setHighlighted] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
@@ -112,6 +113,7 @@ export function FareForm() {
     setChanges([]);
     setCustomBenefits([]);
     setCustomBenefitInput("");
+    setShowBenefitEditor(false);
     setFlightPrice(0);
     setHighlighted(false);
     setPaymentMethods([]);
@@ -128,6 +130,7 @@ export function FareForm() {
     const configuredBenefits = [...(tier.bagages || []), ...(tier.checkIns || []), ...(tier.changes || [])];
     setCustomBenefits((tier.benefits || []).filter((benefit: string) => !configuredBenefits.includes(benefit)));
     setCustomBenefitInput("");
+    setShowBenefitEditor(false);
     setFlightPrice(tier.flightPrice || 0);
     setHighlighted(tier.highlighted || false);
     setPaymentMethods(tier.paymentMethods || []);
@@ -408,8 +411,24 @@ export function FareForm() {
 
           <div className="space-y-2">
             <Label className="text-xs font-semibold">Opcionais selecionados</Label>
-            <p className="text-[10px] text-slate-500">Você pode editar o texto de qualquer opcional conforme a regra da companhia aérea.</p>
-            {getBenefits().length > 0 && (
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[10px] text-slate-500">
+                {getBenefits().length} opcional(is) selecionado(s). Edite somente se necessário.
+              </p>
+              {getBenefits().length > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowBenefitEditor((visible) => !visible)}
+                  className="h-7 shrink-0 text-xs"
+                >
+                  <Edit2 className="h-3.5 w-3.5 mr-1" />
+                  {showBenefitEditor ? "Concluir edição" : "Editar opcionais"}
+                </Button>
+              )}
+            </div>
+            {showBenefitEditor && getBenefits().length > 0 && (
               <div className="space-y-1.5">
                 {getBenefits().map((benefit, index) => (
                   <div key={`${benefit}-${index}`} className="flex items-center gap-2">

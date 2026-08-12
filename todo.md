@@ -240,3 +240,7 @@
 - [x] Cobrir por testes a atualização dos benefícios e o padrão Bagagem de 12 kg
 - [x] Cobrir no contexto a atualização de benefícios ao editar uma tarifa existente
 - [x] Cobrir no formulário o padrão Bagagem de 12 kg e a inclusão de opcionais personalizados
+
+- [x] Ocultar a lista de campos de edição dos opcionais até o clique em Editar opcionais
+- [x] Manter a inclusão de novos opcionais visível e inalterada
+- [x] Validar a compactação do formulário sem alterar os demais campos
