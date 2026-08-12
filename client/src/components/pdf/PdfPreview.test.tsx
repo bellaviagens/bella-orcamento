@@ -40,4 +40,25 @@ describe("PdfPreview — parcelamento conjunto", () => {
 
     expect(markup).toContain("20% de entrada e saldo conforme combinado.");
   });
+
+  it("mantém pagamento e métodos dentro de cada tarifa quando há somente aéreo", () => {
+    const data = {
+      ...defaultBudgetData,
+      fareComparison: {
+        tiers: [{ id: "fare-1", name: "Premium", flightPrice: 1000, benefits: ["Bagagem de 10kg", "Seleção de Assento"] }],
+      },
+      hotels: [],
+      installments: { ...defaultBudgetData.installments, flight: 10, paymentMethods: ["dinheiro", "cartao", "pix"] },
+    };
+
+    const markup = renderToStaticMarkup(<PdfPreview data={data} includeAirfare includeHotel={false} />);
+
+    expect(markup).toContain("Forma de Pagamento");
+    expect(markup).toContain("Dinheiro");
+    expect(markup).toContain("Cartão");
+    expect(markup).toContain("PIX");
+    expect(markup).not.toContain("Formas de Pagamento");
+    expect(markup).toContain('flex:0 0 100px');
+    expect(markup).toContain("Bagagem de 10kg");
+  });
 });

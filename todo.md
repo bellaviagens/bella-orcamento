@@ -200,3 +200,16 @@
 - [x] Manter o botão de site e fotos do hotel clicável no PDF baixado
 - [x] Impedir que cards de hotel ou informações internas sejam cortados entre páginas do PDF
 - [x] Validar a geração do PDF, links e quebras de página
+
+- [ ] Configurar o link de site e fotos do hotel para solicitar abertura em nova aba no PDF
+- [ ] Validar a anotação de link externo do PDF
+- [x] Comparar versões anteriores para restaurar exatamente a abertura do link em nova aba
+- [x] Preservar integralmente layout, cálculos, PDF e demais funções durante o ajuste isolado do link
+
+- [x] Manter o preview do orçamento/PDF visível ao lado direito dos campos em tempo real
+- [x] Validar a disposição lateral sem alterar conteúdo, cálculos ou estilo do documento
+
+- [x] Remover a forma de pagamento duplicada exibida fora das tarifas quando houver somente aéreo
+- [x] Exibir Dinheiro, Cartão e PIX dentro de cada card de tarifa conforme selecionado no Parcelamento
+- [x] Posicionar os opcionais do cenário somente aéreo na lateral do card, como no cenário com hotel
+- [x] Validar os cenários somente aéreo e aéreo com hotel sem alterar cálculos ou demais layouts

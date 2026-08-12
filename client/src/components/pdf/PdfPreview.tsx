@@ -238,42 +238,42 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"
                   }`}
                 >
-                  {/* Title */}
-                  <div
-                    className="font-bold mb-1 leading-tight"
-                    style={{ fontSize: "11px", color: tier.highlighted ? "#b45309" : "#1d4ed8", overflowWrap: "anywhere" }}
-                  >
-                    {`Com Aéreo ${tier.name}`}
-                  </div>
-                  
-                  {/* Price info */}
-                  <div
-                    className="font-bold mb-0.5"
-                    style={{ fontSize: "15px", color: tier.highlighted ? "#d97706" : "#2563eb" }}
-                  >
-                    {formatCurrency(totalPrice)}
-                  </div>
-                  <div
-                    className="mb-2"
-                    style={{ fontSize: "10px", color: tier.highlighted ? "#d97706" : "#2563eb", opacity: 0.7 }}
-                  >
-                    {formatCurrency(perPersonPrice)} / pessoa
-                  </div>
-                  
-                  {/* Benefits with icons - fluxo contínuo com mapeamento fixo */}
-                  {tier.benefits && tier.benefits.length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", width: "100%" }} className="mb-1">
-                      {tier.benefits.map((benefit, idx) => {
-                        const icon = getBenefitIcon(benefit);
-                        return (
-                          <div key={idx} style={{ display: "flex", alignItems: "center", gap: "2px", lineHeight: "1.1", whiteSpace: "nowrap" }}>
-                            <span style={{ fontSize: "10px", flexShrink: 0, lineHeight: 1 }}>{icon}</span>
-                            <span style={{ fontSize: "8.5px", color: "#475569" }}>{benefit}</span>
-                          </div>
-                        );
-                      })}
+                  {/* Informações da tarifa e opcionais em colunas laterais, como nos cards com hotel */}
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "4px", marginBottom: "4px", paddingBottom: "4px" }}>
+                    <div style={{ flex: "0 0 100px", minWidth: 0 }}>
+                      <div
+                        className="font-bold mb-1 leading-tight"
+                        style={{ fontSize: "11px", color: tier.highlighted ? "#b45309" : "#1d4ed8", overflowWrap: "anywhere" }}
+                      >
+                        {`Com Aéreo ${tier.name}`}
+                      </div>
+                      <div
+                        className="font-bold mb-0.5"
+                        style={{ fontSize: "15px", color: tier.highlighted ? "#d97706" : "#2563eb" }}
+                      >
+                        {formatCurrency(totalPrice)}
+                      </div>
+                      <div
+                        style={{ fontSize: "10px", color: tier.highlighted ? "#d97706" : "#2563eb", opacity: 0.7 }}
+                      >
+                        {formatCurrency(perPersonPrice)} / pessoa
+                      </div>
                     </div>
-                  )}
+
+                    {tier.benefits && tier.benefits.length > 0 && (
+                      <div style={{ display: "flex", flex: "1 1 0%", minWidth: 0, flexWrap: "wrap", columnGap: "4px", rowGap: "2px", alignContent: "flex-start" }}>
+                        {tier.benefits.map((benefit, idx) => {
+                          const icon = getBenefitIcon(benefit);
+                          return (
+                            <div key={idx} style={{ display: "flex", alignItems: "center", gap: "2px", lineHeight: "1.1", whiteSpace: "nowrap" }}>
+                              <span style={{ fontSize: "10px", flexShrink: 0, lineHeight: 1 }}>{icon}</span>
+                              <span style={{ fontSize: "8.5px", color: "#475569" }}>{benefit}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                   
                   {/* FORMA DE PAGAMENTO */}
                   <div className="mt-1 pt-1 border-t border-slate-200">
@@ -323,6 +323,15 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                     {installments?.flightMachineRate !== undefined && (
                       <div className="mt-0.5 text-[9px] text-slate-500">
                         Taxa da maquininha: {installments.flightMachineRate.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
+                      </div>
+                    )}
+                    {installments?.paymentMethods && installments.paymentMethods.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {installments.paymentMethods.map((method) => (
+                          <span key={method} className="inline-block px-1.5 py-0.5 rounded text-[8px] font-medium bg-blue-100 text-blue-700">
+                            {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -415,111 +424,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
         </div>
       )}
 
-      {/* INSTALLMENTS SECTION - Only for flights when hotels are not included */}
-      {includeAirfare && !includeHotel && (installments?.flight || installments?.hotel) && (
-        <div className="px-4 py-4" {...(pageBreaks.payment ? { "data-page-break": "true" } : {})}>
-          <h3
-            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            Formas de Pagamento
-          </h3>
-          <div className="space-y-3">
-            {installments?.combined ? (
-              <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
-                <div className="text-sm font-semibold text-[#1a2e4a] mb-2">
-                  Parcelamento Total: Aéreo + Hotel
-                </div>
-                <div className="text-2xl font-bold text-[#1a2e4a]">
-                  {combinedBreakdown.downpaymentAmount > 0
-                    ? `1 entrada de ${formatCurrency(combinedBreakdown.downpaymentAmount)} + ${combinedBreakdown.remainingInstallments}x de ${formatCurrency(combinedInstallmentValue)}`
-                    : `${combinedInstallments}x de ${formatCurrency(combinedInstallmentValue)}`}
-                </div>
-                <div className="text-xs text-slate-500 mt-1">
-                  Valor total: {formatCurrency(combinedTotal)}
-                </div>
-                {installments?.flightMachineRate !== undefined && (
-                  <div className="text-xs text-slate-500 mt-1">
-                    Taxa da maquininha: {installments.flightMachineRate.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
-                  </div>
-                )}
-                {installments?.paymentMethods && installments.paymentMethods.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {installments.paymentMethods.map((method) => (
-                      <span key={method} className="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
-                        {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {includeAirfare && installments?.flight && flightTotal > 0 && (
-                  <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
-                    <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Aéreo</div>
-                    <div className="text-xl font-bold text-[#1a2e4a]">
-                      {flightBreakdown.downpaymentAmount > 0
-                        ? `1 entrada de ${formatCurrency(flightBreakdown.downpaymentAmount)} + ${flightBreakdown.remainingInstallments}x de ${formatCurrency(flightInstallmentValue)}`
-                        : `${flightInstallments}x de ${formatCurrency(flightInstallmentValue)}`}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">
-                      Total: {formatCurrency(flightTotal)}
-                    </div>
-                    {installments?.paymentMethods && installments.paymentMethods.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {installments.paymentMethods.map((method) => (
-                          <span key={method} className="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
-                            {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-                {includeAirfare && installments?.flightCashPrice && installments?.flightMachineRate !== undefined && installments?.flightInstallmentsWithRate && (
-                  <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
-                    <div className="text-xs font-semibold text-slate-500 uppercase mb-2">Aéreo</div>
-                    <div className="text-xl font-bold text-[#1a2e4a]">
-                      {(() => {
-                        const cashPrice = installments.flightCashPrice;
-                        const rate = installments.flightMachineRate / 100;
-                        const withRate = cashPrice * (1 + rate);
-                        const breakdown = calculateInstallmentWithDownpayment(
-                          withRate,
-                          installments.flightInstallmentsWithRate,
-                          installments.flightDownpayment ? installments.flightDownpaymentAmount : 0,
-                        );
-                        return breakdown.downpaymentAmount > 0
-                          ? `1 entrada de ${formatCurrency(breakdown.downpaymentAmount)} + ${breakdown.remainingInstallments}x de ${formatCurrency(breakdown.installmentValue)}`
-                          : `${installments.flightInstallmentsWithRate}x de ${formatCurrency(breakdown.installmentValue)}`;
-                      })()}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1">
-                      {(() => {
-                        const cashPrice = installments.flightCashPrice;
-                        const rate = installments.flightMachineRate / 100;
-                        const withRate = cashPrice * (1 + rate);
-                        return `Total: ${formatCurrency(withRate)}`;
-                      })()}
-                    </div>
-                    {installments?.paymentMethods && installments.paymentMethods.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {installments.paymentMethods.map((method) => (
-                          <span key={method} className="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-700">
-                            {method === "dinheiro" ? "Dinheiro" : method === "cartao" ? "Cartão" : "PIX"}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-          </div>
-        </div>
-      )}
+      {/* As formas de pagamento de somente aéreo ficam dentro de cada card de tarifa. */}
 
       {/* SPACER - Push content up */}
       <div className="flex-grow"></div>

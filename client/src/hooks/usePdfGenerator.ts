@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
 import { buildPdfSegments } from "@shared/pdfPagination";
+import { addExternalPdfLink } from "@shared/pdfExternalLink";
 
 export function usePdfGenerator() {
   const generatePdf = useCallback(async (filename: string = "orcamento-bella-viagens.pdf") => {
@@ -176,7 +177,7 @@ export function usePdfGenerator() {
           const wMm = (bounds.width / canvas.width) * imgWidth * segment.scale;
           const hMm = (bounds.height / canvas.width) * imgWidth * segment.scale;
           pdf.setPage(pageNum + 1);
-          pdf.link(xMm, yOnPage, wMm, hMm, { url: link });
+          addExternalPdfLink(pdf.link.bind(pdf), xMm, yOnPage, wMm, hMm, link);
         }
       });
 
