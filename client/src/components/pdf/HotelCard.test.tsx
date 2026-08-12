@@ -125,6 +125,40 @@ describe("HotelCard — parcelamento conjunto", () => {
     expect(markup).toContain("Taxa da maquininha: 2,5%");
   });
 
+  it("exibe a condição aérea à vista com valor e métodos próprios no card com hotel", () => {
+    const markup = renderToStaticMarkup(
+      <HotelCard
+        hotel={{
+          id: "hotel-cash",
+          name: "Hotel Exemplo",
+          stars: 4,
+          address: "Endereço",
+          description: "",
+          rating: 0,
+          ratingLabel: "",
+          amenities: [],
+          photoUrl: "",
+          totalPrice: 3000,
+          prices: {},
+        }}
+        index={0}
+        tiers={[{ id: "fare-cash", name: "Completa", flightPrice: 1000, benefits: [] }]}
+        passengers={2}
+        flightPaymentMethods={["cartao"]}
+        showCashOption
+        cashValue={1800}
+        cashPaymentMethods={["dinheiro", "pix"]}
+      />,
+    );
+
+    expect(markup).toContain("Aéreo Parcelado");
+    expect(markup).toContain("Aéreo À Vista");
+    expect(markup).toContain("1x de R$ 1.800,00");
+    expect(markup).toContain("Cartão");
+    expect(markup).toContain("Dinheiro");
+    expect(markup).toContain("PIX");
+  });
+
   it("desconta a entrada antes de parcelar hotel e aéreo mais hotel", () => {
     const hotel = {
       id: "hotel-4",

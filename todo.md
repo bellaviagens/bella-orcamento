@@ -201,12 +201,13 @@
 - [x] Impedir que cards de hotel ou informações internas sejam cortados entre páginas do PDF
 - [x] Validar a geração do PDF, links e quebras de página
 
-- [ ] Configurar o link de site e fotos do hotel para solicitar abertura em nova aba no PDF
-- [ ] Validar a anotação de link externo do PDF
+- [x] Restaurar o link externo clicável de site e fotos do hotel no PDF
+- [x] Validar a anotação externa de URL usada no PDF
 - [x] Comparar versões anteriores para restaurar exatamente a abertura do link em nova aba
 - [x] Preservar integralmente layout, cálculos, PDF e demais funções durante o ajuste isolado do link
-- [ ] Confirmar se o jsPDF suporta ação URI que obrigue abertura em nova aba no visualizador de PDF
-- [ ] Registrar a limitação do visualizador caso não exista uma ação PDF compatível para nova aba
+- [x] Confirmar que a API de link instalada não expõe uma opção compatível para obrigar nova aba em todos os visualizadores
+- [x] Registrar em documentação do projeto a limitação do visualizador de PDF
+- [ ] Receber confirmação manual da abertura em nova aba no visualizador de PDF usado pela cliente
 
 - [x] Manter o preview do orçamento/PDF visível ao lado direito dos campos em tempo real
 - [x] Validar a disposição lateral sem alterar conteúdo, cálculos ou estilo do documento
@@ -225,3 +226,7 @@
 - [x] Guardar os métodos Dinheiro e PIX específicos da condição aérea à vista
 - [x] Manter o método Cartão específico da condição aérea parcelada
 - [x] Validar no preview as etiquetas separadas para as duas condições de pagamento
+
+- [x] Replicar a opção aérea à vista dentro dos cards de tarifa quando houver hotel
+- [x] Manter valores e métodos à vista separados da condição parcelada nos cards com hotel
+- [x] Validar o cenário hotel com aéreo sem alterar os demais blocos

@@ -25,6 +25,9 @@ interface HotelCardProps {
   combinedInstallments?: number;
   combinedDownpayment?: boolean;
   combinedDownpaymentAmount?: number;
+  showCashOption?: boolean;
+  cashValue?: number;
+  cashPaymentMethods?: string[];
   observations?: string;
 }
 
@@ -107,7 +110,7 @@ function getBenefitIcon(benefit: string): string {
   return "🧳";
 }
 
-export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, includeHotel = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "", hotelInstallments = 1, hotelDownpayment = false, hotelDownpaymentAmount = 0, flightInstallments = 1, flightDownpayment = false, flightDownpaymentAmount = 0, flightMachineRate, combinedInstallments = 1, combinedDownpayment = false, combinedDownpaymentAmount = 0, observations = "" }: HotelCardProps) {
+export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, includeHotel = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "", hotelInstallments = 1, hotelDownpayment = false, hotelDownpaymentAmount = 0, flightInstallments = 1, flightDownpayment = false, flightDownpaymentAmount = 0, flightMachineRate, combinedInstallments = 1, combinedDownpayment = false, combinedDownpaymentAmount = 0, showCashOption = false, cashValue = 0, cashPaymentMethods = [], observations = "" }: HotelCardProps) {
   const [proxiedPhotoUrl, setProxiedPhotoUrl] = useState<string | null>(hotel.photoUrl || null);
   const imageProxyQuery = trpc.imageProxy.useQuery(
     { url: hotel.photoUrl || "" },
@@ -309,7 +312,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                     </div>
 
                     {/* Forma de Pagamento dentro do card */}
-                    {(combined || (includeAirfare && flightPaymentMethods?.length > 0) || (includeHotel && hotelPaymentMethods?.length > 0)) && (
+                    {(combined || (includeAirfare && (flightPaymentMethods?.length > 0 || showCashOption)) || (includeHotel && hotelPaymentMethods?.length > 0)) && (
                       <div className="space-y-0.5 mt-1 pt-1 border-t border-slate-300">
                         {combined && includeAirfare && includeHotel ? (
                           <div>
@@ -381,6 +384,39 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                             {flightMachineRate !== undefined && (
                               <div style={{ fontSize: "9px", color: "#64748b", marginTop: "2px" }}>
                                 Taxa da maquininha: {flightMachineRate.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
+                              </div>
+                            )}
+                            {flightPaymentMethods.includes("cartao") && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                <span className="inline-block px-1.5 py-0.5 rounded text-[8px] font-medium bg-blue-100 text-blue-700">Cartão</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* AÉREO À VISTA */}
+                        {includeAirfare && showCashOption && (
+                          <div>
+                            <div
+                              className="font-semibold uppercase mb-0.5"
+                              style={{ fontSize: "9px", color: "#64748b" }}
+                            >
+                              Aéreo À Vista
+                            </div>
+                            <div
+                              className="font-bold"
+                              style={{ fontSize: "11px", color: "#1a2e4a" }}
+                            >
+                              1x de {formatCurrency(cashValue > 0 ? cashValue : tier.flightPrice * passengers)}
+                            </div>
+                            {(cashPaymentMethods.includes("dinheiro") || cashPaymentMethods.includes("pix")) && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {cashPaymentMethods.includes("dinheiro") && (
+                                  <span className="inline-block px-1.5 py-0.5 rounded text-[8px] font-medium bg-blue-100 text-blue-700">Dinheiro</span>
+                                )}
+                                {cashPaymentMethods.includes("pix") && (
+                                  <span className="inline-block px-1.5 py-0.5 rounded text-[8px] font-medium bg-blue-100 text-blue-700">PIX</span>
+                                )}
                               </div>
                             )}
                           </div>

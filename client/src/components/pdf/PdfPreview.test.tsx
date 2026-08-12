@@ -91,4 +91,31 @@ describe("PdfPreview — parcelamento conjunto", () => {
     expect(markup).toContain("Dinheiro");
     expect(markup).toContain("PIX");
   });
+
+  it("replica a condição aérea à vista dentro de cada card quando há hotel", () => {
+    const data = {
+      ...defaultBudgetData,
+      fareComparison: {
+        tiers: [{ id: "fare-hotel-cash", name: "Premium", flightPrice: 1000, benefits: [] }],
+      },
+      hotels: [{ ...defaultBudgetData.hotels[0], id: "hotel-cash", totalPrice: 3000, prices: {} }],
+      installments: {
+        ...defaultBudgetData.installments,
+        flight: 10,
+        showCashOption: true,
+        flightCashPrice: 1800,
+        paymentMethods: ["cartao"],
+        flightCashPaymentMethods: ["dinheiro", "pix"],
+      },
+    };
+
+    const markup = renderToStaticMarkup(<PdfPreview data={data} includeAirfare includeHotel />);
+
+    expect(markup).toContain("Aéreo Parcelado");
+    expect(markup).toContain("Aéreo À Vista");
+    expect(markup).toContain("1x de R$ 1.800,00");
+    expect(markup).toContain("Cartão");
+    expect(markup).toContain("Dinheiro");
+    expect(markup).toContain("PIX");
+  });
 });
