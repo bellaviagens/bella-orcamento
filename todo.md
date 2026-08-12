@@ -188,3 +188,7 @@
 - [x] Exibir e descontar a entrada do aéreo no parcelamento conjunto quando preenchida
 - [x] Aplicar a taxa de maquininha do aéreo ao saldo combinado quando preenchida
 - [x] Validar por testes o cenário Hotel + Aéreo com entrada e 10x
+
+- [x] Encaminhar a observação da aba Parcelamento ao preview e PDF
+- [x] Renderizar a observação preenchida sem alterar as condições de pagamento
+- [x] Validar por testes e tipagem a exibição da observação

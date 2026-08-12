@@ -330,12 +330,6 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
               );
             })}
           </div>
-          {/* Observations */}
-          {installments?.observations && (
-            <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-slate-700">
-              {installments.observations}
-            </div>
-          )}
         </div>
       )}
 
@@ -377,6 +371,14 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {installments?.observations && (
+        <div className="px-4 pb-4">
+          <div className="p-2 bg-amber-50 border border-amber-200 rounded text-xs text-slate-700">
+            {installments.observations}
           </div>
         </div>
       )}

@@ -29,4 +29,15 @@ describe("PdfPreview — parcelamento conjunto", () => {
     expect(markup).toContain("Aéreo + Hotel");
     expect(markup).toContain("10x de R$ 500,00");
   });
+
+  it("exibe a observação de parcelamento mesmo quando há hospedagem", () => {
+    const data = {
+      ...defaultBudgetData,
+      installments: { ...defaultBudgetData.installments, observations: "20% de entrada e saldo conforme combinado." },
+    };
+
+    const markup = renderToStaticMarkup(<PdfPreview data={data} />);
+
+    expect(markup).toContain("20% de entrada e saldo conforme combinado.");
+  });
 });
