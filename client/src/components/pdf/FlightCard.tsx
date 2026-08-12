@@ -18,7 +18,7 @@ export function FlightCard({ flight }: FlightCardProps) {
     : `${flight.segments.length - 1} escala${flight.segments.length - 1 > 1 ? "s" : ""}`;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div data-pdf-keep-together="true" className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1a2e4a] text-white">

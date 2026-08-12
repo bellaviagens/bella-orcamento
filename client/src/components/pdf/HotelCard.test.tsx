@@ -66,6 +66,34 @@ describe("HotelCard — parcelamento conjunto", () => {
     expect(markup).toContain("Com Aéreo Personalizado");
   });
 
+  it("mantém a URL do hotel como destino explícito para o link do PDF", () => {
+    const hotelUrl = "https://www.exemplo.com/hotel";
+    const markup = renderToStaticMarkup(
+      <HotelCard
+        hotel={{
+          id: "hotel-link",
+          name: "Hotel Exemplo",
+          stars: 4,
+          address: "Endereço",
+          description: "",
+          rating: 0,
+          ratingLabel: "",
+          amenities: [],
+          photoUrl: "",
+          hotelUrl,
+          totalPrice: 3000,
+          prices: {},
+        }}
+        index={0}
+        tiers={[]}
+        passengers={1}
+      />,
+    );
+
+    expect(markup).toContain(`href="${hotelUrl}"`);
+    expect(markup).toContain(`data-pdf-link="${hotelUrl}"`);
+  });
+
   it("desconta a entrada e mostra a taxa da maquininha no parcelamento aéreo", () => {
     const markup = renderToStaticMarkup(
       <HotelCard

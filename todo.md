@@ -196,3 +196,7 @@
 - [x] Permitir que um print de voo preencha automaticamente ida e volta quando os dois trechos estiverem visíveis
 - [x] Permitir reutilizar o mesmo print para preencher manualmente apenas ida ou apenas volta
 - [x] Cobrir a leitura de dois trechos e o destino escolhido por testes
+
+- [x] Manter o botão de site e fotos do hotel clicável no PDF baixado
+- [x] Impedir que cards de hotel ou informações internas sejam cortados entre páginas do PDF
+- [x] Validar a geração do PDF, links e quebras de página

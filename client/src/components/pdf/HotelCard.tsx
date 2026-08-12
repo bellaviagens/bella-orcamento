@@ -210,7 +210,7 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                 href={hotel.hotelUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                data-pdf-link="true"
+                data-pdf-link={hotel.hotelUrl}
                 className="text-[9px] font-semibold bg-[#1a2e4a] text-white px-2 py-1 rounded whitespace-nowrap hover:bg-[#0f1a2e] transition-colors"
               >
                 ACESSAR SITE E FOTOS
