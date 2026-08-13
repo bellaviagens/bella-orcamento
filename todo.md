@@ -298,3 +298,8 @@
 - [x] Permitir importar um print de passeio para preenchimento assistido
 - [x] Criar a aba Roteiro para organizar atividades por dia, incluindo dias livres
 - [x] Exibir o roteiro em visualização própria, separada do preview e do PDF do orçamento
+
+- [x] Gerar e baixar um PDF exclusivo da visualização de roteiro
+- [x] Permitir duplicar passeios cadastrados com todos os dados
+- [x] Permitir reordenar passeios e dias do roteiro por arrastar e soltar
+- [x] Posicionar a aba Roteiro como a última opção da navegação

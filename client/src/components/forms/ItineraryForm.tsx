@@ -1,14 +1,29 @@
 import { useBudget } from "@/contexts/BudgetContext";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarDays, Plus, Trash2 } from "lucide-react";
+import { CalendarDays, GripVertical, Plus, Trash2 } from "lucide-react";
 
 export function ItineraryForm() {
-  const { budget, addItineraryDay, updateItineraryDay, removeItineraryDay } = useBudget();
-  const itinerary = [...budget.itinerary].sort((left, right) => left.day - right.day);
+  const { budget, addItineraryDay, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
+  const itinerary = budget.itinerary;
+  const [draggedDayId, setDraggedDayId] = useState<string | null>(null);
+  const [dragOverDayId, setDragOverDayId] = useState<string | null>(null);
+
+  const handleDayDrop = (targetDayId: string) => {
+    if (!draggedDayId || draggedDayId === targetDayId) return;
+    const sourceIndex = itinerary.findIndex((day) => day.id === draggedDayId);
+    const targetIndex = itinerary.findIndex((day) => day.id === targetDayId);
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const nextDays = [...itinerary];
+    const [movedDay] = nextDays.splice(sourceIndex, 1);
+    nextDays.splice(targetIndex, 0, movedDay);
+    reorderItineraryDays(nextDays);
+  };
 
   return (
     <div className="space-y-3">
@@ -17,9 +32,48 @@ export function ItineraryForm() {
       </div>
 
       {itinerary.map((day) => (
-        <div key={day.id} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <div
+          key={day.id}
+          onDragOver={(event) => {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "move";
+            if (draggedDayId && draggedDayId !== day.id) setDragOverDayId(day.id);
+          }}
+          onDragLeave={() => {
+            if (dragOverDayId === day.id) setDragOverDayId(null);
+          }}
+          onDrop={(event) => {
+            event.preventDefault();
+            handleDayDrop(day.id);
+            setDraggedDayId(null);
+            setDragOverDayId(null);
+          }}
+          className={`rounded-lg border bg-slate-50 p-4 transition-colors ${
+            dragOverDayId === day.id ? "border-[#1a2e4a] bg-blue-50" : "border-slate-200"
+          }`}
+        >
           <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day.day}</div><span className="text-sm font-bold text-[#1a2e4a]">Dia {day.day}</span></div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                draggable
+                onDragStart={(event) => {
+                  event.dataTransfer.effectAllowed = "move";
+                  event.dataTransfer.setData("text/plain", day.id);
+                  setDraggedDayId(day.id);
+                }}
+                onDragEnd={() => {
+                  setDraggedDayId(null);
+                  setDragOverDayId(null);
+                }}
+                className="flex h-8 w-5 cursor-grab items-center justify-center rounded text-slate-400 hover:bg-white hover:text-[#1a2e4a] active:cursor-grabbing"
+                title="Arraste para reordenar"
+                aria-label={`Arrastar Dia ${day.day} para reordenar`}
+              >
+                <GripVertical className="h-4 w-4" />
+              </button>
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day.day}</div><span className="text-sm font-bold text-[#1a2e4a]">Dia {day.day}</span>
+            </div>
             <Button variant="ghost" size="sm" onClick={() => removeItineraryDay(day.id)} className="h-8 w-8 p-0 text-red-500 hover:text-red-700" title={`Remover dia ${day.day}`}><Trash2 className="h-4 w-4" /></Button>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import { calculateCombinedInstallmentValue, calculateCombinedTotal, calculateEffectiveHotelTotal } from "../shared/paymentCalculations";
-import { duplicateHotelInBudget, reorderHotelsInBudget } from "../client/src/contexts/BudgetContext";
+import { duplicateHotelInBudget, duplicateTourInBudget, reorderHotelsInBudget, reorderItineraryDaysInBudget, reorderToursInBudget } from "../client/src/contexts/BudgetContext";
 
 function createMockContext(): TrpcContext {
   return {
@@ -85,6 +85,43 @@ describe("gestão de hotéis", () => {
       reversedHotels.map((hotel) => hotel.id),
     );
     expect(reorderedBudget.hotels[0].name).toBe(defaultBudgetData.hotels[1].name);
+  });
+});
+
+describe("gestão de passeios e roteiro", () => {
+  it("duplica o passeio logo após o original com novo id", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const tour = { id: "tour-1", name: "Vinícola", location: "Vale", duration: "6 horas", description: "Degustação", totalPrice: 300, pageUrl: "", photosUrl: "" };
+    const budget = { ...defaultBudgetData, tours: [tour] };
+    const duplicatedBudget = duplicateTourInBudget(budget, tour.id);
+
+    expect(duplicatedBudget.tours).toHaveLength(2);
+    expect(duplicatedBudget.tours[1]).toMatchObject({ name: "Vinícola (cópia)", location: "Vale", totalPrice: 300 });
+    expect(duplicatedBudget.tours[1].id).not.toBe(tour.id);
+  });
+
+  it("substitui a ordem dos passeios sem alterar os dados", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const tours = [
+      { id: "tour-1", name: "Museu", location: "Centro", duration: "2 horas", description: "", totalPrice: 100 },
+      { id: "tour-2", name: "Vinícola", location: "Vale", duration: "6 horas", description: "", totalPrice: 300 },
+    ];
+    const reorderedBudget = reorderToursInBudget({ ...defaultBudgetData, tours }, [...tours].reverse());
+
+    expect(reorderedBudget.tours.map((tour) => tour.id)).toEqual(["tour-2", "tour-1"]);
+    expect(reorderedBudget.tours[0].name).toBe("Vinícola");
+  });
+
+  it("reordena e renumera os dias do roteiro", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const days = [
+      { id: "day-1", day: 1, title: "Dia livre", notes: "" },
+      { id: "day-2", day: 2, title: "Vinícola", notes: "" },
+    ];
+    const reorderedBudget = reorderItineraryDaysInBudget({ ...defaultBudgetData, itinerary: days }, [...days].reverse());
+
+    expect(reorderedBudget.itinerary.map((day) => day.id)).toEqual(["day-2", "day-1"]);
+    expect(reorderedBudget.itinerary.map((day) => day.day)).toEqual([1, 2]);
   });
 });
 

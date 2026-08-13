@@ -5,8 +5,8 @@ import { buildPdfSegments } from "@shared/pdfPagination";
 import { addExternalPdfLink } from "@shared/pdfExternalLink";
 
 export function usePdfGenerator() {
-  const generatePdf = useCallback(async (filename: string = "orcamento-bella-viagens.pdf") => {
-    const element = document.getElementById("pdf-document");
+  const generatePdf = useCallback(async (filename: string = "orcamento-bella-viagens.pdf", elementId: string = "pdf-document") => {
+    const element = document.getElementById(elementId);
     if (!element) {
       console.error("PDF document element not found");
       throw new Error("Elemento do PDF não encontrado");

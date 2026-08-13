@@ -120,10 +120,6 @@ function BuilderContent() {
                     <Camera className="h-4 w-4 mr-1.5" />
                     Passeios
                   </TabsTrigger>
-                  <TabsTrigger value="itinerary" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
-                    <CalendarDays className="h-4 w-4 mr-1.5" />
-                    Roteiro
-                  </TabsTrigger>
                   <TabsTrigger value="baggage" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
                     <Settings className="h-4 w-4 mr-1.5" />
                     Bagagens
@@ -131,6 +127,10 @@ function BuilderContent() {
                   <TabsTrigger value="installments" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
                     <Settings className="h-4 w-4 mr-1.5" />
                     Parcelamento
+                  </TabsTrigger>
+                  <TabsTrigger value="itinerary" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                    <CalendarDays className="h-4 w-4 mr-1.5" />
+                    Roteiro
                   </TabsTrigger>
                 </TabsList>
 
@@ -224,9 +224,30 @@ function BuilderContent() {
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 {showingItinerary ? "Visualização do roteiro" : "Preview do PDF"}
               </span>
-              <span className="text-xs text-slate-400">
-                {showingItinerary ? `${budget.itinerary.length} dia(s) • ${budget.tours.length} passeio(s)` : `${budget.flights.length} voo(s) • ${budget.hotels.length} hotel(is) • ${budget.fareComparison.tiers.length} tarifa(s)`}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-400">
+                  {showingItinerary ? `${budget.itinerary.length} dia(s) • ${budget.tours.length} passeio(s)` : `${budget.flights.length} voo(s) • ${budget.hotels.length} hotel(is) • ${budget.fareComparison.tiers.length} tarifa(s)`}
+                </span>
+                {showingItinerary && (
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      toast.loading("Gerando PDF do roteiro...", { id: "itinerary-pdf-gen" });
+                      try {
+                        await generatePdf("roteiro-bella-viagens.pdf", "itinerary-document");
+                        toast.success("PDF do roteiro gerado! Verifique a pasta Downloads do seu computador.", { id: "itinerary-pdf-gen" });
+                      } catch (err) {
+                        console.error("Itinerary PDF error:", err);
+                        toast.error("Erro ao gerar o PDF do roteiro. Tente novamente.", { id: "itinerary-pdf-gen" });
+                      }
+                    }}
+                    className="h-8 bg-[#1a2e4a] px-3 text-xs text-white hover:bg-[#243d61]"
+                  >
+                    <Download className="mr-1.5 h-3.5 w-3.5" />
+                    Gerar PDF do Roteiro
+                  </Button>
+                )}
+              </div>
             </div>
             <div className="flex-1 overflow-y-auto">
               <div className="p-6 flex justify-center">

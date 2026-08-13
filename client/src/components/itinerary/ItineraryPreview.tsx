@@ -8,7 +8,7 @@ function formatCurrency(value: number) {
 export function ItineraryPreview({ data }: { data: BudgetData }) {
   const days = [...data.itinerary].sort((left, right) => left.day - right.day);
   return (
-    <div className="w-full max-w-2xl rounded-2xl bg-white p-7 text-[#1a2e4a] shadow-xl" style={{ fontFamily: "Poppins, sans-serif" }}>
+    <div id="itinerary-document" className="w-full max-w-2xl rounded-2xl bg-white p-7 text-[#1a2e4a] shadow-xl" style={{ fontFamily: "Poppins, sans-serif" }}>
       <div className="border-b-2 border-amber-400 pb-5">
         <div className="mb-2 flex items-center gap-2 text-amber-600"><CalendarDays className="h-5 w-5" /><span className="text-xs font-bold uppercase tracking-[0.18em]">Pós-aprovação</span></div>
         <h2 className="text-2xl font-extrabold">Roteiro de viagem</h2>

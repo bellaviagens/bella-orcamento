@@ -17,9 +17,12 @@ interface BudgetContextType {
   addTour: (tour: Tour) => void;
   updateTour: (id: string, tour: Tour) => void;
   removeTour: (id: string) => void;
+  duplicateTour: (id: string) => void;
+  reorderTours: (tours: Tour[]) => void;
   addItineraryDay: () => void;
   updateItineraryDay: (id: string, updates: Partial<ItineraryDay>) => void;
   removeItineraryDay: (id: string) => void;
+  reorderItineraryDays: (days: ItineraryDay[]) => void;
   addFareTier: (tier: Omit<FareTier, "id">) => void;
   updateFareTier: (id: string, tier: Partial<FareTier>) => void;
   removeFareTier: (id: string) => void;
@@ -102,6 +105,38 @@ export function duplicateHotelInBudget(budget: BudgetData, id: string): BudgetDa
 
 export function reorderHotelsInBudget(budget: BudgetData, hotels: Hotel[]): BudgetData {
   return { ...budget, hotels };
+}
+
+export function duplicateTourInBudget(budget: BudgetData, id: string): BudgetData {
+  const sourceIndex = budget.tours.findIndex((tour) => tour.id === id);
+  if (sourceIndex === -1) return budget;
+
+  const sourceTour = budget.tours[sourceIndex];
+  const duplicate: Tour = {
+    ...sourceTour,
+    id: nanoid(),
+    name: `${sourceTour.name} (cópia)`,
+  };
+
+  return {
+    ...budget,
+    tours: [
+      ...budget.tours.slice(0, sourceIndex + 1),
+      duplicate,
+      ...budget.tours.slice(sourceIndex + 1),
+    ],
+  };
+}
+
+export function reorderToursInBudget(budget: BudgetData, tours: Tour[]): BudgetData {
+  return { ...budget, tours };
+}
+
+export function reorderItineraryDaysInBudget(budget: BudgetData, days: ItineraryDay[]): BudgetData {
+  return {
+    ...budget,
+    itinerary: days.map((day, index) => ({ ...day, day: index + 1 })),
+  };
 }
 
 export function BudgetProvider({ children }: { children: ReactNode }) {
@@ -188,6 +223,14 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const duplicateTour = useCallback((id: string) => {
+    setBudget((prev) => duplicateTourInBudget(prev, id));
+  }, []);
+
+  const reorderTours = useCallback((tours: Tour[]) => {
+    setBudget((prev) => reorderToursInBudget(prev, tours));
+  }, []);
+
   const addItineraryDay = useCallback(() => {
     setBudget((prev) => {
       const nextDay = Math.max(0, ...prev.itinerary.map((day) => day.day)) + 1;
@@ -213,6 +256,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       ...prev,
       itinerary: prev.itinerary.filter((day) => day.id !== id),
     }));
+  }, []);
+
+  const reorderItineraryDays = useCallback((days: ItineraryDay[]) => {
+    setBudget((prev) => reorderItineraryDaysInBudget(prev, days));
   }, []);
 
   const addFareTier = useCallback((tier: Omit<FareTier, "id">) => {
@@ -306,9 +353,12 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         addTour,
         updateTour,
         removeTour,
+        duplicateTour,
+        reorderTours,
         addItineraryDay,
         updateItineraryDay,
         removeItineraryDay,
+        reorderItineraryDays,
         addFareTier,
         updateFareTier,
         removeFareTier,

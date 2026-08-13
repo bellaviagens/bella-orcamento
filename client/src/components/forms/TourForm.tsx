@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, Edit2, ExternalLink, Images, Loader2, MapPin, Plus, Trash2, Upload } from "lucide-react";
+import { Camera, Copy, Edit2, ExternalLink, GripVertical, Images, Loader2, MapPin, Plus, Trash2, Upload } from "lucide-react";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
 import type { Tour } from "@shared/budgetTypes";
@@ -47,11 +47,13 @@ const emptyTour = (): Omit<Tour, "id"> => ({
 });
 
 export function TourForm() {
-  const { budget, addTour, updateTour, removeTour } = useBudget();
+  const { budget, addTour, updateTour, removeTour, duplicateTour, reorderTours } = useBudget();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<Omit<Tour, "id">>(emptyTour());
   const [parsing, setParsing] = useState(false);
+  const [draggedTourId, setDraggedTourId] = useState<string | null>(null);
+  const [dragOverTourId, setDragOverTourId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const parseTourMutation = trpc.parseTourScreenshot.useMutation();
 
@@ -88,6 +90,18 @@ export function TourForm() {
     setShowForm(true);
   };
 
+  const handleTourDrop = (targetTourId: string) => {
+    if (!draggedTourId || draggedTourId === targetTourId) return;
+    const sourceIndex = budget.tours.findIndex((tour) => tour.id === draggedTourId);
+    const targetIndex = budget.tours.findIndex((tour) => tour.id === targetTourId);
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const nextTours = [...budget.tours];
+    const [movedTour] = nextTours.splice(sourceIndex, 1);
+    nextTours.splice(targetIndex, 0, movedTour);
+    reorderTours(nextTours);
+  };
+
   const handleScreenshotUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -121,7 +135,44 @@ export function TourForm() {
   return (
     <div className="space-y-3">
       {budget.tours.map((tour) => (
-        <div key={tour.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3 flex items-start gap-3">
+        <div
+          key={tour.id}
+          onDragOver={(event) => {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "move";
+            if (draggedTourId && draggedTourId !== tour.id) setDragOverTourId(tour.id);
+          }}
+          onDragLeave={() => {
+            if (dragOverTourId === tour.id) setDragOverTourId(null);
+          }}
+          onDrop={(event) => {
+            event.preventDefault();
+            handleTourDrop(tour.id);
+            setDraggedTourId(null);
+            setDragOverTourId(null);
+          }}
+          className={`flex items-start gap-3 rounded-lg border bg-slate-50 p-3 transition-colors ${
+            dragOverTourId === tour.id ? "border-[#1a2e4a] bg-blue-50" : "border-slate-200"
+          }`}
+        >
+          <button
+            type="button"
+            draggable
+            onDragStart={(event) => {
+              event.dataTransfer.effectAllowed = "move";
+              event.dataTransfer.setData("text/plain", tour.id);
+              setDraggedTourId(tour.id);
+            }}
+            onDragEnd={() => {
+              setDraggedTourId(null);
+              setDragOverTourId(null);
+            }}
+            className="flex h-8 w-5 cursor-grab items-center justify-center rounded text-slate-400 hover:bg-white hover:text-[#1a2e4a] active:cursor-grabbing"
+            title="Arraste para reordenar"
+            aria-label={`Arrastar ${tour.name} para reordenar`}
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1a2e4a] text-white">
             <Camera className="h-4 w-4" />
           </div>
@@ -138,6 +189,7 @@ export function TourForm() {
             {tour.pageUrl && <a href={tour.pageUrl} target="_blank" rel="noreferrer" className="rounded p-2 text-slate-500 hover:bg-white hover:text-[#1a2e4a]" title="Abrir página do passeio"><ExternalLink className="h-4 w-4" /></a>}
             {tour.photosUrl && <a href={tour.photosUrl} target="_blank" rel="noreferrer" className="rounded p-2 text-slate-500 hover:bg-white hover:text-[#1a2e4a]" title="Abrir fotos do passeio"><Images className="h-4 w-4" /></a>}
             <Button variant="ghost" size="sm" onClick={() => handleEdit(tour)} className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-50 hover:text-blue-700" title="Editar passeio"><Edit2 className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="sm" onClick={() => { duplicateTour(tour.id); toast.success("Passeio duplicado. Edite os dados necessários na nova opção."); }} className="h-8 w-8 p-0 text-[#1a2e4a] hover:bg-white hover:text-[#1a2e4a]" title="Duplicar passeio" aria-label={`Duplicar ${tour.name}`}><Copy className="h-4 w-4" /></Button>
             <Button variant="ghost" size="sm" onClick={() => removeTour(tour.id)} className="h-8 w-8 p-0 text-red-500 hover:text-red-700" title="Remover passeio"><Trash2 className="h-4 w-4" /></Button>
           </div>
         </div>
