@@ -94,29 +94,29 @@ function BuilderContent() {
           <ScrollArea className="flex-1">
             <div className="p-6">
               <Tabs defaultValue="trip" className="w-full">
-                <TabsList className="grid w-full grid-cols-6 mb-4">
-                  <TabsTrigger value="trip" className="text-xs">
-                    <FileText className="h-3.5 w-3.5 mr-1" />
+                <TabsList className="grid w-full grid-cols-3 gap-1.5 mb-5 h-auto rounded-xl border border-slate-200 bg-slate-100 p-1.5 shadow-sm">
+                  <TabsTrigger value="trip" className="min-h-12 whitespace-nowrap rounded-lg border border-transparent px-2 text-[13px] font-semibold text-slate-600 transition-all data-[state=active]:border-slate-200 data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                    <FileText className="h-4 w-4 mr-1.5" />
                     Viagem
                   </TabsTrigger>
-                  <TabsTrigger value="flights" className="text-xs">
-                    <Plane className="h-3.5 w-3.5 mr-1" />
+                  <TabsTrigger value="flights" className="min-h-12 whitespace-nowrap rounded-lg border border-transparent px-2 text-[13px] font-semibold text-slate-600 transition-all data-[state=active]:border-slate-200 data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                    <Plane className="h-4 w-4 mr-1.5" />
                     Voos
                   </TabsTrigger>
-                  <TabsTrigger value="fares" className="text-xs">
-                    <Settings className="h-3.5 w-3.5 mr-1" />
+                  <TabsTrigger value="fares" className="min-h-12 whitespace-nowrap rounded-lg border border-transparent px-2 text-[13px] font-semibold text-slate-600 transition-all data-[state=active]:border-slate-200 data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                    <Settings className="h-4 w-4 mr-1.5" />
                     Tarifas
                   </TabsTrigger>
-                  <TabsTrigger value="hotels" className="text-xs">
-                    <Building2 className="h-3.5 w-3.5 mr-1" />
+                  <TabsTrigger value="hotels" className="min-h-12 whitespace-nowrap rounded-lg border border-transparent px-2 text-[13px] font-semibold text-slate-600 transition-all data-[state=active]:border-slate-200 data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                    <Building2 className="h-4 w-4 mr-1.5" />
                     Hotéis
                   </TabsTrigger>
-                  <TabsTrigger value="baggage" className="text-xs">
-                    <Settings className="h-3.5 w-3.5 mr-1" />
+                  <TabsTrigger value="baggage" className="min-h-12 whitespace-nowrap rounded-lg border border-transparent px-2 text-[13px] font-semibold text-slate-600 transition-all data-[state=active]:border-slate-200 data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                    <Settings className="h-4 w-4 mr-1.5" />
                     Bagagens
                   </TabsTrigger>
-                  <TabsTrigger value="installments" className="text-xs">
-                    <Settings className="h-3.5 w-3.5 mr-1" />
+                  <TabsTrigger value="installments" className="min-h-12 whitespace-nowrap rounded-lg border border-transparent px-2 text-[13px] font-semibold text-slate-600 transition-all data-[state=active]:border-slate-200 data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                    <Settings className="h-4 w-4 mr-1.5" />
                     Parcelamento
                   </TabsTrigger>
                 </TabsList>
