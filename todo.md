@@ -281,3 +281,5 @@
 - [x] Ajustar a identificação da segunda mala despachada, exibindo “2ª” e “23 kg” conforme solicitado
 - [x] Reduzir mais o tamanho e diferenciar discretamente o fundo dos cards de bagagem no PDF
 - [x] Registrar a confirmação da cliente sobre a abertura de “Acessar Site e Fotos” no mesmo visualizador de PDF
+
+- [x] Ajustar o fundo cinza, o botão branco ativo e a fonte ampliada nas abas de navegação
