@@ -335,7 +335,7 @@ export function HotelForm() {
             setDraggedHotelId(null);
             setDragOverHotelId(null);
           }}
-          className={`rounded-lg border bg-white p-3 flex items-center gap-3 transition-colors ${
+          className={`rounded-lg border bg-white p-3 flex items-start gap-3 transition-colors ${
             dragOverHotelId === hotel.id ? "border-[#1a2e4a] bg-blue-50" : "border-slate-200"
           }`}
         >
@@ -366,14 +366,17 @@ export function HotelForm() {
               <MapPin className="h-3 w-3 flex-shrink-0" />
               <span className="truncate">{hotel.address}</span>
             </div>
+            <div className="mt-2 max-w-md">
+              <Label className="text-[10px] font-medium text-slate-500">Valor Total (R$)</Label>
+              <CurrencyInput
+                value={getDisplayedPrice(hotel)}
+                onValueChange={(value) => handleInlinePriceChange(hotel, value)}
+                className="mt-1 h-9 w-full border-slate-200 bg-white px-3 text-left text-sm font-semibold text-[#1a2e4a] shadow-none focus-visible:border-[#1a2e4a]"
+                placeholder="R$ 0,00"
+              />
+            </div>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <CurrencyInput
-              value={getDisplayedPrice(hotel)}
-              onValueChange={(value) => handleInlinePriceChange(hotel, value)}
-              className="h-8 w-28 border-slate-200 bg-white px-2 text-right text-xs font-semibold text-[#1a2e4a] shadow-none focus-visible:border-[#1a2e4a]"
-              placeholder="R$ 0,00"
-            />
+          <div className="flex items-center gap-1 flex-shrink-0 pt-1">
             {hotel.rating > 0 && (
               <div className="text-xs bg-[#1a2e4a] text-white px-2 py-1 rounded">
                 {hotel.rating.toFixed(1)} / 10

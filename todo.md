@@ -289,3 +289,6 @@
 - [x] Permitir duplicar uma opção de hotel com todos os seus dados
 - [x] Permitir reordenar hotéis cadastrados por arrastar e soltar
 - [x] Permitir editar o preço diretamente no cartão recolhido do hotel, sem abrir o editor completo
+
+- [x] Reposicionar e ampliar o campo de valor do hotel à esquerda, no padrão da aba Tarifas
+- [x] Permitir personalizar os textos de tipo e peso de cada bagagem conforme as regras de cada companhia aérea

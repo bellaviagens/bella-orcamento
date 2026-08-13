@@ -179,9 +179,9 @@ export const defaultBudgetData: BudgetData = {
     ],
   },
   baggage: [
-    { type: "Mala de Mao 12kg", weight: "", priceAdvance: 0, priceAirport: 0 },
-    { type: "Mala Despachada 23kg", weight: "", priceAdvance: 0, priceAirport: 0 },
-    { type: "2a Mala Despachada", weight: "23kg", priceAdvance: 0, priceAirport: 0 },
+    { type: "Mala de Mão", weight: "12kg", priceAdvance: 0, priceAirport: 0 },
+    { type: "Mala Despachada", weight: "23kg", priceAdvance: 0, priceAirport: 0 },
+    { type: "2ª Mala Despachada", weight: "23kg", priceAdvance: 0, priceAirport: 0 },
   ],
   hotels: [
     {

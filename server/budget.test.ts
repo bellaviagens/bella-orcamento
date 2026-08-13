@@ -41,10 +41,9 @@ describe("budgetTypes defaults", () => {
 
   it("baggage has correct default items", async () => {
     const { defaultBudgetData } = await import("../shared/budgetTypes");
-    expect(defaultBudgetData.baggage[0].type).toBe("Mala de Mao 12kg");
-    expect(defaultBudgetData.baggage[0].weight).toBe("");
-    expect(defaultBudgetData.baggage[1].type).toBe("Mala Despachada 23kg");
-    expect(defaultBudgetData.baggage[2].type).toBe("2a Mala Despachada");
+    expect(defaultBudgetData.baggage[0]).toMatchObject({ type: "Mala de Mão", weight: "12kg" });
+    expect(defaultBudgetData.baggage[1]).toMatchObject({ type: "Mala Despachada", weight: "23kg" });
+    expect(defaultBudgetData.baggage[2]).toMatchObject({ type: "2ª Mala Despachada", weight: "23kg" });
   });
 
   it("fare comparison tiers are available by default", async () => {
