@@ -303,3 +303,5 @@
 - [x] Permitir duplicar passeios cadastrados com todos os dados
 - [x] Permitir reordenar passeios e dias do roteiro por arrastar e soltar
 - [x] Posicionar a aba Roteiro como a última opção da navegação
+
+- [x] Ajustar a distribuição responsiva das abas para manter todos os nomes e ícones legíveis após incluir Passeios e Roteiro

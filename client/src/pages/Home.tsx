@@ -99,7 +99,7 @@ function BuilderContent() {
           <ScrollArea className="flex-1">
             <div className="p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 mb-4 h-auto gap-1.5 rounded-lg bg-slate-200 p-1.5">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-4 h-auto gap-1.5 rounded-lg bg-slate-200 p-1.5">
                   <TabsTrigger value="trip" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
                     <FileText className="h-4 w-4 mr-1.5" />
                     Viagem
