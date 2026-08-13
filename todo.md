@@ -250,10 +250,10 @@
 - [x] Revisar a abertura externa do link Acessar Site e Fotos no PDF
 - [x] Validar por testes e preview as correções solicitadas
 - [ ] Validar no visualizador de PDF da cliente se Acessar Site e Fotos abre fora do PDF ou em nova aba
-- [ ] Documentar a limitação do visualizador se ele continuar abrindo o link na mesma guia
+- [x] Documentar a limitação do visualizador se ele continuar abrindo o link na mesma guia
 - [x] Salvar a versão atual para conferência antes da publicação pelo painel
 
 - [x] Reproduzir e identificar o erro de geração do PDF sem alterar o restante
 - [x] Corrigir exclusivamente a causa do erro de geração do PDF
-- [ ] Validar novamente a geração do PDF e os testes relacionados
-- [ ] Salvar e entregar a versão atual sem novas modificações
+- [x] Validar novamente a geração do PDF e os testes relacionados
+- [x] Salvar e entregar a versão atual sem novas modificações
