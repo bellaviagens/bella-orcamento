@@ -272,3 +272,8 @@
 
 - [x] Ampliar ainda mais os botões de ação dos formulários para boa leitura sem alterar o zoom do navegador
 - [x] Aplicar área alta com rolagem interna nas abas Tarifas e Voos, sem alterar conteúdo, cálculos, preview ou PDF
+
+- [x] Formatar o campo de preço do hotel em reais, preservando o valor numérico armazenado
+- [x] Exibir o valor em reais nos cartões recolhidos da aba Hotéis
+- [x] Reduzir somente o destaque visual da seção de bagagens no PDF
+- [x] Garantir a renderização dos ícones das bagagens no PDF, como já ocorre no preview

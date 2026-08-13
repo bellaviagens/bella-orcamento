@@ -18,6 +18,57 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
+function parseCurrencyInput(value: string): number {
+  const sanitized = value.replace(/[^\d.,]/g, "");
+  if (!sanitized) return 0;
+
+  if (sanitized.includes(",")) {
+    return Number.parseFloat(sanitized.replace(/\./g, "").replace(",", ".")) || 0;
+  }
+
+  const parts = sanitized.split(".");
+  const normalized = parts.length === 2 && parts[1].length <= 2
+    ? sanitized
+    : sanitized.replace(/\./g, "");
+  return Number.parseFloat(normalized) || 0;
+}
+
+function CurrencyInput({
+  value,
+  onValueChange,
+  placeholder = "R$ 0,00",
+}: {
+  value: number;
+  onValueChange: (value: number) => void;
+  placeholder?: string;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const displayValue = isEditing ? draft : value > 0 ? formatCurrency(value) : "";
+
+  return (
+    <Input
+      type="text"
+      inputMode="decimal"
+      value={displayValue}
+      onFocus={() => {
+        setIsEditing(true);
+        setDraft(value > 0 ? value.toFixed(2).replace(".", ",") : "");
+      }}
+      onChange={(event) => {
+        setDraft(event.target.value);
+        onValueChange(parseCurrencyInput(event.target.value));
+      }}
+      onBlur={() => {
+        setIsEditing(false);
+        setDraft("");
+      }}
+      placeholder={placeholder}
+      className="mt-1"
+    />
+  );
+}
+
 export function HotelForm() {
   const { budget, addHotel, updateHotel, removeHotel } = useBudget();
   const [showForm, setShowForm] = useState(false);
@@ -226,6 +277,16 @@ export function HotelForm() {
             </div>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
+            {(() => {
+              const displayedPrice = hotel.priceMode === "daily" && hotel.dailyPrice && hotel.nights
+                ? hotel.dailyPrice * hotel.nights
+                : hotel.totalPrice;
+              return displayedPrice > 0 ? (
+                <div className="text-xs font-semibold text-[#1a2e4a] px-2 py-1">
+                  {formatCurrency(displayedPrice)}
+                </div>
+              ) : null;
+            })()}
             {hotel.rating > 0 && (
               <div className="text-xs bg-[#1a2e4a] text-white px-2 py-1 rounded">
                 {hotel.rating.toFixed(1)} / 10
@@ -414,30 +475,14 @@ export function HotelForm() {
           {priceMode === "total" ? (
             <div>
               <Label className="text-xs">Preço Total do Hotel (R$)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={totalPrice || ""}
-                onChange={(e) => setTotalPrice(parseFloat(e.target.value) || 0)}
-                placeholder="Ex: 2500.00"
-                className="mt-1"
-              />
+              <CurrencyInput value={totalPrice} onValueChange={setTotalPrice} />
               <p className="text-[10px] text-slate-500 mt-1">Preço total da hospedagem (será somado com o aéreo)</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Valor da Diária (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={dailyPrice || ""}
-                  onChange={(e) => setDailyPrice(parseFloat(e.target.value) || 0)}
-                  placeholder="Ex: 500.00"
-                  className="mt-1"
-                />
+                <CurrencyInput value={dailyPrice} onValueChange={setDailyPrice} />
               </div>
               <div>
                 <Label className="text-xs">Nº de Diárias</Label>

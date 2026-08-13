@@ -441,26 +441,33 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
 
       {/* BAGGAGE GUIDE */}
       {baggage.some((b) => b.priceAdvance > 0 || b.priceAirport > 0) && (
-        <div className="px-4 py-4" {...(pageBreaks.baggage ? { "data-page-break": "true" } : {})}>
+        <div className="px-4 py-3" {...(pageBreaks.baggage ? { "data-page-break": "true" } : {})}>
           <h3
-            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
+            className="text-sm font-bold text-[#1a2e4a] mb-2 uppercase tracking-wide"
             style={{ fontFamily: "Poppins, sans-serif" }}
           >
             Guia Prático de Bagagens (Avulsas)
           </h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             {baggage.map((b, i) => {
               const Icon = i === 0 ? Briefcase : i === 1 ? Luggage : Luggage;
               return (
-                <div key={i} className="rounded-xl border border-slate-200 p-4 text-center">
-                  <Icon className="h-8 w-8 text-[#1a2e4a] mx-auto mb-2" />
-                  <div className="text-sm font-bold text-[#1a2e4a]">{b.type}</div>
-                  <div className="text-xs text-slate-500 mb-3">{b.weight}</div>
-                  <div className="space-y-1">
-                    <div className="text-xs text-slate-500">
+                <div key={i} className="rounded-lg border border-slate-200 p-2.5 text-center">
+                  <Icon className="h-5 w-5 text-[#1a2e4a] mx-auto mb-1" />
+                  <span
+                    data-pdf-baggage-icon="true"
+                    aria-hidden="true"
+                    style={{ display: "none", fontSize: "18px", lineHeight: 1, marginBottom: "4px" }}
+                  >
+                    🧳
+                  </span>
+                  <div className="text-[11px] font-bold text-[#1a2e4a]">{b.type}</div>
+                  <div className="text-[10px] text-slate-500 mb-1.5">{b.weight}</div>
+                  <div className="space-y-0.5">
+                    <div className="text-[10px] text-slate-500">
                       Antecipado: <span className="font-bold text-[#1a2e4a]">{formatCurrency(b.priceAdvance)}</span>
                     </div>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-[10px] text-slate-500">
                       Aeroporto: <span className="font-bold text-[#1a2e4a]">{formatCurrency(b.priceAirport)}</span>
                     </div>
                   </div>

@@ -39,6 +39,19 @@ export function usePdfGenerator() {
       clone.style.minHeight = "1123px";
       captureContainer.appendChild(clone);
 
+      // Os ícones SVG das bagagens podem não ser rasterizados pelo mecanismo de
+      // exportação em alguns navegadores. No clone de PDF, substituímos somente
+      // esses SVGs pelo mesmo símbolo de mala em texto, mantendo o preview intacto.
+      clone.querySelectorAll<HTMLElement>("[data-pdf-baggage-icon='true']").forEach((icon) => {
+        icon.style.display = "inline-flex";
+        icon.style.alignItems = "center";
+        icon.style.justifyContent = "center";
+        const svgIcon = icon.previousElementSibling as SVGElement | null;
+        if (svgIcon?.tagName.toLowerCase() === "svg") {
+          svgIcon.style.display = "none";
+        }
+      });
+
       // Wait for layout to settle
       await new Promise(resolve => setTimeout(resolve, 150));
 
