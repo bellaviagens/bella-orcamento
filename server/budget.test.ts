@@ -23,6 +23,11 @@ describe("appRouter", () => {
     expect(caller.parseHotelScreenshot).toBeDefined();
   });
 
+  it("has parseTourScreenshot procedure", () => {
+    const caller = appRouter.createCaller(createMockContext());
+    expect(caller.parseTourScreenshot).toBeDefined();
+  });
+
   it("has auth.me procedure", () => {
     const caller = appRouter.createCaller(createMockContext());
     expect(caller.auth.me).toBeDefined();
@@ -36,6 +41,8 @@ describe("budgetTypes defaults", () => {
     expect(defaultBudgetData.hotels.length).toBeGreaterThan(0);
     expect(defaultBudgetData.fareComparison.tiers.length).toBeGreaterThan(0);
     expect(defaultBudgetData.baggage).toHaveLength(3);
+    expect(defaultBudgetData.tours).toEqual([]);
+    expect(defaultBudgetData.itinerary).toEqual([]);
     expect(defaultBudgetData.tripInfo.introText).toContain("Prezadíssimos");
   });
 

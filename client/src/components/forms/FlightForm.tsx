@@ -219,7 +219,7 @@ export function FlightForm() {
         const firstSeg = flight.segments[0];
         const lastSeg = flight.segments[flight.segments.length - 1];
         return (
-          <div key={flight.id} className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+          <div key={flight.id} className="rounded-lg border border-slate-200 bg-slate-50 overflow-hidden">
             <div className="flex items-center gap-2 p-3">
               <button onClick={() => toggleExpand(flight.id)} className="p-1 hover:bg-slate-100 rounded">
                 {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}

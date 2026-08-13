@@ -3,17 +3,20 @@ import { BudgetProvider, useBudget } from "@/contexts/BudgetContext";
 import { TripInfoForm } from "@/components/forms/TripInfoForm";
 import { FlightForm } from "@/components/forms/FlightForm";
 import { HotelForm } from "@/components/forms/HotelForm";
+import { TourForm } from "@/components/forms/TourForm";
+import { ItineraryForm } from "@/components/forms/ItineraryForm";
 import { FareForm } from "@/components/forms/FareForm";
 import { BaggageForm } from "@/components/forms/BaggageForm";
 import { InstallmentsForm } from "@/components/forms/InstallmentsForm";
 import { PdfPreview } from "@/components/pdf/PdfPreview";
+import { ItineraryPreview } from "@/components/itinerary/ItineraryPreview";
 import { usePdfGenerator } from "@/hooks/usePdfGenerator";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff } from "lucide-react";
+import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff, Camera, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 
 function BuilderContent() {
@@ -22,6 +25,8 @@ function BuilderContent() {
   const [showPreview, setShowPreview] = useState(true);
   const [includeAirfare, setIncludeAirfare] = useState(true);
   const [includeHotel, setIncludeHotel] = useState(true);
+  const [activeTab, setActiveTab] = useState("trip");
+  const showingItinerary = activeTab === "itinerary";
 
   return (
     <div className="h-screen flex flex-col bg-slate-50">
@@ -93,8 +98,8 @@ function BuilderContent() {
         <div className={`${showPreview ? "w-1/2" : "w-full"} flex flex-col overflow-hidden border-r border-slate-200`}>
           <ScrollArea className="flex-1">
             <div className="p-6">
-              <Tabs defaultValue="trip" className="w-full">
-                <TabsList className="grid w-full grid-cols-6 mb-4 h-auto gap-1.5 rounded-lg bg-slate-200 p-1.5">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 mb-4 h-auto gap-1.5 rounded-lg bg-slate-200 p-1.5">
                   <TabsTrigger value="trip" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
                     <FileText className="h-4 w-4 mr-1.5" />
                     Viagem
@@ -110,6 +115,14 @@ function BuilderContent() {
                   <TabsTrigger value="hotels" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
                     <Building2 className="h-4 w-4 mr-1.5" />
                     Hotéis
+                  </TabsTrigger>
+                  <TabsTrigger value="tours" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                    <Camera className="h-4 w-4 mr-1.5" />
+                    Passeios
+                  </TabsTrigger>
+                  <TabsTrigger value="itinerary" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                    <CalendarDays className="h-4 w-4 mr-1.5" />
+                    Roteiro
                   </TabsTrigger>
                   <TabsTrigger value="baggage" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
                     <Settings className="h-4 w-4 mr-1.5" />
@@ -147,6 +160,22 @@ function BuilderContent() {
                       Hotéis
                     </h3>
                     <HotelForm />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="tours" className="mt-0">
+                  <div className="rounded-xl border border-slate-200 bg-white p-5">
+                    <h3 className="mb-1 text-sm font-bold text-[#1a2e4a]" style={{ fontFamily: "Poppins, sans-serif" }}>Passeios</h3>
+                    <p className="mb-4 text-xs text-slate-500">Cadastre opções de passeio com print, links e valores. Essas informações ficam fora do orçamento.</p>
+                    <div className="h-[calc(100dvh-16rem)] min-h-[32rem] overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]"><TourForm /></div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="itinerary" className="mt-0">
+                  <div className="rounded-xl border border-slate-200 bg-white p-5">
+                    <h3 className="mb-1 text-sm font-bold text-[#1a2e4a]" style={{ fontFamily: "Poppins, sans-serif" }}>Roteiro pós-aprovação</h3>
+                    <p className="mb-4 text-xs text-slate-500">Organize os dias da viagem após a aprovação, com dias livres ou passeios cadastrados.</p>
+                    <div className="h-[calc(100dvh-16rem)] min-h-[32rem] overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]"><ItineraryForm /></div>
                   </div>
                 </TabsContent>
 
@@ -193,16 +222,16 @@ function BuilderContent() {
           <div className="w-1/2 flex flex-col overflow-hidden bg-slate-200">
             <div className="bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between flex-shrink-0">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                Preview do PDF
+                {showingItinerary ? "Visualização do roteiro" : "Preview do PDF"}
               </span>
               <span className="text-xs text-slate-400">
-                {budget.flights.length} voo(s) • {budget.hotels.length} hotel(is) • {budget.fareComparison.tiers.length} tarifa(s)
+                {showingItinerary ? `${budget.itinerary.length} dia(s) • ${budget.tours.length} passeio(s)` : `${budget.flights.length} voo(s) • ${budget.hotels.length} hotel(is) • ${budget.fareComparison.tiers.length} tarifa(s)`}
               </span>
             </div>
             <div className="flex-1 overflow-y-auto">
               <div className="p-6 flex justify-center">
                 <div className="shadow-2xl w-full max-w-2xl">
-                  <PdfPreview data={budget} includeAirfare={includeAirfare} includeHotel={includeHotel} />
+                  {showingItinerary ? <ItineraryPreview data={budget} /> : <PdfPreview data={budget} includeAirfare={includeAirfare} includeHotel={includeHotel} />}
                 </div>
               </div>
             </div>

@@ -292,3 +292,9 @@
 
 - [x] Reposicionar e ampliar o campo de valor do hotel à esquerda, no padrão da aba Tarifas
 - [x] Permitir personalizar os textos de tipo e peso de cada bagagem conforme as regras de cada companhia aérea
+
+- [x] Diferenciar visualmente os cartões preenchidos dos formulários com uma cor suave
+- [x] Criar a aba Passeios com cadastro manual, valores, links de página e fotos
+- [x] Permitir importar um print de passeio para preenchimento assistido
+- [x] Criar a aba Roteiro para organizar atividades por dia, incluindo dias livres
+- [x] Exibir o roteiro em visualização própria, separada do preview e do PDF do orçamento

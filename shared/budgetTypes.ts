@@ -85,12 +85,33 @@ export interface BaggageItem {
   priceAirport: number;
 }
 
+export interface Tour {
+  id: string;
+  name: string;
+  location: string;
+  duration: string;
+  description: string;
+  totalPrice: number;
+  pageUrl?: string;
+  photosUrl?: string;
+}
+
+export interface ItineraryDay {
+  id: string;
+  day: number;
+  title: string;
+  tourId?: string;
+  notes: string;
+}
+
 export interface BudgetData {
   tripInfo: TripInfo;
   flights: Flight[];
   fareComparison: FareComparison;
   baggage: BaggageItem[];
   hotels: Hotel[];
+  tours: Tour[];
+  itinerary: ItineraryDay[];
   installments?: {
     flight?: number; // Parcelamento do aéreo
     hotel?: number; // Parcelamento do hotel
@@ -217,6 +238,8 @@ export const defaultBudgetData: BudgetData = {
       nights: 7,
     },
   ],
+  tours: [],
+  itinerary: [],
   installments: {
     flight: 4,
     hotel: 10,

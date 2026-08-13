@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import { defaultBudgetData, type BudgetData, type Flight, type Hotel, type FareTier } from "@shared/budgetTypes";
+import { defaultBudgetData, type BudgetData, type Flight, type Hotel, type FareTier, type ItineraryDay, type Tour } from "@shared/budgetTypes";
 import { reconcileFareBenefits } from "@shared/fareBenefits";
 import { nanoid } from "nanoid";
 
@@ -14,6 +14,12 @@ interface BudgetContextType {
   removeHotel: (id: string) => void;
   duplicateHotel: (id: string) => void;
   reorderHotels: (hotels: Hotel[]) => void;
+  addTour: (tour: Tour) => void;
+  updateTour: (id: string, tour: Tour) => void;
+  removeTour: (id: string) => void;
+  addItineraryDay: () => void;
+  updateItineraryDay: (id: string, updates: Partial<ItineraryDay>) => void;
+  removeItineraryDay: (id: string) => void;
   addFareTier: (tier: Omit<FareTier, "id">) => void;
   updateFareTier: (id: string, tier: Partial<FareTier>) => void;
   removeFareTier: (id: string) => void;
@@ -158,6 +164,57 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     setBudget((prev) => reorderHotelsInBudget(prev, hotels));
   }, []);
 
+  const addTour = useCallback((tour: Tour) => {
+    setBudget((prev) => ({ ...prev, tours: [...prev.tours, tour] }));
+  }, []);
+
+  const updateTour = useCallback((id: string, tour: Tour) => {
+    setBudget((prev) => ({
+      ...prev,
+      tours: prev.tours.map((currentTour) => currentTour.id === id ? tour : currentTour),
+      itinerary: prev.itinerary.map((day) => (
+        day.tourId === id ? { ...day, title: tour.name } : day
+      )),
+    }));
+  }, []);
+
+  const removeTour = useCallback((id: string) => {
+    setBudget((prev) => ({
+      ...prev,
+      tours: prev.tours.filter((tour) => tour.id !== id),
+      itinerary: prev.itinerary.map((day) => (
+        day.tourId === id ? { ...day, tourId: undefined } : day
+      )),
+    }));
+  }, []);
+
+  const addItineraryDay = useCallback(() => {
+    setBudget((prev) => {
+      const nextDay = Math.max(0, ...prev.itinerary.map((day) => day.day)) + 1;
+      return {
+        ...prev,
+        itinerary: [
+          ...prev.itinerary,
+          { id: nanoid(), day: nextDay, title: "Dia livre", notes: "" },
+        ],
+      };
+    });
+  }, []);
+
+  const updateItineraryDay = useCallback((id: string, updates: Partial<ItineraryDay>) => {
+    setBudget((prev) => ({
+      ...prev,
+      itinerary: prev.itinerary.map((day) => day.id === id ? { ...day, ...updates } : day),
+    }));
+  }, []);
+
+  const removeItineraryDay = useCallback((id: string) => {
+    setBudget((prev) => ({
+      ...prev,
+      itinerary: prev.itinerary.filter((day) => day.id !== id),
+    }));
+  }, []);
+
   const addFareTier = useCallback((tier: Omit<FareTier, "id">) => {
     setBudget((prev) => ({
       ...prev,
@@ -246,6 +303,12 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         removeHotel,
         duplicateHotel,
         reorderHotels,
+        addTour,
+        updateTour,
+        removeTour,
+        addItineraryDay,
+        updateItineraryDay,
+        removeItineraryDay,
         addFareTier,
         updateFareTier,
         removeFareTier,

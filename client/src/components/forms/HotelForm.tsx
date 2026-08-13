@@ -335,7 +335,7 @@ export function HotelForm() {
             setDraggedHotelId(null);
             setDragOverHotelId(null);
           }}
-          className={`rounded-lg border bg-white p-3 flex items-start gap-3 transition-colors ${
+          className={`rounded-lg border bg-slate-50 p-3 flex items-start gap-3 transition-colors ${
             dragOverHotelId === hotel.id ? "border-[#1a2e4a] bg-blue-50" : "border-slate-200"
           }`}
         >

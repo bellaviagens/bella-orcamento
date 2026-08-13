@@ -176,6 +176,67 @@ export const appRouter = router({
       throw new Error("Resposta inválida do servidor de IA.");
     }),
 
+  parseTourScreenshot: publicProcedure
+    .input(z.object({ imageBase64: z.string() }))
+    .mutation(async ({ input }) => {
+      const tourSchema = {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          location: { type: "string" },
+          duration: { type: "string" },
+          description: { type: "string" },
+          totalPrice: { type: "number" },
+        },
+        required: ["name", "location", "duration", "description", "totalPrice"],
+        additionalProperties: false,
+      };
+
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a travel agent assistant. Extract tour and excursion information from booking pages and travel activity screenshots. Always respond in Portuguese.",
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Extract the tour name, city or meeting point, duration, a brief description, and the visible total price in Brazilian reais. If a field or price is not visible, use an empty string for text or 0 for totalPrice.",
+              },
+              {
+                type: "image_url",
+                image_url: { url: input.imageBase64, detail: "high" },
+              },
+            ],
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "tour_info",
+            strict: true,
+            schema: tourSchema as Record<string, unknown>,
+          },
+        },
+      });
+
+      const content = response.choices[0]?.message?.content;
+      if (typeof content === "string") {
+        try {
+          const parsed = JSON.parse(content);
+          if (!parsed.name) throw new Error("Invalid tour data: missing name");
+          return parsed;
+        } catch (error) {
+          console.error("Tour parse error:", error);
+          throw new Error("Não foi possível extrair os dados do passeio do screenshot. Tente novamente ou preencha manualmente.");
+        }
+      }
+      throw new Error("Resposta inválida do servidor de IA.");
+    }),
+
   imageProxy: publicProcedure
     .input(z.object({ url: z.string().url() }))
     .query(async ({ input }) => {
