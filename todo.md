@@ -262,3 +262,6 @@
 - [x] Impedir cortes de conteúdo nos cenários somente aéreo e aéreo com hotel
 - [x] Revisar o comportamento do link do PDF para abertura externa no visualizador
 - [x] Validar por testes e gerar PDFs nos dois cenários sem alterar o restante
+
+- [x] Manter o título Opções de Hospedagem junto do primeiro hotel quando houver quebra de página
+- [x] Validar o PDF sem título de hospedagem isolado no fim da página

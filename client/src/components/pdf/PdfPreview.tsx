@@ -357,45 +357,77 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
       {/* HOTELS SECTION */}
       {hotels.length > 0 && includeHotel && (
         <div className="px-4 py-8" {...(pageBreaks.hotels ? { "data-page-break": "true" } : {})}>
-          <h3
-            className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
-            style={{ fontFamily: "Poppins, sans-serif" }}
-          >
-            Opções de Hospedagem
-          </h3>
-          <div className="space-y-8">
-            {hotels.map((hotel, idx) => {
-              return (
-                <div key={hotel.id} data-hotel-card="true" className="pb-8 border-b-4 border-slate-100 last:border-b-0" {...(hotel.startOnNewPage && idx > 0 ? { "data-page-break": "true" } : {})}>
-                  <HotelCard
-                    hotel={hotel}
-                    index={idx}
-                    tiers={fareComparison.tiers}
-                    passengers={passengerCount}
-                    includeAirfare={includeAirfare}
-                    includeHotel={includeHotel}
-                    hotelPaymentMethods={installments?.hotelPaymentMethods}
-                    flightPaymentMethods={installments?.paymentMethods}
-                    combined={installments?.combined}
-                    hotelInstallments={hotelInstallments}
-                    hotelDownpayment={installments?.hotelDownpayment}
-                    hotelDownpaymentAmount={installments?.hotelDownpaymentAmount}
-                    flightInstallments={flightInstallments}
-                    flightDownpayment={installments?.flightDownpayment}
-                    flightDownpaymentAmount={installments?.flightDownpaymentAmount}
-                    flightMachineRate={installments?.flightMachineRate}
-                    combinedInstallments={combinedInstallments}
-                    combinedDownpayment={combinedDownpayment}
-                    combinedDownpaymentAmount={combinedDownpaymentAmount}
-                    showCashOption={installments?.showCashOption}
-                    cashValue={installments?.flightCashPrice}
-                    cashPaymentMethods={flightCashPaymentMethods}
-                    observations={installments?.observations}
-                  />
-                </div>
-              );
-            })}
+          <div data-pdf-keep-together="true" data-pdf-hotel-heading-group="true">
+            <h3
+              className="text-base font-bold text-[#1a2e4a] mb-4 uppercase tracking-wide"
+              style={{ fontFamily: "Poppins, sans-serif" }}
+            >
+              Opções de Hospedagem
+            </h3>
+            <div data-hotel-card="true" className="pb-8 border-b-4 border-slate-100 last:border-b-0">
+              <HotelCard
+                hotel={hotels[0]}
+                index={0}
+                tiers={fareComparison.tiers}
+                passengers={passengerCount}
+                includeAirfare={includeAirfare}
+                includeHotel={includeHotel}
+                hotelPaymentMethods={installments?.hotelPaymentMethods}
+                flightPaymentMethods={installments?.paymentMethods}
+                combined={installments?.combined}
+                hotelInstallments={hotelInstallments}
+                hotelDownpayment={installments?.hotelDownpayment}
+                hotelDownpaymentAmount={installments?.hotelDownpaymentAmount}
+                flightInstallments={flightInstallments}
+                flightDownpayment={installments?.flightDownpayment}
+                flightDownpaymentAmount={installments?.flightDownpaymentAmount}
+                flightMachineRate={installments?.flightMachineRate}
+                combinedInstallments={combinedInstallments}
+                combinedDownpayment={combinedDownpayment}
+                combinedDownpaymentAmount={combinedDownpaymentAmount}
+                showCashOption={installments?.showCashOption}
+                cashValue={installments?.flightCashPrice}
+                cashPaymentMethods={flightCashPaymentMethods}
+                observations={installments?.observations}
+              />
+            </div>
           </div>
+          {hotels.length > 1 && (
+            <div className="mt-8 space-y-8">
+              {hotels.slice(1).map((hotel, idx) => {
+                const hotelIndex = idx + 1;
+                return (
+                  <div key={hotel.id} data-hotel-card="true" className="pb-8 border-b-4 border-slate-100 last:border-b-0" {...(hotel.startOnNewPage ? { "data-page-break": "true" } : {})}>
+                    <HotelCard
+                      hotel={hotel}
+                      index={hotelIndex}
+                      tiers={fareComparison.tiers}
+                      passengers={passengerCount}
+                      includeAirfare={includeAirfare}
+                      includeHotel={includeHotel}
+                      hotelPaymentMethods={installments?.hotelPaymentMethods}
+                      flightPaymentMethods={installments?.paymentMethods}
+                      combined={installments?.combined}
+                      hotelInstallments={hotelInstallments}
+                      hotelDownpayment={installments?.hotelDownpayment}
+                      hotelDownpaymentAmount={installments?.hotelDownpaymentAmount}
+                      flightInstallments={flightInstallments}
+                      flightDownpayment={installments?.flightDownpayment}
+                      flightDownpaymentAmount={installments?.flightDownpaymentAmount}
+                      flightMachineRate={installments?.flightMachineRate}
+                      combinedInstallments={combinedInstallments}
+                      combinedDownpayment={combinedDownpayment}
+                      combinedDownpaymentAmount={combinedDownpaymentAmount}
+                      showCashOption={installments?.showCashOption}
+                      cashValue={installments?.flightCashPrice}
+                      cashPaymentMethods={flightCashPaymentMethods}
+                      observations={installments?.observations}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

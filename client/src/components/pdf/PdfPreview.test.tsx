@@ -120,6 +120,18 @@ describe("PdfPreview — parcelamento conjunto", () => {
     expect(markup).toContain("PIX");
   });
 
+  it("mantém o título de hospedagem e o primeiro hotel no mesmo bloco protegido", () => {
+    const data = {
+      ...defaultBudgetData,
+      hotels: [{ ...defaultBudgetData.hotels[0], id: "hotel-heading", totalPrice: 3000, prices: {} }],
+    };
+
+    const markup = renderToStaticMarkup(<PdfPreview data={data} includeHotel />);
+
+    expect(markup).toContain('data-pdf-hotel-heading-group="true"');
+    expect(markup).toMatch(/data-pdf-hotel-heading-group="true"[^>]*><h3[^>]*>Opções de Hospedagem/);
+  });
+
   it("exibe no preview os opcionais editados e personalizados de uma tarifa", () => {
     const data = {
       ...defaultBudgetData,
