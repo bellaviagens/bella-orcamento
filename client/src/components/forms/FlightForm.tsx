@@ -213,8 +213,7 @@ export function FlightForm() {
   return (
     <div className="space-y-3">
       {/* Existing flights */}
-      <div className="max-h-96 overflow-hidden">
-      <div className="h-full overflow-y-auto pr-2 space-y-3">
+      <div className="space-y-3">
       {budget.flights.map((flight) => {
         const expanded = expandedFlights.has(flight.id);
         const firstSeg = flight.segments[0];
@@ -277,7 +276,6 @@ export function FlightForm() {
         );
       })}
       </div>
-      </div>
 
       {/* Screenshot upload */}
       <div className="rounded-lg border-2 border-dashed border-slate-300 p-4 text-center">
@@ -303,7 +301,7 @@ export function FlightForm() {
           variant="outline"
           onClick={() => fileInputRef.current?.click()}
           disabled={parsing}
-          className="w-full h-10 text-sm font-semibold shadow-sm"
+          className="w-full h-12 text-base font-bold shadow-md"
         >
           {parsing ? (
             <>
@@ -312,7 +310,7 @@ export function FlightForm() {
             </>
           ) : (
             <>
-              <Upload className="h-4 w-4 mr-2" />
+              <Upload className="h-5 w-5 mr-2" />
               Importar voo de screenshot
             </>
           )}
@@ -324,8 +322,8 @@ export function FlightForm() {
 
       {/* Manual add button */}
       {!showForm && (
-        <Button variant="outline" onClick={() => setShowForm(true)} className="w-full h-11 text-sm font-semibold shadow-sm">
-          <Plus className="h-4 w-4 mr-2" />
+        <Button variant="outline" onClick={() => setShowForm(true)} className="w-full h-12 text-base font-bold shadow-md">
+          <Plus className="h-5 w-5 mr-2" />
           Adicionar voo manualmente
         </Button>
       )}
@@ -489,11 +487,11 @@ export function FlightForm() {
           ))}
 
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleAddSegment} className="h-9 text-xs font-semibold">
-              <Plus className="h-3.5 w-3.5 mr-1" />
+            <Button variant="outline" size="sm" onClick={handleAddSegment} className="h-10 text-sm font-bold shadow-sm">
+              <Plus className="h-4 w-4 mr-1" />
               Adicionar trecho (escala)
             </Button>
-            <Button onClick={handleSave} className="ml-auto h-10 text-sm font-semibold shadow-sm" size="sm">
+            <Button onClick={handleSave} className="ml-auto h-12 text-base font-bold shadow-md" size="sm">
               Salvar Voo
             </Button>
           </div>

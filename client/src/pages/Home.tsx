@@ -135,7 +135,9 @@ function BuilderContent() {
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
                       Voos
                     </h3>
-                    <FlightForm />
+                    <div className="h-[calc(100dvh-16rem)] min-h-[32rem] overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]">
+                      <FlightForm />
+                    </div>
                   </div>
                 </TabsContent>
 
@@ -156,7 +158,9 @@ function BuilderContent() {
                     <p className="text-xs text-slate-500 mb-4">
                       Adicione quantas tarifas quiser com nomes customizáveis. Você pode destacar uma para que apaça em destaque no orçamento.
                     </p>
-                    <FareForm />
+                    <div className="h-[calc(100dvh-16rem)] min-h-[32rem] overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]">
+                      <FareForm />
+                    </div>
                   </div>
                 </TabsContent>
 

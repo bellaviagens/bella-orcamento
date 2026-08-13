@@ -269,3 +269,6 @@
 - [x] Adicionar rolagem vertical ampla e discreta à aba Parcelamento, aproveitando a maior altura útil possível
 - [x] Exibir valores de tarifa em formato monetário brasileiro nos campos de Tarifas sem alterar valores armazenados
 - [x] Aumentar e destacar botões de ação nas abas de preenchimento sem alterar preview, PDF ou cálculos
+
+- [x] Ampliar ainda mais os botões de ação dos formulários para boa leitura sem alterar o zoom do navegador
+- [x] Aplicar área alta com rolagem interna nas abas Tarifas e Voos, sem alterar conteúdo, cálculos, preview ou PDF

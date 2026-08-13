@@ -254,7 +254,7 @@ export function FareForm() {
     <div className="space-y-3">
       {/* Existing tiers */}
       {fareComparison.tiers.length > 0 && (
-        <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
+        <div className="space-y-2">
           {fareComparison.tiers.map((tier) => (
             <div
               key={tier.id}
@@ -384,7 +384,7 @@ export function FareForm() {
                     variant={tier.highlighted ? "default" : "outline"}
                     size="sm"
                     onClick={() => updateFareTier(tier.id, { highlighted: !tier.highlighted })}
-                    className={`w-full h-10 text-sm font-semibold shadow-sm ${tier.highlighted ? "bg-amber-400 text-[#1a2e4a] hover:bg-amber-300" : ""}`}
+                    className={`w-full h-12 text-base font-bold shadow-md ${tier.highlighted ? "bg-amber-400 text-[#1a2e4a] hover:bg-amber-300" : ""}`}
                   >
                     {tier.highlighted ? "★ Destacada" : "Destacar"}
                   </Button>
@@ -397,8 +397,8 @@ export function FareForm() {
 
       {/* Add button */}
       {!showForm && (
-        <Button variant="outline" onClick={() => setShowForm(true)} className="w-full h-11 text-sm font-semibold shadow-sm">
-          <Plus className="h-4 w-4 mr-2" />
+        <Button variant="outline" onClick={() => setShowForm(true)} className="w-full h-12 text-base font-bold shadow-md">
+          <Plus className="h-5 w-5 mr-2" />
           Adicionar Tarifa
         </Button>
       )}
@@ -487,7 +487,7 @@ export function FareForm() {
                   variant="outline"
                   size="sm"
                   onClick={openBenefitEditor}
-                  className="h-9 shrink-0 text-xs font-semibold"
+                  className="h-10 shrink-0 text-sm font-bold shadow-sm"
                 >
                   <Edit2 className="h-3.5 w-3.5 mr-1" />
                   Editar opcionais
@@ -499,7 +499,7 @@ export function FareForm() {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowBenefitEditor(false)}
-                  className="h-9 shrink-0 text-xs font-semibold"
+                  className="h-10 shrink-0 text-sm font-bold shadow-sm"
                 >
                   <Edit2 className="h-3.5 w-3.5 mr-1" />
                   Concluir edição
@@ -543,8 +543,8 @@ export function FareForm() {
                 placeholder="Incluir outro opcional"
                 className="h-8 text-xs"
               />
-              <Button type="button" variant="outline" size="sm" onClick={addCustomBenefit} className="h-9 whitespace-nowrap text-xs font-semibold">
-                <Plus className="h-3.5 w-3.5 mr-1" />
+              <Button type="button" variant="outline" size="sm" onClick={addCustomBenefit} className="h-10 whitespace-nowrap text-sm font-bold shadow-sm">
+                <Plus className="h-4 w-4 mr-1" />
                 Incluir
               </Button>
             </div>
@@ -567,7 +567,7 @@ export function FareForm() {
             <span className="text-xs text-slate-600">Destacar esta tarifa no orçamento</span>
           </div>
 
-          <Button onClick={handleSave} className="w-full h-11 text-sm font-semibold shadow-sm">
+          <Button onClick={handleSave} className="w-full h-12 text-base font-bold shadow-md">
             Salvar Tarifa
           </Button>
         </div>
