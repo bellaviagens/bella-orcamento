@@ -266,7 +266,7 @@ export function HotelForm() {
           variant="outline"
           onClick={() => fileInputRef.current?.click()}
           disabled={parsing}
-          className="w-full"
+          className="w-full h-10 text-sm font-semibold shadow-sm"
         >
           {parsing ? (
             <>
@@ -287,7 +287,7 @@ export function HotelForm() {
 
       {/* Manual add button */}
       {!showForm && (
-        <Button variant="outline" onClick={() => setShowForm(true)} className="w-full">
+        <Button variant="outline" onClick={() => setShowForm(true)} className="w-full h-11 text-sm font-semibold shadow-sm">
           <Plus className="h-4 w-4 mr-2" />
           Adicionar hotel manualmente
         </Button>
@@ -517,7 +517,7 @@ export function HotelForm() {
                 placeholder="Ex: Wi-Fi, Piscina, Café da manhã"
                 className="text-xs"
               />
-              <Button variant="outline" size="sm" onClick={handleAddAmenity}>
+              <Button variant="outline" size="sm" onClick={handleAddAmenity} className="h-9 w-9">
                 <Plus className="h-3.5 w-3.5" />
               </Button>
             </div>
@@ -564,7 +564,7 @@ export function HotelForm() {
             </Label>
           </div>
 
-          <Button onClick={handleSave} className="w-full">
+          <Button onClick={handleSave} className="w-full h-11 text-sm font-semibold shadow-sm">
             <Building2 className="h-4 w-4 mr-2" />
             {editingId ? "Atualizar Hotel" : "Salvar Hotel"}
           </Button>

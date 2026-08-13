@@ -174,7 +174,9 @@ function BuilderContent() {
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
                       Parcelamento
                     </h3>
-                    <InstallmentsForm />
+                    <div className="h-[calc(100dvh-16rem)] min-h-[32rem] overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]">
+                      <InstallmentsForm />
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>

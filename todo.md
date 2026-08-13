@@ -265,3 +265,7 @@
 
 - [x] Manter o título Opções de Hospedagem junto do primeiro hotel quando houver quebra de página
 - [x] Validar o PDF sem título de hospedagem isolado no fim da página
+
+- [x] Adicionar rolagem vertical ampla e discreta à aba Parcelamento, aproveitando a maior altura útil possível
+- [x] Exibir valores de tarifa em formato monetário brasileiro nos campos de Tarifas sem alterar valores armazenados
+- [x] Aumentar e destacar botões de ação nas abas de preenchimento sem alterar preview, PDF ou cálculos

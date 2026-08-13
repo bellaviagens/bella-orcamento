@@ -303,7 +303,7 @@ export function FlightForm() {
           variant="outline"
           onClick={() => fileInputRef.current?.click()}
           disabled={parsing}
-          className="w-full"
+          className="w-full h-10 text-sm font-semibold shadow-sm"
         >
           {parsing ? (
             <>
@@ -324,7 +324,7 @@ export function FlightForm() {
 
       {/* Manual add button */}
       {!showForm && (
-        <Button variant="outline" onClick={() => setShowForm(true)} className="w-full">
+        <Button variant="outline" onClick={() => setShowForm(true)} className="w-full h-11 text-sm font-semibold shadow-sm">
           <Plus className="h-4 w-4 mr-2" />
           Adicionar voo manualmente
         </Button>
@@ -489,11 +489,11 @@ export function FlightForm() {
           ))}
 
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleAddSegment}>
+            <Button variant="outline" size="sm" onClick={handleAddSegment} className="h-9 text-xs font-semibold">
               <Plus className="h-3.5 w-3.5 mr-1" />
               Adicionar trecho (escala)
             </Button>
-            <Button onClick={handleSave} className="ml-auto" size="sm">
+            <Button onClick={handleSave} className="ml-auto h-10 text-sm font-semibold shadow-sm" size="sm">
               Salvar Voo
             </Button>
           </div>

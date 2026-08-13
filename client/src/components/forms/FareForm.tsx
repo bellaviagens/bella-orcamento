@@ -9,6 +9,66 @@ import { nanoid } from "nanoid";
 import { toast } from "sonner";
 import { collectFareBenefits, FARE_BAGGAGE_OPTIONS } from "@shared/fareBenefits";
 
+function formatCurrencyInput(value: number) {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
+}
+
+function parseCurrencyInput(value: string) {
+  const sanitized = value.replace(/[^\d.,]/g, "");
+  if (!sanitized) return 0;
+
+  if (sanitized.includes(",")) {
+    return Number.parseFloat(sanitized.replace(/\./g, "").replace(",", ".")) || 0;
+  }
+
+  const parts = sanitized.split(".");
+  const normalized = parts.length === 2 && parts[1].length <= 2
+    ? sanitized
+    : sanitized.replace(/\./g, "");
+  return Number.parseFloat(normalized) || 0;
+}
+
+function CurrencyInput({
+  value,
+  onValueChange,
+  placeholder = "R$ 0,00",
+  className,
+}: {
+  value: number;
+  onValueChange: (value: number) => void;
+  placeholder?: string;
+  className?: string;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const displayValue = isEditing ? draft : value > 0 ? formatCurrencyInput(value) : "";
+
+  return (
+    <Input
+      type="text"
+      inputMode="decimal"
+      value={displayValue}
+      onFocus={() => {
+        setIsEditing(true);
+        setDraft(value > 0 ? value.toFixed(2).replace(".", ",") : "");
+      }}
+      onChange={(event) => {
+        setDraft(event.target.value);
+        onValueChange(parseCurrencyInput(event.target.value));
+      }}
+      onBlur={() => {
+        setIsEditing(false);
+        setDraft("");
+      }}
+      placeholder={placeholder}
+      className={className}
+    />
+  );
+}
+
 export function FareForm() {
   const { budget, addFareTier, updateFareTier, removeFareTier } = useBudget();
   const { fareComparison } = budget;
@@ -312,13 +372,10 @@ export function FareForm() {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label className="text-[10px] text-slate-500">Valor Total (R$)</Label>
-                  <Input
-                    type="number"
-                    value={tier.flightPrice || ""}
-                    onChange={(e) =>
-                      updateFareTier(tier.id, { flightPrice: parseFloat(e.target.value) || 0 })
-                    }
-                    placeholder="0"
+                  <CurrencyInput
+                    value={tier.flightPrice || 0}
+                    onValueChange={(value) => updateFareTier(tier.id, { flightPrice: value })}
+                    placeholder="R$ 0,00"
                     className="h-8 text-xs mt-1"
                   />
                 </div>
@@ -327,7 +384,7 @@ export function FareForm() {
                     variant={tier.highlighted ? "default" : "outline"}
                     size="sm"
                     onClick={() => updateFareTier(tier.id, { highlighted: !tier.highlighted })}
-                    className={`w-full ${tier.highlighted ? "bg-amber-400 text-[#1a2e4a] hover:bg-amber-300" : ""}`}
+                    className={`w-full h-10 text-sm font-semibold shadow-sm ${tier.highlighted ? "bg-amber-400 text-[#1a2e4a] hover:bg-amber-300" : ""}`}
                   >
                     {tier.highlighted ? "★ Destacada" : "Destacar"}
                   </Button>
@@ -340,7 +397,7 @@ export function FareForm() {
 
       {/* Add button */}
       {!showForm && (
-        <Button variant="outline" onClick={() => setShowForm(true)} className="w-full">
+        <Button variant="outline" onClick={() => setShowForm(true)} className="w-full h-11 text-sm font-semibold shadow-sm">
           <Plus className="h-4 w-4 mr-2" />
           Adicionar Tarifa
         </Button>
@@ -430,7 +487,7 @@ export function FareForm() {
                   variant="outline"
                   size="sm"
                   onClick={openBenefitEditor}
-                  className="h-7 shrink-0 text-xs"
+                  className="h-9 shrink-0 text-xs font-semibold"
                 >
                   <Edit2 className="h-3.5 w-3.5 mr-1" />
                   Editar opcionais
@@ -442,7 +499,7 @@ export function FareForm() {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowBenefitEditor(false)}
-                  className="h-7 shrink-0 text-xs"
+                  className="h-9 shrink-0 text-xs font-semibold"
                 >
                   <Edit2 className="h-3.5 w-3.5 mr-1" />
                   Concluir edição
@@ -486,7 +543,7 @@ export function FareForm() {
                 placeholder="Incluir outro opcional"
                 className="h-8 text-xs"
               />
-              <Button type="button" variant="outline" size="sm" onClick={addCustomBenefit} className="h-8 whitespace-nowrap">
+              <Button type="button" variant="outline" size="sm" onClick={addCustomBenefit} className="h-9 whitespace-nowrap text-xs font-semibold">
                 <Plus className="h-3.5 w-3.5 mr-1" />
                 Incluir
               </Button>
@@ -495,11 +552,10 @@ export function FareForm() {
 
           <div>
             <Label className="text-xs">Valor Total dos Voos (R$)</Label>
-            <Input
-              type="number"
-              value={flightPrice || ""}
-              onChange={(e) => setFlightPrice(parseFloat(e.target.value) || 0)}
-              placeholder="0"
+            <CurrencyInput
+              value={flightPrice}
+              onValueChange={setFlightPrice}
+              placeholder="R$ 0,00"
               className="mt-1"
             />
           </div>
@@ -511,7 +567,7 @@ export function FareForm() {
             <span className="text-xs text-slate-600">Destacar esta tarifa no orçamento</span>
           </div>
 
-          <Button onClick={handleSave} className="w-full">
+          <Button onClick={handleSave} className="w-full h-11 text-sm font-semibold shadow-sm">
             Salvar Tarifa
           </Button>
         </div>
