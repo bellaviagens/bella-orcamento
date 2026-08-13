@@ -69,6 +69,27 @@ function CurrencyInput({
   );
 }
 
+export function getHotelEditorInitialValues(hotel: Hotel) {
+  return {
+    name: hotel.name,
+    stars: hotel.stars,
+    address: hotel.address,
+    description: hotel.description,
+    rating: hotel.rating,
+    ratingLabel: hotel.ratingLabel,
+    amenities: hotel.amenities,
+    photoUrl: hotel.photoUrl,
+    hotelUrl: hotel.hotelUrl || "",
+    totalPrice: hotel.totalPrice,
+    priceMode: hotel.priceMode || "total",
+    dailyPrice: hotel.dailyPrice || 0,
+    nights: hotel.nights || 0,
+    startOnNewPage: hotel.startOnNewPage || false,
+    paymentNotes: hotel.paymentNotes || "",
+    prices: hotel.prices,
+  };
+}
+
 export function HotelForm() {
   const { budget, addHotel, updateHotel, removeHotel } = useBudget();
   const [showForm, setShowForm] = useState(false);
@@ -119,23 +140,24 @@ export function HotelForm() {
   };
 
   const handleEdit = (hotel: Hotel) => {
+    const values = getHotelEditorInitialValues(hotel);
     setEditingId(hotel.id);
-    setName(hotel.name);
-    setStars(hotel.stars);
-    setAddress(hotel.address);
-    setDescription(hotel.description);
-    setRating(hotel.rating);
-    setRatingLabel(hotel.ratingLabel);
-    setAmenities(hotel.amenities);
-    setPhotoUrl(hotel.photoUrl);
-    setHotelUrl(hotel.hotelUrl || "");
-    setTotalPrice(hotel.totalPrice);
-    setPriceMode(hotel.priceMode || "total");
-    setDailyPrice(hotel.dailyPrice || 0);
-    setNights(hotel.nights || 0);
-    setStartOnNewPage(hotel.startOnNewPage || false);
-    setPaymentNotes(hotel.paymentNotes || "");
-    setPrices(hotel.prices);
+    setName(values.name);
+    setStars(values.stars);
+    setAddress(values.address);
+    setDescription(values.description);
+    setRating(values.rating);
+    setRatingLabel(values.ratingLabel);
+    setAmenities(values.amenities);
+    setPhotoUrl(values.photoUrl);
+    setHotelUrl(values.hotelUrl);
+    setTotalPrice(values.totalPrice);
+    setPriceMode(values.priceMode);
+    setDailyPrice(values.dailyPrice);
+    setNights(values.nights);
+    setStartOnNewPage(values.startOnNewPage);
+    setPaymentNotes(values.paymentNotes);
+    setPrices(values.prices);
     setShowForm(true);
   };
 
@@ -296,8 +318,9 @@ export function HotelForm() {
               variant="ghost"
               size="sm"
               onClick={() => handleEdit(hotel)}
-              className="text-blue-500 hover:text-blue-700 h-8 w-8 p-0"
-              title="Editar"
+              className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 h-9 w-9 p-0"
+              title="Editar todos os campos do hotel"
+              aria-label={`Editar todos os campos de ${hotel.name}`}
             >
               <Edit2 className="h-4 w-4" />
             </Button>
@@ -356,7 +379,10 @@ export function HotelForm() {
 
       {/* Hotel form */}
       {showForm && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3 max-h-96 overflow-y-auto">
+        <div
+          data-hotel-editor="true"
+          className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3 min-h-[25rem] max-h-[calc(100dvh-17rem)] overflow-y-auto"
+        >
           <div className="flex items-center justify-between sticky top-0 bg-slate-50 pb-2">
             <h4 className="text-sm font-bold text-[#1a2e4a]">
               {editingId ? "Editar Hotel" : "Novo Hotel"}

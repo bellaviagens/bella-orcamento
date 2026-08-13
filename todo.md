@@ -283,3 +283,5 @@
 - [x] Registrar a confirmação da cliente sobre a abertura de “Acessar Site e Fotos” no mesmo visualizador de PDF
 
 - [x] Ajustar o fundo cinza, o botão branco ativo e a fonte ampliada nas abas de navegação
+
+- [x] Permitir abrir e editar manualmente todos os campos de um hotel pelo ícone de lápis, no padrão das tarifas
