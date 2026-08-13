@@ -451,23 +451,28 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
           <div className="grid grid-cols-3 gap-2">
             {baggage.map((b, i) => {
               const Icon = i === 0 ? Briefcase : i === 1 ? Luggage : Luggage;
+              const isSecondCheckedBag = i === 2 && /mala\s+despachada/i.test(b.type);
+              const label = isSecondCheckedBag ? "2ª Mala Despachada" : b.type;
               return (
-                <div key={i} className="rounded-lg border border-slate-200 p-2.5 text-center">
-                  <Icon className="h-5 w-5 text-[#1a2e4a] mx-auto mb-1" />
+                <div key={i} className="rounded-md border border-[#d6e3f1] bg-[#f4f8fc] p-1.5 text-center">
+                  <Icon className="h-4 w-4 text-[#1a2e4a] mx-auto mb-0.5" />
                   <span
                     data-pdf-baggage-icon="true"
                     aria-hidden="true"
-                    style={{ display: "none", fontSize: "18px", lineHeight: 1, marginBottom: "4px" }}
+                    style={{ display: "none", fontSize: "15px", lineHeight: 1, marginBottom: "2px" }}
                   >
                     🧳
                   </span>
-                  <div className="text-[11px] font-bold text-[#1a2e4a]">{b.type}</div>
-                  <div className="text-[10px] text-slate-500 mb-1.5">{b.weight}</div>
-                  <div className="space-y-0.5">
-                    <div className="text-[10px] text-slate-500">
+                  <div className="text-[10px] font-bold text-[#1a2e4a] whitespace-nowrap">
+                    {label}
+                    {isSecondCheckedBag && <span className="ml-1 font-medium text-slate-500">{b.weight}</span>}
+                  </div>
+                  {!isSecondCheckedBag && <div className="text-[9px] text-slate-500 mb-0.5">{b.weight}</div>}
+                  <div className="space-y-0">
+                    <div className="text-[9px] text-slate-500">
                       Antecipado: <span className="font-bold text-[#1a2e4a]">{formatCurrency(b.priceAdvance)}</span>
                     </div>
-                    <div className="text-[10px] text-slate-500">
+                    <div className="text-[9px] text-slate-500">
                       Aeroporto: <span className="font-bold text-[#1a2e4a]">{formatCurrency(b.priceAirport)}</span>
                     </div>
                   </div>

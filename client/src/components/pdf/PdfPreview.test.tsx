@@ -155,13 +155,18 @@ describe("PdfPreview — parcelamento conjunto", () => {
   it("inclui um ícone alternativo de bagagem que a exportação pode rasterizar no PDF", () => {
     const data = {
       ...defaultBudgetData,
-      baggage: [{ type: "Mala de Mão", weight: "12kg", priceAdvance: 0, priceAirport: 100 }],
+      baggage: [
+        { type: "Mala de Mão", weight: "12kg", priceAdvance: 0, priceAirport: 100 },
+        { type: "Mala Despachada", weight: "23kg", priceAdvance: 0, priceAirport: 100 },
+        { type: "2a Mala Despachada", weight: "23kg", priceAdvance: 0, priceAirport: 100 },
+      ],
     };
 
     const markup = renderToStaticMarkup(<PdfPreview data={data} />);
 
     expect(markup).toContain('data-pdf-baggage-icon="true"');
     expect(markup).toContain("🧳");
-    expect(markup).toContain("text-[11px]");
+    expect(markup).toContain("2ª Mala Despachada");
+    expect(markup).toContain("bg-[#f4f8fc]");
   });
 });

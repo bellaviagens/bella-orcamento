@@ -207,7 +207,7 @@
 - [x] Preservar integralmente layout, cálculos, PDF e demais funções durante o ajuste isolado do link
 - [x] Confirmar que a API de link instalada não expõe uma opção compatível para obrigar nova aba em todos os visualizadores
 - [x] Registrar em documentação do projeto a limitação do visualizador de PDF
-- [ ] Receber confirmação manual da abertura em nova aba no visualizador de PDF usado pela cliente
+- [x] Receber confirmação manual: o visualizador de PDF usado pela cliente mantém o link na mesma aba
 
 - [x] Manter o preview do orçamento/PDF visível ao lado direito dos campos em tempo real
 - [x] Validar a disposição lateral sem alterar conteúdo, cálculos ou estilo do documento
@@ -249,7 +249,7 @@
 - [x] Preservar a área de inclusão de novos opcionais sem alteração
 - [x] Revisar a abertura externa do link Acessar Site e Fotos no PDF
 - [x] Validar por testes e preview as correções solicitadas
-- [ ] Validar no visualizador de PDF da cliente se Acessar Site e Fotos abre fora do PDF ou em nova aba
+- [x] Validar no visualizador de PDF da cliente: Acessar Site e Fotos permanece na mesma aba por limitação do visualizador
 - [x] Documentar a limitação do visualizador se ele continuar abrindo o link na mesma guia
 - [x] Salvar a versão atual para conferência antes da publicação pelo painel
 
@@ -277,3 +277,7 @@
 - [x] Exibir o valor em reais nos cartões recolhidos da aba Hotéis
 - [x] Reduzir somente o destaque visual da seção de bagagens no PDF
 - [x] Garantir a renderização dos ícones das bagagens no PDF, como já ocorre no preview
+
+- [x] Ajustar a identificação da segunda mala despachada, exibindo “2ª” e “23 kg” conforme solicitado
+- [x] Reduzir mais o tamanho e diferenciar discretamente o fundo dos cards de bagagem no PDF
+- [x] Registrar a confirmação da cliente sobre a abertura de “Acessar Site e Fotos” no mesmo visualizador de PDF
