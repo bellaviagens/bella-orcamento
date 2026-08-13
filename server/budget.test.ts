@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import { calculateCombinedInstallmentValue, calculateCombinedTotal, calculateEffectiveHotelTotal } from "../shared/paymentCalculations";
+import { duplicateHotelInBudget, reorderHotelsInBudget } from "../client/src/contexts/BudgetContext";
 
 function createMockContext(): TrpcContext {
   return {
@@ -50,6 +51,34 @@ describe("budgetTypes defaults", () => {
     const { defaultBudgetData } = await import("../shared/budgetTypes");
     expect(Array.isArray(defaultBudgetData.fareComparison.tiers)).toBe(true);
     expect(defaultBudgetData.fareComparison.tiers.length).toBeGreaterThan(0);
+  });
+});
+
+describe("gestão de hotéis", () => {
+  it("duplica o hotel logo após o original, preservando os dados e criando novo id", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const original = defaultBudgetData.hotels[0];
+    const duplicatedBudget = duplicateHotelInBudget(defaultBudgetData, original.id);
+    const duplicate = duplicatedBudget.hotels[1];
+
+    expect(duplicatedBudget.hotels).toHaveLength(defaultBudgetData.hotels.length + 1);
+    expect(duplicate.id).not.toBe(original.id);
+    expect(duplicate.name).toBe(`${original.name} (cópia)`);
+    expect(duplicate.address).toBe(original.address);
+    expect(duplicate.amenities).toEqual(original.amenities);
+    expect(duplicate.amenities).not.toBe(original.amenities);
+    expect(duplicate.prices).not.toBe(original.prices);
+  });
+
+  it("substitui a ordem dos hotéis sem alterar seus dados", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const reversedHotels = [...defaultBudgetData.hotels].reverse();
+    const reorderedBudget = reorderHotelsInBudget(defaultBudgetData, reversedHotels);
+
+    expect(reorderedBudget.hotels.map((hotel) => hotel.id)).toEqual(
+      reversedHotels.map((hotel) => hotel.id),
+    );
+    expect(reorderedBudget.hotels[0].name).toBe(defaultBudgetData.hotels[1].name);
   });
 });
 

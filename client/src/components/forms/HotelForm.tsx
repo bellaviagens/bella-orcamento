@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Star, MapPin, Upload, Loader2, Building2, Edit2, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Star, MapPin, Upload, Loader2, Building2, Edit2, ExternalLink, Copy, GripVertical } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Hotel } from "@shared/budgetTypes";
 import { nanoid } from "nanoid";
@@ -37,10 +37,12 @@ function CurrencyInput({
   value,
   onValueChange,
   placeholder = "R$ 0,00",
+  className = "mt-1",
 }: {
   value: number;
   onValueChange: (value: number) => void;
   placeholder?: string;
+  className?: string;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState("");
@@ -64,7 +66,7 @@ function CurrencyInput({
         setDraft("");
       }}
       placeholder={placeholder}
-      className="mt-1"
+      className={className}
     />
   );
 }
@@ -91,9 +93,11 @@ export function getHotelEditorInitialValues(hotel: Hotel) {
 }
 
 export function HotelForm() {
-  const { budget, addHotel, updateHotel, removeHotel } = useBudget();
+  const { budget, addHotel, updateHotel, removeHotel, duplicateHotel, reorderHotels } = useBudget();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [draggedHotelId, setDraggedHotelId] = useState<string | null>(null);
+  const [dragOverHotelId, setDragOverHotelId] = useState<string | null>(null);
   const [parsing, setParsing] = useState(false);
   const [fetchingPhoto, setFetchingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -221,6 +225,34 @@ export function HotelForm() {
     });
   };
 
+  const getDisplayedPrice = (hotel: Hotel) => (
+    hotel.priceMode === "daily" && hotel.dailyPrice && hotel.nights
+      ? hotel.dailyPrice * hotel.nights
+      : hotel.totalPrice
+  );
+
+  const handleInlinePriceChange = (hotel: Hotel, value: number) => {
+    if (hotel.priceMode === "daily" && hotel.nights) {
+      updateHotel(hotel.id, { ...hotel, dailyPrice: value / hotel.nights });
+      return;
+    }
+
+    updateHotel(hotel.id, { ...hotel, totalPrice: value });
+  };
+
+  const handleHotelDrop = (targetHotelId: string) => {
+    if (!draggedHotelId || draggedHotelId === targetHotelId) return;
+
+    const sourceIndex = budget.hotels.findIndex((hotel) => hotel.id === draggedHotelId);
+    const targetIndex = budget.hotels.findIndex((hotel) => hotel.id === targetHotelId);
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const nextHotels = [...budget.hotels];
+    const [movedHotel] = nextHotels.splice(sourceIndex, 1);
+    nextHotels.splice(targetIndex, 0, movedHotel);
+    reorderHotels(nextHotels);
+  };
+
   const handleFetchPhotoFromUrl = async () => {
     if (!hotelUrl.trim()) {
       toast.error("Cole a URL do hotel primeiro");
@@ -287,7 +319,44 @@ export function HotelForm() {
     <div className="space-y-3">
       {/* Existing hotels */}
       {budget.hotels.map((hotel, idx) => (
-        <div key={hotel.id} className="rounded-lg border border-slate-200 bg-white p-3 flex items-center gap-3">
+        <div
+          key={hotel.id}
+          onDragOver={(event) => {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "move";
+            if (draggedHotelId && draggedHotelId !== hotel.id) setDragOverHotelId(hotel.id);
+          }}
+          onDragLeave={() => {
+            if (dragOverHotelId === hotel.id) setDragOverHotelId(null);
+          }}
+          onDrop={(event) => {
+            event.preventDefault();
+            handleHotelDrop(hotel.id);
+            setDraggedHotelId(null);
+            setDragOverHotelId(null);
+          }}
+          className={`rounded-lg border bg-white p-3 flex items-center gap-3 transition-colors ${
+            dragOverHotelId === hotel.id ? "border-[#1a2e4a] bg-blue-50" : "border-slate-200"
+          }`}
+        >
+          <button
+            type="button"
+            draggable
+            onDragStart={(event) => {
+              event.dataTransfer.effectAllowed = "move";
+              event.dataTransfer.setData("text/plain", hotel.id);
+              setDraggedHotelId(hotel.id);
+            }}
+            onDragEnd={() => {
+              setDraggedHotelId(null);
+              setDragOverHotelId(null);
+            }}
+            className="flex h-8 w-5 cursor-grab items-center justify-center rounded text-slate-400 hover:bg-slate-100 hover:text-[#1a2e4a] active:cursor-grabbing"
+            title="Arraste para reordenar"
+            aria-label={`Arrastar ${hotel.name} para reordenar`}
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-white text-xs font-bold">
             {idx + 1}
           </div>
@@ -299,16 +368,12 @@ export function HotelForm() {
             </div>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
-            {(() => {
-              const displayedPrice = hotel.priceMode === "daily" && hotel.dailyPrice && hotel.nights
-                ? hotel.dailyPrice * hotel.nights
-                : hotel.totalPrice;
-              return displayedPrice > 0 ? (
-                <div className="text-xs font-semibold text-[#1a2e4a] px-2 py-1">
-                  {formatCurrency(displayedPrice)}
-                </div>
-              ) : null;
-            })()}
+            <CurrencyInput
+              value={getDisplayedPrice(hotel)}
+              onValueChange={(value) => handleInlinePriceChange(hotel, value)}
+              className="h-8 w-28 border-slate-200 bg-white px-2 text-right text-xs font-semibold text-[#1a2e4a] shadow-none focus-visible:border-[#1a2e4a]"
+              placeholder="R$ 0,00"
+            />
             {hotel.rating > 0 && (
               <div className="text-xs bg-[#1a2e4a] text-white px-2 py-1 rounded">
                 {hotel.rating.toFixed(1)} / 10
@@ -323,6 +388,19 @@ export function HotelForm() {
               aria-label={`Editar todos os campos de ${hotel.name}`}
             >
               <Edit2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                duplicateHotel(hotel.id);
+                toast.success("Hotel duplicado. Edite os dados necessários na nova opção.");
+              }}
+              className="text-[#1a2e4a] hover:text-[#1a2e4a] hover:bg-slate-100 h-9 w-9 p-0"
+              title="Duplicar hotel"
+              aria-label={`Duplicar ${hotel.name}`}
+            >
+              <Copy className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"

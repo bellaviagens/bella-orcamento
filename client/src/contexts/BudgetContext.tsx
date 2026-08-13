@@ -12,6 +12,8 @@ interface BudgetContextType {
   addHotel: (hotel: Hotel) => void;
   updateHotel: (id: string, hotel: Hotel) => void;
   removeHotel: (id: string) => void;
+  duplicateHotel: (id: string) => void;
+  reorderHotels: (hotels: Hotel[]) => void;
   addFareTier: (tier: Omit<FareTier, "id">) => void;
   updateFareTier: (id: string, tier: Partial<FareTier>) => void;
   removeFareTier: (id: string) => void;
@@ -67,6 +69,35 @@ export function updateFareTierInBudget(
   };
 }
 
+export function duplicateHotelInBudget(budget: BudgetData, id: string): BudgetData {
+  const sourceIndex = budget.hotels.findIndex((hotel) => hotel.id === id);
+  if (sourceIndex === -1) return budget;
+
+  const sourceHotel = budget.hotels[sourceIndex];
+  const duplicate: Hotel = {
+    ...sourceHotel,
+    id: nanoid(),
+    name: `${sourceHotel.name} (cópia)`,
+    amenities: [...sourceHotel.amenities],
+    prices: Object.fromEntries(
+      Object.entries(sourceHotel.prices).map(([tierId, price]) => [tierId, { ...price }]),
+    ),
+  };
+
+  return {
+    ...budget,
+    hotels: [
+      ...budget.hotels.slice(0, sourceIndex + 1),
+      duplicate,
+      ...budget.hotels.slice(sourceIndex + 1),
+    ],
+  };
+}
+
+export function reorderHotelsInBudget(budget: BudgetData, hotels: Hotel[]): BudgetData {
+  return { ...budget, hotels };
+}
+
 export function BudgetProvider({ children }: { children: ReactNode }) {
   const [budget, setBudget] = useState<BudgetData>(defaultBudgetData);
 
@@ -117,6 +148,14 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       ...prev,
       hotels: prev.hotels.filter((h) => h.id !== id),
     }));
+  }, []);
+
+  const duplicateHotel = useCallback((id: string) => {
+    setBudget((prev) => duplicateHotelInBudget(prev, id));
+  }, []);
+
+  const reorderHotels = useCallback((hotels: Hotel[]) => {
+    setBudget((prev) => reorderHotelsInBudget(prev, hotels));
   }, []);
 
   const addFareTier = useCallback((tier: Omit<FareTier, "id">) => {
@@ -205,6 +244,8 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         addHotel,
         updateHotel,
         removeHotel,
+        duplicateHotel,
+        reorderHotels,
         addFareTier,
         updateFareTier,
         removeFareTier,

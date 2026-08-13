@@ -285,3 +285,7 @@
 - [x] Ajustar o fundo cinza, o botão branco ativo e a fonte ampliada nas abas de navegação
 
 - [x] Permitir abrir e editar manualmente todos os campos de um hotel pelo ícone de lápis, no padrão das tarifas
+
+- [x] Permitir duplicar uma opção de hotel com todos os seus dados
+- [x] Permitir reordenar hotéis cadastrados por arrastar e soltar
+- [x] Permitir editar o preço diretamente no cartão recolhido do hotel, sem abrir o editor completo
