@@ -257,3 +257,8 @@
 - [x] Corrigir exclusivamente a causa do erro de geração do PDF
 - [x] Validar novamente a geração do PDF e os testes relacionados
 - [x] Salvar e entregar a versão atual sem novas modificações
+
+- [x] Reproduzir e corrigir o erro de geração do PDF no cenário somente aéreo
+- [x] Impedir cortes de conteúdo nos cenários somente aéreo e aéreo com hotel
+- [x] Revisar o comportamento do link do PDF para abertura externa no visualizador
+- [x] Validar por testes e gerar PDFs nos dois cenários sem alterar o restante

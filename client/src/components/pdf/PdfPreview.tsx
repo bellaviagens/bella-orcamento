@@ -241,6 +241,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
               return (
                 <div
                   key={tier.id}
+                  data-pdf-keep-together="true"
                   style={{ width: "270px", maxWidth: "270px", flexShrink: 0, boxSizing: "border-box" }}
                     className={`rounded-lg border p-2 shadow-sm ${
                     tier.highlighted ? "bg-amber-50 border-amber-300" : "bg-blue-50 border-blue-200"

@@ -60,6 +60,7 @@ describe("PdfPreview — parcelamento conjunto", () => {
     expect(markup).not.toContain("Formas de Pagamento");
     expect(markup).toContain('flex:0 0 100px');
     expect(markup).toContain("Bagagem de 10kg");
+    expect(markup).toContain('data-pdf-keep-together="true"');
   });
 
   it("exibe a condição à vista ao lado do parcelado somente quando ela é incluída no PDF", () => {

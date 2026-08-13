@@ -10,6 +10,14 @@ describe("buildPdfSegments", () => {
     ]);
   });
 
+  it("move um card de tarifa somente aéreo inteiro para a página seguinte", () => {
+    expect(buildPdfSegments(2100, 1000, [{ top: 780, bottom: 1100 }], [])).toEqual([
+      { start: 0, end: 780 },
+      { start: 780, end: 1780 },
+      { start: 1780, end: 2100 },
+    ]);
+  });
+
   it("mantém um bloco maior que a página no mesmo segmento para escala de exportação", () => {
     expect(buildPdfSegments(2200, 1000, [{ top: 0, bottom: 1250 }], [])).toEqual([
       { start: 0, end: 1250 },
@@ -22,6 +30,12 @@ describe("buildPdfSegments", () => {
       { start: 0, end: 650 },
       { start: 650, end: 1650 },
       { start: 1650, end: 1800 },
+    ]);
+  });
+
+  it("incorpora um resíduo de arredondamento na última página", () => {
+    expect(buildPdfSegments(2246, 2245.885714285714, [], [])).toEqual([
+      { start: 0, end: 2246 },
     ]);
   });
 });

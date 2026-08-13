@@ -25,7 +25,10 @@ export function buildPdfSegments(
   let currentY = 0;
 
   while (currentY < canvasHeight) {
-    const pageEnd = Math.min(currentY + pageHeight, canvasHeight);
+    const naturalPageEnd = Math.min(currentY + pageHeight, canvasHeight);
+    // Evita criar uma segunda página com poucos décimos de pixel, algo que pode
+    // ocorrer por arredondamento de escala e gera uma imagem PNG inválida no jsPDF.
+    const pageEnd = canvasHeight - naturalPageEnd <= 10 ? canvasHeight : naturalPageEnd;
     let adjustedEnd = pageEnd;
     const oversizedBlock = blocks.find(
       (block) => block.top <= currentY + 1 && block.bottom > pageEnd && block.bottom - block.top > pageHeight,
