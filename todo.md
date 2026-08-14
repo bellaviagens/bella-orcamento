@@ -311,3 +311,6 @@
 - [x] Manter todas as abas em uma única linha com Passeios como último item
 
 - [x] Unificar Passeios e Roteiro em uma única aba de Roteiro, preservando cadastro, importação, links, valores, dias e PDF próprio
+
+- [x] Permitir colar uma URL de cotação no Roteiro e importar passeios identificados por data
+- [x] Organizar automaticamente os passeios importados nos dias correspondentes do roteiro

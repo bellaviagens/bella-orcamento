@@ -104,6 +104,12 @@ export interface ItineraryDay {
   notes: string;
 }
 
+export interface QuotationActivity {
+  name: string;
+  date: string;
+  description: string;
+}
+
 export interface BudgetData {
   tripInfo: TripInfo;
   flights: Flight[];

@@ -1,17 +1,40 @@
 import { useBudget } from "@/contexts/BudgetContext";
 import { useState } from "react";
+import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarDays, GripVertical, Plus, Trash2 } from "lucide-react";
+import { CalendarDays, GripVertical, Link2, Loader2, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 export function ItineraryForm() {
-  const { budget, addItineraryDay, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
+  const { budget, addItineraryDay, importItineraryFromQuotation, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
   const itinerary = budget.itinerary;
+  const [quotationUrl, setQuotationUrl] = useState("");
   const [draggedDayId, setDraggedDayId] = useState<string | null>(null);
   const [dragOverDayId, setDragOverDayId] = useState<string | null>(null);
+  const importQuotationMutation = trpc.importQuotationUrl.useMutation();
+
+  const handleQuotationImport = async () => {
+    const normalizedUrl = quotationUrl.trim();
+    if (!normalizedUrl) {
+      toast.error("Cole o link da cotação para importar o roteiro.");
+      return;
+    }
+
+    try {
+      const result = await importQuotationMutation.mutateAsync({ url: normalizedUrl });
+      importItineraryFromQuotation(result.activities, normalizedUrl);
+      const total = result.activities.length;
+      toast.success(`${total} ${total === 1 ? "passeio foi organizado" : "passeios foram organizados"} por data no roteiro.`);
+      setQuotationUrl("");
+    } catch (error) {
+      console.error("Quotation itinerary import error:", error);
+      toast.error(error instanceof Error ? error.message : "Não foi possível importar esta cotação. Tente novamente.");
+    }
+  };
 
   const handleDayDrop = (targetDayId: string) => {
     if (!draggedDayId || draggedDayId === targetDayId) return;
@@ -29,6 +52,33 @@ export function ItineraryForm() {
     <div className="space-y-3">
       <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-[#1a2e4a]">
         Monte este roteiro após a aprovação do orçamento. Esta organização possui uma visualização própria e não é incluída no preview ou PDF do orçamento.
+      </div>
+
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <div className="mb-2 flex items-center gap-2 text-sm font-bold text-[#1a2e4a]">
+          <Link2 className="h-4 w-4" /> Importar roteiro por link
+        </div>
+        <Label htmlFor="quotation-url" className="text-xs">Cole o link da cotação</Label>
+        <div className="mt-1 flex flex-col gap-2 sm:flex-row">
+          <Input
+            id="quotation-url"
+            type="url"
+            value={quotationUrl}
+            onChange={(event) => setQuotationUrl(event.target.value)}
+            placeholder="https://.../quotations/..."
+            className="bg-white"
+          />
+          <Button
+            type="button"
+            onClick={handleQuotationImport}
+            disabled={!quotationUrl.trim() || importQuotationMutation.isPending}
+            className="h-10 shrink-0 font-bold"
+          >
+            {importQuotationMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Link2 className="mr-2 h-4 w-4" />}
+            {importQuotationMutation.isPending ? "Importando..." : "Importar roteiro"}
+          </Button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">Os passeios identificados serão cadastrados e organizados cronologicamente pelos dias indicados na cotação.</p>
       </div>
 
       {itinerary.map((day) => (

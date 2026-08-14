@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import { defaultBudgetData, type BudgetData, type Flight, type Hotel, type FareTier, type ItineraryDay, type Tour } from "@shared/budgetTypes";
+import { defaultBudgetData, type BudgetData, type Flight, type Hotel, type FareTier, type ItineraryDay, type QuotationActivity, type Tour } from "@shared/budgetTypes";
 import { reconcileFareBenefits } from "@shared/fareBenefits";
 import { nanoid } from "nanoid";
 
@@ -20,6 +20,7 @@ interface BudgetContextType {
   duplicateTour: (id: string) => void;
   reorderTours: (tours: Tour[]) => void;
   addItineraryDay: () => void;
+  importItineraryFromQuotation: (activities: QuotationActivity[], quotationUrl: string) => void;
   updateItineraryDay: (id: string, updates: Partial<ItineraryDay>) => void;
   removeItineraryDay: (id: string) => void;
   reorderItineraryDays: (days: ItineraryDay[]) => void;
@@ -139,6 +140,67 @@ export function reorderItineraryDaysInBudget(budget: BudgetData, days: Itinerary
   };
 }
 
+function formatQuotationDate(date: string): string {
+  const [year, month, day] = date.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+export function importQuotationActivitiesIntoBudget(
+  budget: BudgetData,
+  activities: QuotationActivity[],
+  quotationUrl: string,
+): BudgetData {
+  const existingTours = new Map(
+    budget.tours.map((tour) => [`${tour.name.trim().toLocaleLowerCase("pt-BR")}|${tour.pageUrl || ""}`, tour]),
+  );
+  const newTours: Tour[] = [];
+  const newDays: ItineraryDay[] = [];
+
+  const chronologicalActivities = [...activities].sort((first, second) => (
+    first.date.localeCompare(second.date) || first.name.localeCompare(second.name, "pt-BR")
+  ));
+
+  for (const activity of chronologicalActivities) {
+    const name = activity.name.trim();
+    if (!name) continue;
+
+    const tourKey = `${name.toLocaleLowerCase("pt-BR")}|${quotationUrl}`;
+    const tour = existingTours.get(tourKey) || {
+      id: nanoid(),
+      name,
+      location: "",
+      duration: "",
+      description: activity.description.trim(),
+      totalPrice: 0,
+      pageUrl: quotationUrl,
+      photosUrl: "",
+    };
+    if (!existingTours.has(tourKey)) {
+      existingTours.set(tourKey, tour);
+      newTours.push(tour);
+    }
+
+    const title = `${formatQuotationDate(activity.date)} — ${name}`;
+    const alreadyInItinerary = budget.itinerary.some((day) => day.tourId === tour.id && day.title === title)
+      || newDays.some((day) => day.tourId === tour.id && day.title === title);
+    if (!alreadyInItinerary) {
+      newDays.push({
+        id: nanoid(),
+        day: 0,
+        title,
+        tourId: tour.id,
+        notes: activity.description.trim(),
+      });
+    }
+  }
+
+  return {
+    ...budget,
+    tours: [...budget.tours, ...newTours],
+    itinerary: [...budget.itinerary, ...newDays].map((day, index) => ({ ...day, day: index + 1 })),
+  };
+}
+
 export function BudgetProvider({ children }: { children: ReactNode }) {
   const [budget, setBudget] = useState<BudgetData>(defaultBudgetData);
 
@@ -242,6 +304,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         ],
       };
     });
+  }, []);
+
+  const importItineraryFromQuotation = useCallback((activities: QuotationActivity[], quotationUrl: string) => {
+    setBudget((prev) => importQuotationActivitiesIntoBudget(prev, activities, quotationUrl));
   }, []);
 
   const updateItineraryDay = useCallback((id: string, updates: Partial<ItineraryDay>) => {
@@ -356,6 +422,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         duplicateTour,
         reorderTours,
         addItineraryDay,
+        importItineraryFromQuotation,
         updateItineraryDay,
         removeItineraryDay,
         reorderItineraryDays,

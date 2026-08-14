@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import { calculateCombinedInstallmentValue, calculateCombinedTotal, calculateEffectiveHotelTotal } from "../shared/paymentCalculations";
-import { duplicateHotelInBudget, duplicateTourInBudget, reorderHotelsInBudget, reorderItineraryDaysInBudget, reorderToursInBudget } from "../client/src/contexts/BudgetContext";
+import { duplicateHotelInBudget, duplicateTourInBudget, importQuotationActivitiesIntoBudget, reorderHotelsInBudget, reorderItineraryDaysInBudget, reorderToursInBudget } from "../client/src/contexts/BudgetContext";
 
 function createMockContext(): TrpcContext {
   return {
@@ -26,6 +26,11 @@ describe("appRouter", () => {
   it("has parseTourScreenshot procedure", () => {
     const caller = appRouter.createCaller(createMockContext());
     expect(caller.parseTourScreenshot).toBeDefined();
+  });
+
+  it("has importQuotationUrl procedure", () => {
+    const caller = appRouter.createCaller(createMockContext());
+    expect(caller.importQuotationUrl).toBeDefined();
   });
 
   it("has auth.me procedure", () => {
@@ -122,6 +127,25 @@ describe("gestão de passeios e roteiro", () => {
 
     expect(reorderedBudget.itinerary.map((day) => day.id)).toEqual(["day-2", "day-1"]);
     expect(reorderedBudget.itinerary.map((day) => day.day)).toEqual([1, 2]);
+  });
+
+  it("cria passeios e dias cronológicos ao importar uma cotação sem duplicar a mesma atividade", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const quotationUrl = "https://exemplo.com/quotations/abc";
+    const importedBudget = importQuotationActivitiesIntoBudget(defaultBudgetData, [
+      { name: "Passeio à vinícola", date: "2026-08-30", description: "Degustação" },
+      { name: "Tour panorâmico", date: "2026-08-29", description: "Centro da cidade" },
+      { name: "Passeio à vinícola", date: "2026-08-30", description: "Degustação" },
+    ], quotationUrl);
+
+    expect(importedBudget.tours).toHaveLength(2);
+    expect(importedBudget.tours.map((tour) => tour.pageUrl)).toEqual([quotationUrl, quotationUrl]);
+    expect(importedBudget.itinerary.map((day) => day.title)).toEqual([
+      "29/08/2026 — Tour panorâmico",
+      "30/08/2026 — Passeio à vinícola",
+    ]);
+    expect(importedBudget.itinerary.map((day) => day.day)).toEqual([1, 2]);
+    expect(importedBudget.itinerary[0].notes).toBe("Centro da cidade");
   });
 });
 
