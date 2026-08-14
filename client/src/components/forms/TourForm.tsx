@@ -212,7 +212,7 @@ export function TourForm() {
             <div className="sm:col-span-2"><Label>Nome do passeio</Label><Input value={form.name} onChange={(event) => updateField("name", event.target.value)} placeholder="Ex.: Vinícola e degustação" className="mt-1" /></div>
             <div><Label>Valor total (R$)</Label><CurrencyInput value={form.totalPrice} onChange={(value) => updateField("totalPrice", value)} /></div>
             <div><Label>Link da página</Label><Input type="url" value={form.pageUrl || ""} onChange={(event) => updateField("pageUrl", event.target.value)} placeholder="https://" className="mt-1" /></div>
-            <div className="sm:col-span-2"><Label>Link de fotos</Label><Input type="url" value={form.photosUrl || ""} onChange={(event) => updateField("photosUrl", event.target.value)} placeholder="https://" className="mt-1" /></div>
+            <div className="sm:col-span-2"><Label>Link da foto ou álbum</Label><Input type="url" value={form.photosUrl || ""} onChange={(event) => updateField("photosUrl", event.target.value)} placeholder="https://" className="mt-1" /><p className="mt-1 text-xs text-slate-500">Use o link direto de uma imagem para exibir a foto no roteiro. Links de álbum continuam disponíveis pelo botão de fotos.</p></div>
             <div className="sm:col-span-2"><Label>Informações adicionais <span className="font-normal text-slate-400">(opcional)</span></Label><Textarea value={form.description} onChange={(event) => updateField("description", event.target.value)} placeholder="Informações importantes do passeio" className="mt-1 min-h-20" /></div>
           </div>
           <Button onClick={handleSave} className="w-full bg-[#1a2e4a] text-white hover:bg-[#243d61]">{editingId ? "Salvar alterações" : "Adicionar passeio"}</Button>

@@ -153,7 +153,7 @@ export function importQuotationActivitiesIntoBudget(
   const existingTours = new Map(
     budget.tours.map((tour) => [`${tour.name.trim().toLocaleLowerCase("pt-BR")}|${tour.pageUrl || ""}`, tour]),
   );
-  const newTours: Tour[] = [];
+  const toursById = new Map(budget.tours.map((tour) => [tour.id, tour]));
   const newDays: ItineraryDay[] = [];
 
   const chronologicalActivities = [...activities].sort((first, second) => (
@@ -164,21 +164,34 @@ export function importQuotationActivitiesIntoBudget(
     const name = activity.name.trim();
     if (!name) continue;
 
-    const tourKey = `${name.toLocaleLowerCase("pt-BR")}|${quotationUrl}`;
-    const tour = existingTours.get(tourKey) || {
-      id: nanoid(),
-      name,
-      location: "",
-      duration: "",
-      description: activity.description.trim(),
-      totalPrice: 0,
-      pageUrl: quotationUrl,
-      photosUrl: "",
+    const pageUrl = activity.pageUrl?.trim() || quotationUrl;
+    const tourKey = `${name.toLocaleLowerCase("pt-BR")}|${pageUrl}`;
+    const existingTour = existingTours.get(tourKey);
+    const tour = existingTour
+      ? {
+        ...existingTour,
+        location: activity.location?.trim() || existingTour.location,
+        duration: activity.duration?.trim() || existingTour.duration,
+        description: activity.description.trim() || existingTour.description,
+        pageUrl,
+        photosUrl: activity.photosUrl?.trim() || existingTour.photosUrl,
+      }
+      : {
+        id: nanoid(),
+        name,
+        location: activity.location?.trim() || "",
+        duration: activity.duration?.trim() || "",
+        description: activity.description.trim(),
+        totalPrice: 0,
+        pageUrl,
+        photosUrl: activity.photosUrl?.trim() || "",
     };
-    if (!existingTours.has(tourKey)) {
+    if (existingTour) {
       existingTours.set(tourKey, tour);
-      newTours.push(tour);
+    } else {
+      existingTours.set(tourKey, tour);
     }
+    toursById.set(tour.id, tour);
 
     const title = `${formatQuotationDate(activity.date)} — ${name}`;
     const alreadyInItinerary = budget.itinerary.some((day) => day.tourId === tour.id && day.title === title)
@@ -196,7 +209,7 @@ export function importQuotationActivitiesIntoBudget(
 
   return {
     ...budget,
-    tours: [...budget.tours, ...newTours],
+    tours: Array.from(toursById.values()),
     itinerary: [...budget.itinerary, ...newDays].map((day, index) => ({ ...day, day: index + 1 })),
   };
 }

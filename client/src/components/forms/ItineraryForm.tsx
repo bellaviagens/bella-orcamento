@@ -28,7 +28,7 @@ export function ItineraryForm() {
       const result = await importQuotationMutation.mutateAsync({ url: normalizedUrl });
       importItineraryFromQuotation(result.activities, normalizedUrl);
       const total = result.activities.length;
-      toast.success(`${total} ${total === 1 ? "passeio foi organizado" : "passeios foram organizados"} por data no roteiro.`);
+      toast.success(`${total} ${total === 1 ? "passeio foi organizado" : "passeios foram organizados"} por data, com os detalhes e fotos disponíveis.`);
       setQuotationUrl("");
     } catch (error) {
       console.error("Quotation itinerary import error:", error);

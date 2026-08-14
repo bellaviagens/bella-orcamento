@@ -108,6 +108,10 @@ export interface QuotationActivity {
   name: string;
   date: string;
   description: string;
+  location?: string;
+  duration?: string;
+  pageUrl?: string;
+  photosUrl?: string;
 }
 
 export interface BudgetData {

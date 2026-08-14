@@ -133,13 +133,35 @@ describe("gestão de passeios e roteiro", () => {
     const { defaultBudgetData } = await import("../shared/budgetTypes");
     const quotationUrl = "https://exemplo.com/quotations/abc";
     const importedBudget = importQuotationActivitiesIntoBudget(defaultBudgetData, [
-      { name: "Passeio à vinícola", date: "2026-08-30", description: "Degustação" },
+      {
+        name: "Passeio à vinícola",
+        date: "2026-08-30",
+        description: "Degustação e visita às vinícolas selecionadas.",
+        location: "Vale do Casablanca",
+        duration: "6 horas",
+        pageUrl: "https://exemplo.com/passeios/vinicola",
+        photosUrl: "https://images.exemplo.com/vinicola.jpg",
+      },
       { name: "Tour panorâmico", date: "2026-08-29", description: "Centro da cidade" },
-      { name: "Passeio à vinícola", date: "2026-08-30", description: "Degustação" },
+      {
+        name: "Passeio à vinícola",
+        date: "2026-08-30",
+        description: "Degustação e visita às vinícolas selecionadas.",
+        location: "Vale do Casablanca",
+        duration: "6 horas",
+        pageUrl: "https://exemplo.com/passeios/vinicola",
+        photosUrl: "https://images.exemplo.com/vinicola.jpg",
+      },
     ], quotationUrl);
 
     expect(importedBudget.tours).toHaveLength(2);
-    expect(importedBudget.tours.map((tour) => tour.pageUrl)).toEqual([quotationUrl, quotationUrl]);
+    expect(importedBudget.tours.find((tour) => tour.name === "Passeio à vinícola")).toMatchObject({
+      location: "Vale do Casablanca",
+      duration: "6 horas",
+      pageUrl: "https://exemplo.com/passeios/vinicola",
+      photosUrl: "https://images.exemplo.com/vinicola.jpg",
+    });
+    expect(importedBudget.tours.find((tour) => tour.name === "Tour panorâmico")?.pageUrl).toBe(quotationUrl);
     expect(importedBudget.itinerary.map((day) => day.title)).toEqual([
       "29/08/2026 — Tour panorâmico",
       "30/08/2026 — Passeio à vinícola",

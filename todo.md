@@ -314,3 +314,7 @@
 
 - [x] Permitir colar uma URL de cotação no Roteiro e importar passeios identificados por data
 - [x] Organizar automaticamente os passeios importados nos dias correspondentes do roteiro
+
+- [x] Enriquecer a importação de cotação com descrições detalhadas das páginas individuais dos passeios
+- [x] Exibir foto de cada passeio no roteiro a partir de um link de fotos informado
+- [x] Validar por testes e visualmente o roteiro com descrições e fotos, sem alterar o orçamento
