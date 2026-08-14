@@ -200,7 +200,7 @@ export function TourForm() {
         <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={parsing} className="h-12 w-full text-base font-bold shadow-md">
           {parsing ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Analisando screenshot...</> : <><Upload className="mr-2 h-5 w-5" />Importar passeio de screenshot</>}
         </Button>
-        <p className="mt-2 text-xs text-slate-400">O nome, local, duração, descrição e valor visíveis serão preenchidos para revisão.</p>
+        <p className="mt-2 text-xs text-slate-400">O nome e o valor visíveis serão preenchidos para revisão. Depois, inclua os links da página e das fotos.</p>
       </div>
 
       {!showForm && <Button variant="outline" onClick={() => setShowForm(true)} className="h-12 w-full text-base font-bold shadow-md"><Plus className="mr-2 h-5 w-5" />Adicionar passeio manualmente</Button>}
@@ -210,12 +210,10 @@ export function TourForm() {
           <div className="flex items-center justify-between"><h4 className="text-sm font-bold text-[#1a2e4a]">{editingId ? "Editar passeio" : "Novo passeio"}</h4><Button variant="ghost" size="sm" onClick={closeForm}>Cancelar</Button></div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2"><Label>Nome do passeio</Label><Input value={form.name} onChange={(event) => updateField("name", event.target.value)} placeholder="Ex.: Vinícola e degustação" className="mt-1" /></div>
-            <div><Label>Local ou ponto de encontro</Label><Input value={form.location} onChange={(event) => updateField("location", event.target.value)} placeholder="Ex.: Vale do Casablanca" className="mt-1" /></div>
-            <div><Label>Duração</Label><Input value={form.duration} onChange={(event) => updateField("duration", event.target.value)} placeholder="Ex.: 6 horas" className="mt-1" /></div>
             <div><Label>Valor total (R$)</Label><CurrencyInput value={form.totalPrice} onChange={(value) => updateField("totalPrice", value)} /></div>
             <div><Label>Link da página</Label><Input type="url" value={form.pageUrl || ""} onChange={(event) => updateField("pageUrl", event.target.value)} placeholder="https://" className="mt-1" /></div>
             <div className="sm:col-span-2"><Label>Link de fotos</Label><Input type="url" value={form.photosUrl || ""} onChange={(event) => updateField("photosUrl", event.target.value)} placeholder="https://" className="mt-1" /></div>
-            <div className="sm:col-span-2"><Label>Descrição</Label><Textarea value={form.description} onChange={(event) => updateField("description", event.target.value)} placeholder="Informações importantes do passeio" className="mt-1 min-h-20" /></div>
+            <div className="sm:col-span-2"><Label>Informações adicionais <span className="font-normal text-slate-400">(opcional)</span></Label><Textarea value={form.description} onChange={(event) => updateField("description", event.target.value)} placeholder="Informações importantes do passeio" className="mt-1 min-h-20" /></div>
           </div>
           <Button onClick={handleSave} className="w-full bg-[#1a2e4a] text-white hover:bg-[#243d61]">{editingId ? "Salvar alterações" : "Adicionar passeio"}</Button>
         </div>

@@ -305,3 +305,7 @@
 - [x] Posicionar a aba Roteiro como a última opção da navegação
 
 - [x] Ajustar a distribuição responsiva das abas para manter todos os nomes e ícones legíveis após incluir Passeios e Roteiro
+
+- [x] Simplificar o cadastro manual de passeios para campos de página, fotos e valor
+- [x] Adicionar o botão de importação de passeio por screenshot no padrão de hotéis
+- [x] Manter todas as abas em uma única linha com Passeios como último item

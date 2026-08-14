@@ -99,40 +99,42 @@ function BuilderContent() {
           <ScrollArea className="flex-1">
             <div className="p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-4 h-auto gap-1.5 rounded-lg bg-slate-200 p-1.5">
-                  <TabsTrigger value="trip" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                <div className="mb-4 overflow-x-auto pb-1 [scrollbar-width:thin]">
+                  <TabsList className="flex h-auto min-w-max w-full flex-nowrap gap-1.5 rounded-lg bg-slate-200 p-1.5">
+                  <TabsTrigger value="trip" className="min-h-10 shrink-0 whitespace-nowrap rounded-md px-3 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
                     <FileText className="h-4 w-4 mr-1.5" />
                     Viagem
                   </TabsTrigger>
-                  <TabsTrigger value="flights" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                  <TabsTrigger value="flights" className="min-h-10 shrink-0 whitespace-nowrap rounded-md px-3 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
                     <Plane className="h-4 w-4 mr-1.5" />
                     Voos
                   </TabsTrigger>
-                  <TabsTrigger value="fares" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                  <TabsTrigger value="fares" className="min-h-10 shrink-0 whitespace-nowrap rounded-md px-3 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
                     <Settings className="h-4 w-4 mr-1.5" />
                     Tarifas
                   </TabsTrigger>
-                  <TabsTrigger value="hotels" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                  <TabsTrigger value="hotels" className="min-h-10 shrink-0 whitespace-nowrap rounded-md px-3 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
                     <Building2 className="h-4 w-4 mr-1.5" />
                     Hotéis
                   </TabsTrigger>
-                  <TabsTrigger value="tours" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
-                    <Camera className="h-4 w-4 mr-1.5" />
-                    Passeios
-                  </TabsTrigger>
-                  <TabsTrigger value="baggage" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                  <TabsTrigger value="baggage" className="min-h-10 shrink-0 whitespace-nowrap rounded-md px-3 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
                     <Settings className="h-4 w-4 mr-1.5" />
                     Bagagens
                   </TabsTrigger>
-                  <TabsTrigger value="installments" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                  <TabsTrigger value="installments" className="min-h-10 shrink-0 whitespace-nowrap rounded-md px-3 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
                     <Settings className="h-4 w-4 mr-1.5" />
                     Parcelamento
                   </TabsTrigger>
-                  <TabsTrigger value="itinerary" className="min-h-10 rounded-md px-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                  <TabsTrigger value="itinerary" className="min-h-10 shrink-0 whitespace-nowrap rounded-md px-3 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
                     <CalendarDays className="h-4 w-4 mr-1.5" />
                     Roteiro
                   </TabsTrigger>
-                </TabsList>
+                  <TabsTrigger value="tours" className="min-h-10 shrink-0 whitespace-nowrap rounded-md px-3 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
+                    <Camera className="h-4 w-4 mr-1.5" />
+                    Passeios
+                  </TabsTrigger>
+                  </TabsList>
+                </div>
 
                 <TabsContent value="trip" className="mt-0">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
