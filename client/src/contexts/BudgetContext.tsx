@@ -22,6 +22,7 @@ interface BudgetContextType {
   addItineraryDay: () => void;
   importItineraryFromQuotation: (activities: QuotationActivity[], quotationUrl: string) => void;
   updateTourProposal: (updates: Partial<TourProposal>) => void;
+  replaceBudget: (budget: BudgetData) => void;
   updateFinalItinerary: (updates: Partial<FinalItinerary>) => void;
   addFinalItineraryEvent: (event?: Partial<FinalItineraryEvent>) => void;
   updateFinalItineraryEvent: (id: string, updates: Partial<FinalItineraryEvent>) => void;
@@ -427,6 +428,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const replaceBudget = useCallback((nextBudget: BudgetData) => {
+    setBudget(nextBudget);
+  }, []);
+
   const updateFinalItinerary = useCallback((updates: Partial<FinalItinerary>) => {
     setBudget((prev) => ({ ...prev, finalItinerary: { ...prev.finalItinerary, ...updates } }));
   }, []);
@@ -565,6 +570,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         addItineraryDay,
         importItineraryFromQuotation,
         updateTourProposal,
+        replaceBudget,
         updateFinalItinerary,
         addFinalItineraryEvent,
         updateFinalItineraryEvent,

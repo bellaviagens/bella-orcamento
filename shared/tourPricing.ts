@@ -13,3 +13,11 @@ export function calculateTourTotal(tour: Pick<Tour, "pricingMode" | "pricePerPer
 
   return Math.max(0, Number(tour.totalPrice) || 0);
 }
+
+export function calculateTourProposalInstallment(total: number, installments: number | undefined): { count: number; value: number } {
+  const count = Math.min(36, Math.max(1, Math.round(Number(installments) || 1)));
+  return {
+    count,
+    value: Math.max(0, Number(total) || 0) / count,
+  };
+}

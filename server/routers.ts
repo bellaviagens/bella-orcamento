@@ -2,7 +2,8 @@ import { COOKIE_NAME } from "@shared/const";
 import { invokeLLM } from "./_core/llm";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { getTourProposal, listTourProposals, saveTourProposal } from "./db";
 import { TRPCError } from "@trpc/server";
 import { lookup } from "node:dns/promises";
 import { z } from "zod";
@@ -136,6 +137,31 @@ function normalizeQuotationActivities(activities: QuotationActivity[]): Quotatio
 }
 
 export const appRouter = router({
+  tourProposals: router({
+    save: protectedProcedure
+      .input(z.object({
+        clientName: z.string().trim().min(1, "Informe o nome do cliente.").max(255),
+        proposalTitle: z.string().trim().max(255),
+        snapshot: z.string().min(2).max(4_000_000),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          JSON.parse(input.snapshot);
+        } catch {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "A proposta não pôde ser preparada para salvar." });
+        }
+        const id = await saveTourProposal({ ...input, ownerOpenId: ctx.user.openId });
+        return { id };
+      }),
+    list: protectedProcedure.query(({ ctx }) => listTourProposals(ctx.user.openId)),
+    get: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .query(async ({ ctx, input }) => {
+        const proposal = await getTourProposal(ctx.user.openId, input.id);
+        if (!proposal) throw new TRPCError({ code: "NOT_FOUND", message: "Proposta não encontrada." });
+        return proposal;
+      }),
+  }),
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({

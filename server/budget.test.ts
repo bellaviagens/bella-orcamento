@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import { calculateCombinedInstallmentValue, calculateCombinedTotal, calculateEffectiveHotelTotal } from "../shared/paymentCalculations";
-import { calculateTourTotal, getTourTravelerCount } from "../shared/tourPricing";
+import { calculateTourProposalInstallment, calculateTourTotal, getTourTravelerCount } from "../shared/tourPricing";
 import { duplicateHotelInBudget, duplicateTourInBudget, importQuotationActivitiesIntoBudget, reorderHotelsInBudget, reorderItineraryDaysInBudget, reorderToursInBudget } from "../client/src/contexts/BudgetContext";
 
 function createMockContext(): TrpcContext {
@@ -117,6 +117,11 @@ describe("gestão de passeios e roteiro", () => {
     };
 
     expect(calculateTourTotal(tour)).toBe(950);
+  });
+
+  it("calcula o valor de cada parcela da proposta sem alterar o total dos passeios", () => {
+    expect(calculateTourProposalInstallment(960, 3)).toEqual({ count: 3, value: 320 });
+    expect(calculateTourProposalInstallment(960, 1)).toEqual({ count: 1, value: 960 });
   });
 
   it("duplica o passeio logo após o original com novo id", async () => {

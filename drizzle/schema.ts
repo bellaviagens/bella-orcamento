@@ -25,4 +25,15 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+export const savedTourProposals = mysqlTable("saved_tour_proposals", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  ownerOpenId: varchar("ownerOpenId", { length: 64 }).notNull(),
+  clientName: varchar("clientName", { length: 255 }).notNull(),
+  proposalTitle: varchar("proposalTitle", { length: 255 }).notNull(),
+  snapshot: text("snapshot").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SavedTourProposal = typeof savedTourProposals.$inferSelect;
+export type InsertSavedTourProposal = typeof savedTourProposals.$inferInsert;

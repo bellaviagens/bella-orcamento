@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, savedTourProposals, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,48 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function saveTourProposal(input: { ownerOpenId: string; clientName: string; proposalTitle: string; snapshot: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para salvar a proposta.");
+
+  const existing = await db
+    .select({ id: savedTourProposals.id })
+    .from(savedTourProposals)
+    .where(and(eq(savedTourProposals.ownerOpenId, input.ownerOpenId), eq(savedTourProposals.clientName, input.clientName)))
+    .limit(1);
+
+  if (existing[0]) {
+    await db.update(savedTourProposals)
+      .set({ proposalTitle: input.proposalTitle, snapshot: input.snapshot, updatedAt: new Date() })
+      .where(eq(savedTourProposals.id, existing[0].id));
+    return existing[0].id;
+  }
+
+  const id = crypto.randomUUID();
+  await db.insert(savedTourProposals).values({ ...input, id });
+  return id;
+}
+
+export async function listTourProposals(ownerOpenId: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select({
+    id: savedTourProposals.id,
+    clientName: savedTourProposals.clientName,
+    proposalTitle: savedTourProposals.proposalTitle,
+    updatedAt: savedTourProposals.updatedAt,
+  }).from(savedTourProposals)
+    .where(eq(savedTourProposals.ownerOpenId, ownerOpenId))
+    .orderBy(desc(savedTourProposals.updatedAt));
+}
+
+export async function getTourProposal(ownerOpenId: string, id: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(savedTourProposals)
+    .where(and(eq(savedTourProposals.id, id), eq(savedTourProposals.ownerOpenId, ownerOpenId)))
+    .limit(1);
+  return result[0];
+}

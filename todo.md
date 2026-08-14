@@ -331,3 +331,9 @@
 - [x] Manter a Proposta de Passeios restrita a passeios, valores, total, pagamento e mensagem inicial para aprovação
 - [x] Liberar no Roteiro Final os dados de chegada, transfer, hospedagem, voo e retorno somente após a aprovação
 - [x] Gerar documentos independentes para a proposta de passeios e para o roteiro final
+
+- [x] Compactar a Proposta de Passeios com melhor aproveitamento da largura e duas colunas para opcionais
+- [x] Ampliar a área de observações e garantir que itens não sejam cortados entre páginas no PDF da proposta
+- [x] Adicionar calculadora de parcelamento da proposta de passeios
+- [x] Salvar propostas de passeios por cliente e permitir recuperar uma proposta anteriormente criada
+- [x] Validar visualmente, por PDF e por testes as melhorias da proposta sem alterar os demais módulos

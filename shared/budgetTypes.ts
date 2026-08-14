@@ -104,6 +104,8 @@ export interface TourProposal {
   title: string;
   introMessage: string;
   paymentDetails: string;
+  clientName?: string;
+  installments?: number;
 }
 
 export type FinalItineraryEventKind = "arrival" | "transfer" | "hotel" | "flight" | "return" | "tour" | "custom";
