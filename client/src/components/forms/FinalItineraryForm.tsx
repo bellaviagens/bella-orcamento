@@ -18,6 +18,16 @@ const EVENT_LABELS: Record<FinalItineraryEventKind, string> = {
   custom: "Informação livre",
 };
 
+const EVENT_ORDER: Record<FinalItineraryEventKind, number> = {
+  flight: 0,
+  arrival: 1,
+  transfer: 2,
+  hotel: 3,
+  tour: 4,
+  return: 5,
+  custom: 6,
+};
+
 export function FinalItineraryForm() {
   const {
     budget,
@@ -33,7 +43,9 @@ export function FinalItineraryForm() {
   const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
   const [dragOverEventId, setDragOverEventId] = useState<string | null>(null);
   const finalItinerary = budget.finalItinerary;
-  const events = [...finalItinerary.events].sort((first, second) => first.day - second.day || first.title.localeCompare(second.title, "pt-BR"));
+  const events = [...finalItinerary.events].sort((first, second) =>
+    first.day - second.day || EVENT_ORDER[first.kind] - EVENT_ORDER[second.kind] || first.time.localeCompare(second.time),
+  );
 
   const reorder = (targetId: string) => {
     if (!draggedEventId || draggedEventId === targetId) return;

@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, savedTourProposals, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -89,7 +89,9 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-export async function saveTourProposal(input: { ownerOpenId: string; clientName: string; proposalTitle: string; snapshot: string }) {
+type TourProposalStatus = "pending" | "sent" | "approved";
+
+export async function saveTourProposal(input: { ownerOpenId: string; clientName: string; proposalTitle: string; snapshot: string; status?: TourProposalStatus }) {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível para salvar a proposta.");
 
@@ -101,7 +103,7 @@ export async function saveTourProposal(input: { ownerOpenId: string; clientName:
 
   if (existing[0]) {
     await db.update(savedTourProposals)
-      .set({ proposalTitle: input.proposalTitle, snapshot: input.snapshot, updatedAt: new Date() })
+      .set({ proposalTitle: input.proposalTitle, snapshot: input.snapshot, ...(input.status ? { status: input.status } : {}), updatedAt: new Date() })
       .where(eq(savedTourProposals.id, existing[0].id));
     return existing[0].id;
   }
@@ -111,17 +113,23 @@ export async function saveTourProposal(input: { ownerOpenId: string; clientName:
   return id;
 }
 
-export async function listTourProposals(ownerOpenId: string) {
+export async function listTourProposals(ownerOpenId: string, search = "") {
   const db = await getDb();
   if (!db) return [];
+
+  const term = search.trim();
+  const whereClause = term
+    ? and(eq(savedTourProposals.ownerOpenId, ownerOpenId), or(like(savedTourProposals.clientName, `%${term}%`), like(savedTourProposals.proposalTitle, `%${term}%`)))
+    : eq(savedTourProposals.ownerOpenId, ownerOpenId);
 
   return db.select({
     id: savedTourProposals.id,
     clientName: savedTourProposals.clientName,
     proposalTitle: savedTourProposals.proposalTitle,
+    status: savedTourProposals.status,
     updatedAt: savedTourProposals.updatedAt,
   }).from(savedTourProposals)
-    .where(eq(savedTourProposals.ownerOpenId, ownerOpenId))
+    .where(whereClause)
     .orderBy(desc(savedTourProposals.updatedAt));
 }
 
@@ -133,4 +141,45 @@ export async function getTourProposal(ownerOpenId: string, id: string) {
     .where(and(eq(savedTourProposals.id, id), eq(savedTourProposals.ownerOpenId, ownerOpenId)))
     .limit(1);
   return result[0];
+}
+
+export async function duplicateTourProposal(ownerOpenId: string, id: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para duplicar a proposta.");
+
+  const source = await getTourProposal(ownerOpenId, id);
+  if (!source) return undefined;
+
+  let snapshot = source.snapshot;
+  try {
+    const copiedBudget = JSON.parse(source.snapshot) as { tourProposal?: { clientName?: string; title?: string } };
+    if (copiedBudget.tourProposal) {
+      copiedBudget.tourProposal.clientName = `${source.clientName} — cópia`;
+      copiedBudget.tourProposal.title = `${source.proposalTitle} — cópia`;
+      snapshot = JSON.stringify(copiedBudget);
+    }
+  } catch {
+    // Mantém o arquivo original caso uma proposta antiga não use o formato atual.
+  }
+
+  const copyId = crypto.randomUUID();
+  await db.insert(savedTourProposals).values({
+    id: copyId,
+    ownerOpenId,
+    clientName: `${source.clientName} — cópia`,
+    proposalTitle: `${source.proposalTitle} — cópia`,
+    snapshot,
+    status: "pending",
+  });
+  return copyId;
+}
+
+export async function updateTourProposalStatus(ownerOpenId: string, id: string, status: TourProposalStatus) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para atualizar a proposta.");
+
+  const result = await db.update(savedTourProposals)
+    .set({ status, updatedAt: new Date() })
+    .where(and(eq(savedTourProposals.id, id), eq(savedTourProposals.ownerOpenId, ownerOpenId)));
+  return result[0]?.affectedRows ?? 0;
 }

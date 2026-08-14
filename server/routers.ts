@@ -3,7 +3,7 @@ import { invokeLLM } from "./_core/llm";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
-import { getTourProposal, listTourProposals, saveTourProposal } from "./db";
+import { duplicateTourProposal, getTourProposal, listTourProposals, saveTourProposal, updateTourProposalStatus } from "./db";
 import { TRPCError } from "@trpc/server";
 import { lookup } from "node:dns/promises";
 import { z } from "zod";
@@ -153,13 +153,29 @@ export const appRouter = router({
         const id = await saveTourProposal({ ...input, ownerOpenId: ctx.user.openId });
         return { id };
       }),
-    list: protectedProcedure.query(({ ctx }) => listTourProposals(ctx.user.openId)),
+    list: protectedProcedure
+      .input(z.object({ search: z.string().trim().max(255).optional() }).optional())
+      .query(({ ctx, input }) => listTourProposals(ctx.user.openId, input?.search)),
     get: protectedProcedure
       .input(z.object({ id: z.string().uuid() }))
       .query(async ({ ctx, input }) => {
         const proposal = await getTourProposal(ctx.user.openId, input.id);
         if (!proposal) throw new TRPCError({ code: "NOT_FOUND", message: "Proposta não encontrada." });
         return proposal;
+      }),
+    duplicate: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .mutation(async ({ ctx, input }) => {
+        const id = await duplicateTourProposal(ctx.user.openId, input.id);
+        if (!id) throw new TRPCError({ code: "NOT_FOUND", message: "Proposta não encontrada." });
+        return { id };
+      }),
+    updateStatus: protectedProcedure
+      .input(z.object({ id: z.string().uuid(), status: z.enum(["pending", "sent", "approved"]) }))
+      .mutation(async ({ ctx, input }) => {
+        const updated = await updateTourProposalStatus(ctx.user.openId, input.id, input.status);
+        if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Proposta não encontrada." });
+        return { success: true };
       }),
   }),
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly

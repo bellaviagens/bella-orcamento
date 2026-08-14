@@ -337,3 +337,9 @@
 - [x] Adicionar calculadora de parcelamento da proposta de passeios
 - [x] Salvar propostas de passeios por cliente e permitir recuperar uma proposta anteriormente criada
 - [x] Validar visualmente, por PDF e por testes as melhorias da proposta sem alterar os demais módulos
+
+- [x] Exibir os voos antes da hospedagem no Roteiro Final e em seu PDF
+- [x] Criar busca de propostas salvas pelo nome do cliente
+- [x] Permitir duplicar uma proposta salva para criar uma nova versão semelhante
+- [x] Adicionar status Pendente, Enviada e Aprovada às propostas salvas
+- [x] Validar por testes, visualmente e no PDF a ordem do roteiro e a gestão das propostas

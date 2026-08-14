@@ -21,9 +21,21 @@ const EVENT_LABELS: Record<FinalItineraryEventKind, string> = {
   custom: "Informação importante",
 };
 
+const EVENT_ORDER: Record<FinalItineraryEventKind, number> = {
+  flight: 0,
+  arrival: 1,
+  transfer: 2,
+  hotel: 3,
+  tour: 4,
+  return: 5,
+  custom: 6,
+};
+
 export function FinalItineraryPreview({ data }: { data: BudgetData }) {
   const finalItinerary = data.finalItinerary;
-  const events = [...finalItinerary.events].sort((first, second) => first.day - second.day || first.time.localeCompare(second.time));
+  const events = [...finalItinerary.events].sort((first, second) =>
+    first.day - second.day || EVENT_ORDER[first.kind] - EVENT_ORDER[second.kind] || first.time.localeCompare(second.time),
+  );
 
   return (
     <div id="final-itinerary-document" className="w-full max-w-2xl rounded-2xl bg-white p-7 text-[#1a2e4a] shadow-xl" style={{ fontFamily: "Poppins, sans-serif" }}>

@@ -1,0 +1,1 @@
+ALTER TABLE `saved_tour_proposals` ADD `status` enum('pending','sent','approved') DEFAULT 'pending' NOT NULL;

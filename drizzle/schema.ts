@@ -30,6 +30,7 @@ export const savedTourProposals = mysqlTable("saved_tour_proposals", {
   ownerOpenId: varchar("ownerOpenId", { length: 64 }).notNull(),
   clientName: varchar("clientName", { length: 255 }).notNull(),
   proposalTitle: varchar("proposalTitle", { length: 255 }).notNull(),
+  status: mysqlEnum("status", ["pending", "sent", "approved"]).default("pending").notNull(),
   snapshot: text("snapshot").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
