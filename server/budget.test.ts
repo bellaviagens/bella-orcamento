@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import { calculateCombinedInstallmentValue, calculateCombinedTotal, calculateEffectiveHotelTotal } from "../shared/paymentCalculations";
+import { calculateTourTotal, getTourTravelerCount } from "../shared/tourPricing";
 import { duplicateHotelInBudget, duplicateTourInBudget, importQuotationActivitiesIntoBudget, reorderHotelsInBudget, reorderItineraryDaysInBudget, reorderToursInBudget } from "../client/src/contexts/BudgetContext";
 
 function createMockContext(): TrpcContext {
@@ -48,6 +49,7 @@ describe("budgetTypes defaults", () => {
     expect(defaultBudgetData.baggage).toHaveLength(3);
     expect(defaultBudgetData.tours).toEqual([]);
     expect(defaultBudgetData.itinerary).toEqual([]);
+    expect(defaultBudgetData.tourProposal).toMatchObject({ title: "Proposta de passeios", introMessage: "", paymentDetails: "" });
     expect(defaultBudgetData.tripInfo.introText).toContain("Prezadíssimos");
   });
 
@@ -94,6 +96,29 @@ describe("gestão de hotéis", () => {
 });
 
 describe("gestão de passeios e roteiro", () => {
+  it("calcula o total de passeio por pessoa usando a quantidade de viajantes informada", () => {
+    const tour = {
+      pricingMode: "perPerson" as const,
+      pricePerPerson: 275,
+      travelerCount: 3,
+      totalPrice: 0,
+    };
+
+    expect(getTourTravelerCount(tour)).toBe(3);
+    expect(calculateTourTotal(tour)).toBe(825);
+  });
+
+  it("preserva o valor total informado quando o passeio não é cobrado por pessoa", () => {
+    const tour = {
+      pricingMode: "total" as const,
+      pricePerPerson: 0,
+      travelerCount: 4,
+      totalPrice: 950,
+    };
+
+    expect(calculateTourTotal(tour)).toBe(950);
+  });
+
   it("duplica o passeio logo após o original com novo id", async () => {
     const { defaultBudgetData } = await import("../shared/budgetTypes");
     const tour = { id: "tour-1", name: "Vinícola", location: "Vale", duration: "6 horas", description: "Degustação", totalPrice: 300, pageUrl: "", photosUrl: "" };

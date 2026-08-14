@@ -10,7 +10,7 @@ import { CalendarDays, GripVertical, Link2, Loader2, Plus, Trash2 } from "lucide
 import { toast } from "sonner";
 
 export function ItineraryForm() {
-  const { budget, addItineraryDay, importItineraryFromQuotation, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
+  const { budget, addItineraryDay, importItineraryFromQuotation, updateTourProposal, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
   const itinerary = budget.itinerary;
   const [quotationUrl, setQuotationUrl] = useState("");
   const [draggedDayId, setDraggedDayId] = useState<string | null>(null);
@@ -51,7 +51,19 @@ export function ItineraryForm() {
   return (
     <div className="space-y-3">
       <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-[#1a2e4a]">
-        Monte este roteiro após a aprovação do orçamento. Esta organização possui uma visualização própria e não é incluída no preview ou PDF do orçamento.
+        Esta é a proposta de passeios para aprovação. Ela tem visualização e PDF próprios e não altera o orçamento principal. Após a aprovação, esta mesma aba receberá os dados práticos do roteiro final.
+      </div>
+
+      <div className="rounded-lg border border-[#1a2e4a]/15 bg-blue-50/60 p-3">
+        <div className="mb-3">
+          <h4 className="text-sm font-bold text-[#1a2e4a]">Abertura e pagamento da proposta</h4>
+          <p className="mt-1 text-xs text-slate-500">Essas informações aparecem antes e depois dos passeios no documento de aprovação.</p>
+        </div>
+        <div className="grid gap-3">
+          <div><Label htmlFor="proposal-title">Título da proposta</Label><Input id="proposal-title" value={budget.tourProposal.title} onChange={(event) => updateTourProposal({ title: event.target.value })} placeholder="Ex.: Passeios em Santiago" className="mt-1 bg-white" /></div>
+          <div><Label htmlFor="proposal-intro">Mensagem inicial</Label><Textarea id="proposal-intro" value={budget.tourProposal.introMessage} onChange={(event) => updateTourProposal({ introMessage: event.target.value })} placeholder="Ex.: Olá, Suelen! Preparamos estas opções de passeios para a sua viagem..." className="mt-1 min-h-20 bg-white" /></div>
+          <div><Label htmlFor="proposal-payment">Forma de pagamento</Label><Textarea id="proposal-payment" value={budget.tourProposal.paymentDetails} onChange={(event) => updateTourProposal({ paymentDetails: event.target.value })} placeholder="Ex.: PIX à vista ou cartão em até 6x sem juros" className="mt-1 min-h-16 bg-white" /></div>
+        </div>
       </div>
 
       <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">

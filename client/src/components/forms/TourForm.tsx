@@ -4,11 +4,13 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Camera, Copy, Edit2, ExternalLink, GripVertical, Images, Loader2, MapPin, Plus, Trash2, Upload } from "lucide-react";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
 import type { Tour } from "@shared/budgetTypes";
+import { calculateTourTotal, getTourTravelerCount } from "@shared/tourPricing";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -42,12 +44,17 @@ const emptyTour = (): Omit<Tour, "id"> => ({
   duration: "",
   description: "",
   totalPrice: 0,
+  pricingMode: "perPerson",
+  pricePerPerson: 0,
+  travelerCount: 1,
+  notes: "",
   pageUrl: "",
   photosUrl: "",
 });
 
 export function TourForm() {
   const { budget, addTour, updateTour, removeTour, duplicateTour, reorderTours } = useBudget();
+  const defaultTravelerCount = Math.max(1, Number.parseInt(budget.tripInfo.passengers, 10) || 1);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<Omit<Tour, "id">>(emptyTour());
@@ -72,7 +79,15 @@ export function TourForm() {
       toast.error("Nome do passeio é obrigatório");
       return;
     }
-    const tour: Tour = { ...form, id: editingId || nanoid() };
+    const pricingMode = form.pricingMode || "total";
+    const travelerCount = getTourTravelerCount(form, defaultTravelerCount);
+    const tour: Tour = {
+      ...form,
+      id: editingId || nanoid(),
+      pricingMode,
+      travelerCount,
+      totalPrice: calculateTourTotal({ ...form, pricingMode, travelerCount }, defaultTravelerCount),
+    };
     if (editingId) {
       updateTour(editingId, tour);
       toast.success("Passeio atualizado com sucesso!");
@@ -185,7 +200,7 @@ export function TourForm() {
             {tour.description && <p className="mt-1 text-xs text-slate-600 line-clamp-2">{tour.description}</p>}
           </div>
           <div className="flex shrink-0 items-center gap-1">
-            {tour.totalPrice > 0 && <span className="rounded bg-white px-2 py-1 text-xs font-semibold text-[#1a2e4a] shadow-sm">{formatCurrency(tour.totalPrice)}</span>}
+            {tour.totalPrice > 0 && <span className="rounded bg-white px-2 py-1 text-xs font-semibold text-[#1a2e4a] shadow-sm">{formatCurrency(calculateTourTotal(tour, defaultTravelerCount))}</span>}
             {tour.pageUrl && <a href={tour.pageUrl} target="_blank" rel="noreferrer" className="rounded p-2 text-slate-500 hover:bg-white hover:text-[#1a2e4a]" title="Abrir página do passeio"><ExternalLink className="h-4 w-4" /></a>}
             {tour.photosUrl && <a href={tour.photosUrl} target="_blank" rel="noreferrer" className="rounded p-2 text-slate-500 hover:bg-white hover:text-[#1a2e4a]" title="Abrir fotos do passeio"><Images className="h-4 w-4" /></a>}
             <Button variant="ghost" size="sm" onClick={() => handleEdit(tour)} className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-50 hover:text-blue-700" title="Editar passeio"><Edit2 className="h-4 w-4" /></Button>
@@ -210,10 +225,12 @@ export function TourForm() {
           <div className="flex items-center justify-between"><h4 className="text-sm font-bold text-[#1a2e4a]">{editingId ? "Editar passeio" : "Novo passeio"}</h4><Button variant="ghost" size="sm" onClick={closeForm}>Cancelar</Button></div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2"><Label>Nome do passeio</Label><Input value={form.name} onChange={(event) => updateField("name", event.target.value)} placeholder="Ex.: Vinícola e degustação" className="mt-1" /></div>
-            <div><Label>Valor total (R$)</Label><CurrencyInput value={form.totalPrice} onChange={(value) => updateField("totalPrice", value)} /></div>
+            <div><Label>Forma de cobrança</Label><Select value={form.pricingMode || "total"} onValueChange={(value) => updateField("pricingMode", value as Tour["pricingMode"])}><SelectTrigger className="mt-1"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="perPerson">Valor por pessoa</SelectItem><SelectItem value="total">Valor total do passeio</SelectItem></SelectContent></Select></div>
+            {form.pricingMode === "perPerson" ? <><div><Label>Valor por pessoa (R$)</Label><CurrencyInput value={form.pricePerPerson || 0} onChange={(value) => updateField("pricePerPerson", value)} /></div><div><Label>Quantidade de pessoas</Label><Input type="number" min="1" value={form.travelerCount || defaultTravelerCount} onChange={(event) => updateField("travelerCount", Math.max(1, Number(event.target.value) || 1))} className="mt-1" /></div><div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-[#1a2e4a]"><span className="text-xs font-medium uppercase tracking-wide text-amber-700">Total do passeio</span><div>{formatCurrency(calculateTourTotal(form, defaultTravelerCount))}</div></div></> : <div><Label>Valor total (R$)</Label><CurrencyInput value={form.totalPrice} onChange={(value) => updateField("totalPrice", value)} /></div>}
             <div><Label>Link da página</Label><Input type="url" value={form.pageUrl || ""} onChange={(event) => updateField("pageUrl", event.target.value)} placeholder="https://" className="mt-1" /></div>
             <div className="sm:col-span-2"><Label>Link da foto ou álbum</Label><Input type="url" value={form.photosUrl || ""} onChange={(event) => updateField("photosUrl", event.target.value)} placeholder="https://" className="mt-1" /><p className="mt-1 text-xs text-slate-500">Use o link direto de uma imagem para exibir a foto no roteiro. Links de álbum continuam disponíveis pelo botão de fotos.</p></div>
-            <div className="sm:col-span-2"><Label>Informações adicionais <span className="font-normal text-slate-400">(opcional)</span></Label><Textarea value={form.description} onChange={(event) => updateField("description", event.target.value)} placeholder="Informações importantes do passeio" className="mt-1 min-h-20" /></div>
+            <div className="sm:col-span-2"><Label>Descrição do passeio <span className="font-normal text-slate-400">(opcional)</span></Label><Textarea value={form.description} onChange={(event) => updateField("description", event.target.value)} placeholder={"DESCRIÇÃO\nApresentação do passeio.\n\nROTEIRO\n- Primeiro ponto\n- Segundo ponto\n\nINCLUSO\n- Guia e transporte"} className="mt-1 min-h-28" /><p className="mt-1 text-xs text-slate-500">Use títulos em linhas separadas e itens iniciados por “-” para que a proposta fique organizada.</p></div>
+            <div className="sm:col-span-2"><Label>Observações próprias <span className="font-normal text-slate-400">(opcional)</span></Label><Textarea value={form.notes || ""} onChange={(event) => updateField("notes", event.target.value)} placeholder="Ex.: levar documento, saída do hotel às 8h, confirmação sujeita a disponibilidade" className="mt-1 min-h-20" /></div>
           </div>
           <Button onClick={handleSave} className="w-full bg-[#1a2e4a] text-white hover:bg-[#243d61]">{editingId ? "Salvar alterações" : "Adicionar passeio"}</Button>
         </div>

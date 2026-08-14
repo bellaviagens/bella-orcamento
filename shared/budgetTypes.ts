@@ -92,8 +92,18 @@ export interface Tour {
   duration: string;
   description: string;
   totalPrice: number;
+  pricingMode?: "perPerson" | "total";
+  pricePerPerson?: number;
+  travelerCount?: number;
+  notes?: string;
   pageUrl?: string;
   photosUrl?: string;
+}
+
+export interface TourProposal {
+  title: string;
+  introMessage: string;
+  paymentDetails: string;
 }
 
 export interface ItineraryDay {
@@ -122,6 +132,7 @@ export interface BudgetData {
   hotels: Hotel[];
   tours: Tour[];
   itinerary: ItineraryDay[];
+  tourProposal: TourProposal;
   installments?: {
     flight?: number; // Parcelamento do aéreo
     hotel?: number; // Parcelamento do hotel
@@ -250,6 +261,11 @@ export const defaultBudgetData: BudgetData = {
   ],
   tours: [],
   itinerary: [],
+  tourProposal: {
+    title: "Proposta de passeios",
+    introMessage: "",
+    paymentDetails: "",
+  },
   installments: {
     flight: 4,
     hotel: 10,

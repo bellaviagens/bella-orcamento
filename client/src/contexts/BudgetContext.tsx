@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import { defaultBudgetData, type BudgetData, type Flight, type Hotel, type FareTier, type ItineraryDay, type QuotationActivity, type Tour } from "@shared/budgetTypes";
+import { defaultBudgetData, type BudgetData, type Flight, type Hotel, type FareTier, type ItineraryDay, type QuotationActivity, type Tour, type TourProposal } from "@shared/budgetTypes";
 import { reconcileFareBenefits } from "@shared/fareBenefits";
 import { nanoid } from "nanoid";
 
@@ -21,6 +21,7 @@ interface BudgetContextType {
   reorderTours: (tours: Tour[]) => void;
   addItineraryDay: () => void;
   importItineraryFromQuotation: (activities: QuotationActivity[], quotationUrl: string) => void;
+  updateTourProposal: (updates: Partial<TourProposal>) => void;
   updateItineraryDay: (id: string, updates: Partial<ItineraryDay>) => void;
   removeItineraryDay: (id: string) => void;
   reorderItineraryDays: (days: ItineraryDay[]) => void;
@@ -159,6 +160,7 @@ export function importQuotationActivitiesIntoBudget(
   const chronologicalActivities = [...activities].sort((first, second) => (
     first.date.localeCompare(second.date) || first.name.localeCompare(second.name, "pt-BR")
   ));
+  const importedTravelerCount = Math.max(1, Number.parseInt(budget.tripInfo.passengers, 10) || 1);
 
   for (const activity of chronologicalActivities) {
     const name = activity.name.trim();
@@ -167,7 +169,7 @@ export function importQuotationActivitiesIntoBudget(
     const pageUrl = activity.pageUrl?.trim() || quotationUrl;
     const tourKey = `${name.toLocaleLowerCase("pt-BR")}|${pageUrl}`;
     const existingTour = existingTours.get(tourKey);
-    const tour = existingTour
+    const tour: Tour = existingTour
       ? {
         ...existingTour,
         location: activity.location?.trim() || existingTour.location,
@@ -183,6 +185,10 @@ export function importQuotationActivitiesIntoBudget(
         duration: activity.duration?.trim() || "",
         description: activity.description.trim(),
         totalPrice: 0,
+        pricingMode: "perPerson" as const,
+        pricePerPerson: 0,
+        travelerCount: importedTravelerCount,
+        notes: "",
         pageUrl,
         photosUrl: activity.photosUrl?.trim() || "",
     };
@@ -323,6 +329,13 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     setBudget((prev) => importQuotationActivitiesIntoBudget(prev, activities, quotationUrl));
   }, []);
 
+  const updateTourProposal = useCallback((updates: Partial<TourProposal>) => {
+    setBudget((prev) => ({
+      ...prev,
+      tourProposal: { ...prev.tourProposal, ...updates },
+    }));
+  }, []);
+
   const updateItineraryDay = useCallback((id: string, updates: Partial<ItineraryDay>) => {
     setBudget((prev) => ({
       ...prev,
@@ -436,6 +449,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         reorderTours,
         addItineraryDay,
         importItineraryFromQuotation,
+        updateTourProposal,
         updateItineraryDay,
         removeItineraryDay,
         reorderItineraryDays,
