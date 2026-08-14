@@ -309,3 +309,5 @@
 - [x] Simplificar o cadastro manual de passeios para campos de página, fotos e valor
 - [x] Adicionar o botão de importação de passeio por screenshot no padrão de hotéis
 - [x] Manter todas as abas em uma única linha com Passeios como último item
+
+- [x] Unificar Passeios e Roteiro em uma única aba de Roteiro, preservando cadastro, importação, links, valores, dias e PDF próprio

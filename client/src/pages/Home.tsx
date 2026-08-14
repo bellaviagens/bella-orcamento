@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff, Camera, CalendarDays } from "lucide-react";
+import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 
 function BuilderContent() {
@@ -129,10 +129,6 @@ function BuilderContent() {
                     <CalendarDays className="h-4 w-4 mr-1.5" />
                     Roteiro
                   </TabsTrigger>
-                  <TabsTrigger value="tours" className="min-h-10 shrink-0 whitespace-nowrap rounded-md px-3 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
-                    <Camera className="h-4 w-4 mr-1.5" />
-                    Passeios
-                  </TabsTrigger>
                   </TabsList>
                 </div>
 
@@ -165,19 +161,26 @@ function BuilderContent() {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="tours" className="mt-0">
-                  <div className="rounded-xl border border-slate-200 bg-white p-5">
-                    <h3 className="mb-1 text-sm font-bold text-[#1a2e4a]" style={{ fontFamily: "Poppins, sans-serif" }}>Passeios</h3>
-                    <p className="mb-4 text-xs text-slate-500">Cadastre opções de passeio com print, links e valores. Essas informações ficam fora do orçamento.</p>
-                    <div className="h-[calc(100dvh-16rem)] min-h-[32rem] overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]"><TourForm /></div>
-                  </div>
-                </TabsContent>
-
                 <TabsContent value="itinerary" className="mt-0">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
                     <h3 className="mb-1 text-sm font-bold text-[#1a2e4a]" style={{ fontFamily: "Poppins, sans-serif" }}>Roteiro pós-aprovação</h3>
-                    <p className="mb-4 text-xs text-slate-500">Organize os dias da viagem após a aprovação, com dias livres ou passeios cadastrados.</p>
-                    <div className="h-[calc(100dvh-16rem)] min-h-[32rem] overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]"><ItineraryForm /></div>
+                    <p className="mb-4 text-xs text-slate-500">Cadastre os passeios, com print, links e valores, e organize a programação de cada dia após a aprovação.</p>
+                    <div className="h-[calc(100dvh-16rem)] min-h-[32rem] space-y-6 overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]">
+                      <section aria-labelledby="roteiro-passeios">
+                        <div className="mb-3 border-b border-slate-200 pb-3">
+                          <h4 id="roteiro-passeios" className="text-sm font-bold text-[#1a2e4a]">Passeios disponíveis</h4>
+                          <p className="mt-1 text-xs text-slate-500">Inclua opções de passeio para usar na montagem do roteiro.</p>
+                        </div>
+                        <TourForm />
+                      </section>
+                      <section aria-labelledby="roteiro-dias" className="border-t border-slate-200 pt-6">
+                        <div className="mb-3">
+                          <h4 id="roteiro-dias" className="text-sm font-bold text-[#1a2e4a]">Programação por dia</h4>
+                          <p className="mt-1 text-xs text-slate-500">Monte os dias livres e vincule os passeios cadastrados.</p>
+                        </div>
+                        <ItineraryForm />
+                      </section>
+                    </div>
                   </div>
                 </TabsContent>
 
