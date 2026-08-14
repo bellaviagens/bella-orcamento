@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import { defaultBudgetData, type BudgetData, type Flight, type Hotel, type FareTier, type ItineraryDay, type QuotationActivity, type Tour, type TourProposal } from "@shared/budgetTypes";
+import { defaultBudgetData, type BudgetData, type FinalItinerary, type FinalItineraryEvent, type FinalItineraryEventKind, type Flight, type Hotel, type FareTier, type ItineraryDay, type QuotationActivity, type Tour, type TourProposal } from "@shared/budgetTypes";
 import { reconcileFareBenefits } from "@shared/fareBenefits";
 import { nanoid } from "nanoid";
 
@@ -22,6 +22,14 @@ interface BudgetContextType {
   addItineraryDay: () => void;
   importItineraryFromQuotation: (activities: QuotationActivity[], quotationUrl: string) => void;
   updateTourProposal: (updates: Partial<TourProposal>) => void;
+  updateFinalItinerary: (updates: Partial<FinalItinerary>) => void;
+  addFinalItineraryEvent: (event?: Partial<FinalItineraryEvent>) => void;
+  updateFinalItineraryEvent: (id: string, updates: Partial<FinalItineraryEvent>) => void;
+  removeFinalItineraryEvent: (id: string) => void;
+  reorderFinalItineraryEvents: (events: FinalItineraryEvent[]) => void;
+  addFlightToFinalItinerary: (flightId: string) => void;
+  addHotelToFinalItinerary: (hotelId: string) => void;
+  addTourToFinalItinerary: (tourId: string) => void;
   updateItineraryDay: (id: string, updates: Partial<ItineraryDay>) => void;
   removeItineraryDay: (id: string) => void;
   reorderItineraryDays: (days: ItineraryDay[]) => void;
@@ -220,6 +228,89 @@ export function importQuotationActivitiesIntoBudget(
   };
 }
 
+function nextFinalItineraryDay(events: FinalItineraryEvent[]) {
+  return Math.max(0, ...events.map((event) => event.day)) + 1;
+}
+
+function formatFlightForFinalItinerary(flight: Flight) {
+  const firstSegment = flight.segments[0];
+  const lastSegment = flight.segments[flight.segments.length - 1];
+  if (!firstSegment || !lastSegment) return "Informações do voo a confirmar.";
+  const flightReference = firstSegment.flightNumber ? `${firstSegment.airline} ${firstSegment.flightNumber}` : firstSegment.airline;
+  const route = `${firstSegment.departureCity || firstSegment.departureAirport} → ${lastSegment.arrivalCity || lastSegment.arrivalAirport}`;
+  const schedule = [firstSegment.date, firstSegment.departureTime && `saída ${firstSegment.departureTime}`, lastSegment.arrivalTime && `chegada ${lastSegment.arrivalTime}`].filter(Boolean).join(" • ");
+  return [flightReference, route, schedule].filter(Boolean).join("\n");
+}
+
+export function addFinalItineraryEventToBudget(budget: BudgetData, event: Partial<FinalItineraryEvent> = {}): BudgetData {
+  const currentEvents = budget.finalItinerary.events;
+  const newEvent: FinalItineraryEvent = {
+    id: nanoid(),
+    day: event.day || nextFinalItineraryDay(currentEvents),
+    kind: event.kind || "custom",
+    title: event.title || "Novo compromisso",
+    time: event.time || "",
+    description: event.description || "",
+    linkUrl: event.linkUrl || "",
+    photoUrl: event.photoUrl || "",
+    sourceFlightId: event.sourceFlightId,
+    sourceHotelId: event.sourceHotelId,
+    sourceTourId: event.sourceTourId,
+  };
+  return {
+    ...budget,
+    finalItinerary: {
+      ...budget.finalItinerary,
+      enabled: true,
+      events: [...currentEvents, newEvent],
+    },
+  };
+}
+
+export function addFlightToFinalItineraryInBudget(budget: BudgetData, flightId: string): BudgetData {
+  const flight = budget.flights.find((item) => item.id === flightId);
+  if (!flight || budget.finalItinerary.events.some((event) => event.sourceFlightId === flightId)) return budget;
+  const firstSegment = flight.segments[0];
+  const isOutbound = flight.type === "ida";
+  return addFinalItineraryEventToBudget(budget, {
+    day: isOutbound ? 1 : nextFinalItineraryDay(budget.finalItinerary.events),
+    kind: isOutbound ? "flight" : "return",
+    title: isOutbound ? "Voo de ida" : "Voo de retorno",
+    time: firstSegment?.departureTime || "",
+    description: formatFlightForFinalItinerary(flight),
+    sourceFlightId: flightId,
+  });
+}
+
+export function addHotelToFinalItineraryInBudget(budget: BudgetData, hotelId: string): BudgetData {
+  const hotel = budget.hotels.find((item) => item.id === hotelId);
+  if (!hotel || budget.finalItinerary.events.some((event) => event.sourceHotelId === hotelId)) return budget;
+  return addFinalItineraryEventToBudget(budget, {
+    day: 1,
+    kind: "hotel",
+    title: `Hospedagem — ${hotel.name}`,
+    description: [hotel.address, hotel.description].filter(Boolean).join("\n"),
+    linkUrl: hotel.hotelUrl || "",
+    photoUrl: hotel.photoUrl || "",
+    sourceHotelId: hotelId,
+  });
+}
+
+export function addTourToFinalItineraryInBudget(budget: BudgetData, tourId: string): BudgetData {
+  const tour = budget.tours.find((item) => item.id === tourId);
+  if (!tour || budget.finalItinerary.events.some((event) => event.sourceTourId === tourId)) return budget;
+  const itineraryDay = budget.itinerary.find((day) => day.tourId === tourId);
+  return addFinalItineraryEventToBudget(budget, {
+    day: itineraryDay?.day || nextFinalItineraryDay(budget.finalItinerary.events),
+    kind: "tour",
+    title: tour.name,
+    description: tour.description,
+    linkUrl: tour.pageUrl || "",
+    photoUrl: tour.photosUrl || "",
+    sourceTourId: tourId,
+  });
+}
+
 export function BudgetProvider({ children }: { children: ReactNode }) {
   const [budget, setBudget] = useState<BudgetData>(defaultBudgetData);
 
@@ -336,6 +427,30 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const updateFinalItinerary = useCallback((updates: Partial<FinalItinerary>) => {
+    setBudget((prev) => ({ ...prev, finalItinerary: { ...prev.finalItinerary, ...updates } }));
+  }, []);
+
+  const addFinalItineraryEvent = useCallback((event?: Partial<FinalItineraryEvent>) => {
+    setBudget((prev) => addFinalItineraryEventToBudget(prev, event));
+  }, []);
+
+  const updateFinalItineraryEvent = useCallback((id: string, updates: Partial<FinalItineraryEvent>) => {
+    setBudget((prev) => ({ ...prev, finalItinerary: { ...prev.finalItinerary, events: prev.finalItinerary.events.map((event) => event.id === id ? { ...event, ...updates } : event) } }));
+  }, []);
+
+  const removeFinalItineraryEvent = useCallback((id: string) => {
+    setBudget((prev) => ({ ...prev, finalItinerary: { ...prev.finalItinerary, events: prev.finalItinerary.events.filter((event) => event.id !== id) } }));
+  }, []);
+
+  const reorderFinalItineraryEvents = useCallback((events: FinalItineraryEvent[]) => {
+    setBudget((prev) => ({ ...prev, finalItinerary: { ...prev.finalItinerary, events } }));
+  }, []);
+
+  const addFlightToFinalItinerary = useCallback((flightId: string) => setBudget((prev) => addFlightToFinalItineraryInBudget(prev, flightId)), []);
+  const addHotelToFinalItinerary = useCallback((hotelId: string) => setBudget((prev) => addHotelToFinalItineraryInBudget(prev, hotelId)), []);
+  const addTourToFinalItinerary = useCallback((tourId: string) => setBudget((prev) => addTourToFinalItineraryInBudget(prev, tourId)), []);
+
   const updateItineraryDay = useCallback((id: string, updates: Partial<ItineraryDay>) => {
     setBudget((prev) => ({
       ...prev,
@@ -450,6 +565,14 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         addItineraryDay,
         importItineraryFromQuotation,
         updateTourProposal,
+        updateFinalItinerary,
+        addFinalItineraryEvent,
+        updateFinalItineraryEvent,
+        removeFinalItineraryEvent,
+        reorderFinalItineraryEvents,
+        addFlightToFinalItinerary,
+        addHotelToFinalItinerary,
+        addTourToFinalItinerary,
         updateItineraryDay,
         removeItineraryDay,
         reorderItineraryDays,

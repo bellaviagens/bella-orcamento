@@ -5,18 +5,20 @@ import { FlightForm } from "@/components/forms/FlightForm";
 import { HotelForm } from "@/components/forms/HotelForm";
 import { TourForm } from "@/components/forms/TourForm";
 import { ItineraryForm } from "@/components/forms/ItineraryForm";
+import { FinalItineraryForm } from "@/components/forms/FinalItineraryForm";
 import { FareForm } from "@/components/forms/FareForm";
 import { BaggageForm } from "@/components/forms/BaggageForm";
 import { InstallmentsForm } from "@/components/forms/InstallmentsForm";
 import { PdfPreview } from "@/components/pdf/PdfPreview";
 import { ItineraryPreview } from "@/components/itinerary/ItineraryPreview";
+import { FinalItineraryPreview } from "@/components/itinerary/FinalItineraryPreview";
 import { usePdfGenerator } from "@/hooks/usePdfGenerator";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff, CalendarDays } from "lucide-react";
+import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff, CalendarDays, MapPinned } from "lucide-react";
 import { toast } from "sonner";
 
 function BuilderContent() {
@@ -26,7 +28,9 @@ function BuilderContent() {
   const [includeAirfare, setIncludeAirfare] = useState(true);
   const [includeHotel, setIncludeHotel] = useState(true);
   const [activeTab, setActiveTab] = useState("trip");
+  const [itineraryMode, setItineraryMode] = useState<"proposal" | "final">("proposal");
   const showingItinerary = activeTab === "itinerary";
+  const showingFinalItinerary = showingItinerary && itineraryMode === "final";
 
   return (
     <div className="h-screen flex flex-col bg-slate-50">
@@ -163,10 +167,12 @@ function BuilderContent() {
 
                 <TabsContent value="itinerary" className="mt-0">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
-                    <h3 className="mb-1 text-sm font-bold text-[#1a2e4a]" style={{ fontFamily: "Poppins, sans-serif" }}>Proposta de passeios</h3>
-                    <p className="mb-4 text-xs text-slate-500">Cadastre e organize somente os passeios para enviar uma proposta de aprovação. O roteiro final com voos, hotel e transfers será acrescentado nesta mesma aba depois.</p>
+                    <div className="mb-4 flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div><h3 className="text-sm font-bold text-[#1a2e4a]" style={{ fontFamily: "Poppins, sans-serif" }}>{itineraryMode === "proposal" ? "Proposta de passeios" : "Roteiro final pós-aprovação"}</h3><p className="mt-1 text-xs text-slate-500">{itineraryMode === "proposal" ? "Cadastre e organize apenas os passeios para enviar uma proposta de aprovação." : "Inclua chegada, transfer, hospedagem, voos, retorno e os passeios já aprovados."}</p></div>
+                      <div className="inline-flex rounded-lg bg-slate-200 p-1"><Button type="button" size="sm" variant="ghost" onClick={() => setItineraryMode("proposal")} className={`h-8 text-xs ${itineraryMode === "proposal" ? "bg-white text-[#1a2e4a] shadow-sm" : "text-slate-600"}`}>Proposta</Button><Button type="button" size="sm" variant="ghost" onClick={() => setItineraryMode("final")} className={`h-8 text-xs ${itineraryMode === "final" ? "bg-white text-[#1a2e4a] shadow-sm" : "text-slate-600"}`}>Roteiro final</Button></div>
+                    </div>
                     <div className="h-[calc(100dvh-16rem)] min-h-[32rem] space-y-6 overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]">
-                      <section aria-labelledby="proposta-abertura">
+                      {itineraryMode === "proposal" ? <><section aria-labelledby="proposta-abertura">
                         <div className="mb-3 border-b border-slate-200 pb-3">
                           <h4 id="proposta-abertura" className="text-sm font-bold text-[#1a2e4a]">Abertura da proposta</h4>
                           <p className="mt-1 text-xs text-slate-500">Comece pela mensagem para a cliente, pela forma de pagamento e pela importação dos passeios.</p>
@@ -179,7 +185,7 @@ function BuilderContent() {
                           <p className="mt-1 text-xs text-slate-500">Inclua somente os passeios que deseja apresentar para aprovação.</p>
                         </div>
                         <TourForm />
-                      </section>
+                      </section></> : <FinalItineraryForm />}
                     </div>
                   </div>
                 </TabsContent>
@@ -227,20 +233,20 @@ function BuilderContent() {
           <div className="w-1/2 flex flex-col overflow-hidden bg-slate-200">
             <div className="bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between flex-shrink-0">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                {showingItinerary ? "Visualização da proposta de passeios" : "Preview do PDF"}
+                {showingItinerary ? (showingFinalItinerary ? "Visualização do roteiro final" : "Visualização da proposta de passeios") : "Preview do PDF"}
               </span>
               <div className="flex items-center gap-3">
                 <span className="text-xs text-slate-400">
-                  {showingItinerary ? `${budget.itinerary.length} dia(s) • ${budget.tours.length} passeio(s)` : `${budget.flights.length} voo(s) • ${budget.hotels.length} hotel(is) • ${budget.fareComparison.tiers.length} tarifa(s)`}
+                  {showingItinerary ? (showingFinalItinerary ? `${budget.finalItinerary.events.length} informação(ões) do roteiro` : `${budget.itinerary.length} dia(s) • ${budget.tours.length} passeio(s)`) : `${budget.flights.length} voo(s) • ${budget.hotels.length} hotel(is) • ${budget.fareComparison.tiers.length} tarifa(s)`}
                 </span>
                 {showingItinerary && (
                   <Button
                     size="sm"
                     onClick={async () => {
-                      toast.loading("Gerando PDF da proposta de passeios...", { id: "itinerary-pdf-gen" });
-                      try {
-                        await generatePdf("proposta-passeios-bella-viagens.pdf", "itinerary-document");
-                        toast.success("PDF da proposta de passeios gerado! Verifique a pasta Downloads do seu computador.", { id: "itinerary-pdf-gen" });
+                        toast.loading(showingFinalItinerary ? "Gerando PDF do roteiro final..." : "Gerando PDF da proposta de passeios...", { id: "itinerary-pdf-gen" });
+                        try {
+                        await generatePdf(showingFinalItinerary ? "roteiro-final-bella-viagens.pdf" : "proposta-passeios-bella-viagens.pdf", showingFinalItinerary ? "final-itinerary-document" : "itinerary-document");
+                        toast.success(showingFinalItinerary ? "PDF do roteiro final gerado! Verifique a pasta Downloads do seu computador." : "PDF da proposta de passeios gerado! Verifique a pasta Downloads do seu computador.", { id: "itinerary-pdf-gen" });
                       } catch (err) {
                         console.error("Itinerary PDF error:", err);
                         toast.error("Erro ao gerar o PDF do roteiro. Tente novamente.", { id: "itinerary-pdf-gen" });
@@ -249,7 +255,7 @@ function BuilderContent() {
                     className="h-8 bg-[#1a2e4a] px-3 text-xs text-white hover:bg-[#243d61]"
                   >
                     <Download className="mr-1.5 h-3.5 w-3.5" />
-                    Gerar PDF da Proposta
+                    {showingFinalItinerary ? "Gerar PDF do Roteiro" : "Gerar PDF da Proposta"}
                   </Button>
                 )}
               </div>
@@ -257,7 +263,7 @@ function BuilderContent() {
             <div className="flex-1 overflow-y-auto">
               <div className="p-6 flex justify-center">
                 <div className="shadow-2xl w-full max-w-2xl">
-                  {showingItinerary ? <ItineraryPreview data={budget} /> : <PdfPreview data={budget} includeAirfare={includeAirfare} includeHotel={includeHotel} />}
+                  {showingItinerary ? (showingFinalItinerary ? <FinalItineraryPreview data={budget} /> : <ItineraryPreview data={budget} />) : <PdfPreview data={budget} includeAirfare={includeAirfare} includeHotel={includeHotel} />}
                 </div>
               </div>
             </div>

@@ -323,11 +323,11 @@
 - [x] Adicionar observações próprias, valor por pessoa, quantidade de viajantes e total em cada passeio
 - [x] Exibir o total de passeios e configurar a forma de pagamento da proposta independente
 - [x] Criar uma abertura personalizada com mensagem inicial e título da proposta
-- [ ] Permitir criar os eventos de chegada, transfer, hospedagem e retorno com texto, links e fotos
-- [ ] Reaproveitar informações já cadastradas de voos e hotéis no roteiro, sem alterar o orçamento principal
+- [x] Permitir criar os eventos de chegada, transfer, hospedagem e retorno com texto, links e fotos
+- [x] Reaproveitar informações já cadastradas de voos e hotéis no roteiro, sem alterar o orçamento principal
 - [x] Validar a proposta completa, a visualização e o PDF exclusivo do roteiro
 
-- [ ] Estruturar a mesma aba Roteiro em dois modos: Proposta de Passeios e Roteiro Final
+- [x] Estruturar a mesma aba Roteiro em dois modos: Proposta de Passeios e Roteiro Final
 - [x] Manter a Proposta de Passeios restrita a passeios, valores, total, pagamento e mensagem inicial para aprovação
-- [ ] Liberar no Roteiro Final os dados de chegada, transfer, hospedagem, voo e retorno somente após a aprovação
-- [ ] Gerar documentos independentes para a proposta de passeios e para o roteiro final
+- [x] Liberar no Roteiro Final os dados de chegada, transfer, hospedagem, voo e retorno somente após a aprovação
+- [x] Gerar documentos independentes para a proposta de passeios e para o roteiro final

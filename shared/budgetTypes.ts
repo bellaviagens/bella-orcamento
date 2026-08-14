@@ -106,6 +106,29 @@ export interface TourProposal {
   paymentDetails: string;
 }
 
+export type FinalItineraryEventKind = "arrival" | "transfer" | "hotel" | "flight" | "return" | "tour" | "custom";
+
+export interface FinalItineraryEvent {
+  id: string;
+  day: number;
+  kind: FinalItineraryEventKind;
+  title: string;
+  time: string;
+  description: string;
+  linkUrl: string;
+  photoUrl: string;
+  sourceFlightId?: string;
+  sourceHotelId?: string;
+  sourceTourId?: string;
+}
+
+export interface FinalItinerary {
+  enabled: boolean;
+  title: string;
+  introMessage: string;
+  events: FinalItineraryEvent[];
+}
+
 export interface ItineraryDay {
   id: string;
   day: number;
@@ -133,6 +156,7 @@ export interface BudgetData {
   tours: Tour[];
   itinerary: ItineraryDay[];
   tourProposal: TourProposal;
+  finalItinerary: FinalItinerary;
   installments?: {
     flight?: number; // Parcelamento do aéreo
     hotel?: number; // Parcelamento do hotel
@@ -265,6 +289,12 @@ export const defaultBudgetData: BudgetData = {
     title: "Proposta de passeios",
     introMessage: "",
     paymentDetails: "",
+  },
+  finalItinerary: {
+    enabled: false,
+    title: "Roteiro final da viagem",
+    introMessage: "",
+    events: [],
   },
   installments: {
     flight: 4,
