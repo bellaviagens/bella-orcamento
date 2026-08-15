@@ -47,6 +47,8 @@ const emptyTour = (): Omit<Tour, "id"> => ({
   pricingMode: "perPerson",
   pricePerPerson: 0,
   travelerCount: 1,
+  childPrice: 0,
+  childCount: 0,
   notes: "",
   pageUrl: "",
   photosUrl: "",
@@ -225,8 +227,14 @@ export function TourForm() {
           <div className="flex items-center justify-between"><h4 className="text-sm font-bold text-[#1a2e4a]">{editingId ? "Editar passeio" : "Novo passeio"}</h4><Button variant="ghost" size="sm" onClick={closeForm}>Cancelar</Button></div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2"><Label>Nome do passeio</Label><Input value={form.name} onChange={(event) => updateField("name", event.target.value)} placeholder="Ex.: Vinícola e degustação" className="mt-1" /></div>
-            <div><Label>Forma de cobrança</Label><Select value={form.pricingMode || "total"} onValueChange={(value) => updateField("pricingMode", value as Tour["pricingMode"])}><SelectTrigger className="mt-1"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="perPerson">Valor por pessoa</SelectItem><SelectItem value="total">Valor total do passeio</SelectItem></SelectContent></Select></div>
-            {form.pricingMode === "perPerson" ? <><div><Label>Valor por pessoa (R$)</Label><CurrencyInput value={form.pricePerPerson || 0} onChange={(value) => updateField("pricePerPerson", value)} /></div><div><Label>Quantidade de pessoas</Label><Input type="number" min="1" value={form.travelerCount || defaultTravelerCount} onChange={(event) => updateField("travelerCount", Math.max(1, Number(event.target.value) || 1))} className="mt-1" /></div><div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-[#1a2e4a]"><span className="text-xs font-medium uppercase tracking-wide text-amber-700">Total do passeio</span><div>{formatCurrency(calculateTourTotal(form, defaultTravelerCount))}</div></div></> : <div><Label>Valor total (R$)</Label><CurrencyInput value={form.totalPrice} onChange={(value) => updateField("totalPrice", value)} /></div>}
+            <div><Label>Forma de cobrança</Label><Select value={form.pricingMode || "total"} onValueChange={(value) => updateField("pricingMode", value as Tour["pricingMode"])}><SelectTrigger className="mt-1"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="perPerson">Preço individual</SelectItem><SelectItem value="total">Valor total do passeio</SelectItem></SelectContent></Select></div>
+            {form.pricingMode === "perPerson" ? <>
+              <div><Label>Valor adulto (R$)</Label><CurrencyInput value={form.pricePerPerson || 0} onChange={(value) => updateField("pricePerPerson", value)} /></div>
+              <div><Label>Quantidade de adultos</Label><Input type="number" min="1" value={form.travelerCount || defaultTravelerCount} onChange={(event) => updateField("travelerCount", Math.max(1, Number(event.target.value) || 1))} className="mt-1" /></div>
+              <div><Label>Valor criança (R$)</Label><CurrencyInput value={form.childPrice || 0} onChange={(value) => updateField("childPrice", value)} /></div>
+              <div><Label>Quantidade de crianças</Label><Input type="number" min="0" value={form.childCount || 0} onChange={(event) => updateField("childCount", Math.max(0, Number(event.target.value) || 0))} className="mt-1" /></div>
+              <div className="sm:col-span-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-[#1a2e4a]"><span className="text-xs font-medium uppercase tracking-wide text-amber-700">Total do passeio</span><div>{formatCurrency(calculateTourTotal(form, defaultTravelerCount))}</div></div>
+            </> : <div><Label>Valor total (R$)</Label><CurrencyInput value={form.totalPrice} onChange={(value) => updateField("totalPrice", value)} /></div>}
             <div><Label>Link da página</Label><Input type="url" value={form.pageUrl || ""} onChange={(event) => updateField("pageUrl", event.target.value)} placeholder="https://" className="mt-1" /></div>
             <div className="sm:col-span-2"><Label>Link da foto ou álbum</Label><Input type="url" value={form.photosUrl || ""} onChange={(event) => updateField("photosUrl", event.target.value)} placeholder="https://" className="mt-1" /><p className="mt-1 text-xs text-slate-500">Use o link direto de uma imagem para exibir a foto no roteiro. Links de álbum continuam disponíveis pelo botão de fotos.</p></div>
             <div className="sm:col-span-2"><Label>Descrição do passeio <span className="font-normal text-slate-400">(opcional)</span></Label><Textarea value={form.description} onChange={(event) => updateField("description", event.target.value)} placeholder={"DESCRIÇÃO\nApresentação do passeio.\n\nROTEIRO\n- Primeiro ponto\n- Segundo ponto\n\nINCLUSO\n- Guia e transporte"} className="mt-1 min-h-28" /><p className="mt-1 text-xs text-slate-500">Use títulos em linhas separadas e itens iniciados por “-” para que a proposta fique organizada.</p></div>

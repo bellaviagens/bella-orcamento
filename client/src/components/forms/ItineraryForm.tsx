@@ -6,15 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarDays, Copy, FolderOpen, GripVertical, Link2, Loader2, Plus, Save, Search, Trash2 } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, GripVertical, Link2, Loader2, Plus, Save, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function ItineraryForm() {
-  const { budget, addItineraryDay, importItineraryFromQuotation, replaceBudget, updateTourProposal, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
+  const { budget, addItineraryDay, importItineraryFromQuotation, replaceBudget, resetTourProposal, updateTour, updateTourProposal, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
   const itinerary = budget.itinerary;
   const [quotationUrl, setQuotationUrl] = useState("");
   const [draggedDayId, setDraggedDayId] = useState<string | null>(null);
   const [dragOverDayId, setDragOverDayId] = useState<string | null>(null);
+  const [collapsedDayIds, setCollapsedDayIds] = useState<Set<string>>(new Set());
   const importQuotationMutation = trpc.importQuotationUrl.useMutation();
   const utils = trpc.useUtils();
   const saveProposalMutation = trpc.tourProposals.save.useMutation();
@@ -127,6 +128,23 @@ export function ItineraryForm() {
     reorderItineraryDays(nextDays);
   };
 
+  const toggleDayCollapsed = (dayId: string) => {
+    setCollapsedDayIds((current) => {
+      const next = new Set(current);
+      if (next.has(dayId)) next.delete(dayId);
+      else next.add(dayId);
+      return next;
+    });
+  };
+
+  const handleNewProposal = () => {
+    if (!window.confirm("Iniciar uma nova proposta? Os passeios, dias e dados da proposta atual serão limpos. O Roteiro Final e as propostas salvas permanecerão preservados.")) return;
+    resetTourProposal();
+    setCollapsedDayIds(new Set());
+    setQuotationUrl("");
+    toast.success("Nova proposta iniciada. O Roteiro Final e as propostas salvas foram preservados.");
+  };
+
   return (
     <div className="space-y-3">
       <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-[#1a2e4a]">
@@ -134,9 +152,12 @@ export function ItineraryForm() {
       </div>
 
       <div className="rounded-lg border border-[#1a2e4a]/15 bg-blue-50/60 p-3">
-        <div className="mb-3">
-          <h4 className="text-sm font-bold text-[#1a2e4a]">Abertura e pagamento da proposta</h4>
-          <p className="mt-1 text-xs text-slate-500">Essas informações aparecem antes e depois dos passeios no documento de aprovação.</p>
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h4 className="text-sm font-bold text-[#1a2e4a]">Abertura e pagamento da proposta</h4>
+            <p className="mt-1 text-xs text-slate-500">Essas informações aparecem antes e depois dos passeios no documento de aprovação.</p>
+          </div>
+          <Button type="button" variant="outline" onClick={handleNewProposal} className="h-9 shrink-0 bg-white text-xs font-bold"><FilePlus2 className="mr-1.5 h-4 w-4" />Nova proposta</Button>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div><Label htmlFor="proposal-client">Cliente</Label><Input id="proposal-client" value={budget.tourProposal.clientName || ""} onChange={(event) => updateTourProposal({ clientName: event.target.value })} placeholder="Ex.: Suelen Vieira" className="mt-1 bg-white" /></div>
@@ -205,8 +226,13 @@ export function ItineraryForm() {
         <p className="mt-2 text-xs text-slate-500">Os passeios identificados serão cadastrados e organizados cronologicamente pelos dias indicados na cotação.</p>
       </div>
 
-      {itinerary.map((day) => (
-        <div
+      {itinerary.map((day) => {
+        const tour = day.tourId ? budget.tours.find((currentTour) => currentTour.id === day.tourId) : undefined;
+        const isCollapsed = collapsedDayIds.has(day.id);
+        const quickValue = tour?.pricingMode === "perPerson" ? tour.pricePerPerson || 0 : tour?.totalPrice || 0;
+        const valueLabel = tour?.pricingMode === "perPerson" ? "Valor adulto" : "Valor total";
+
+        return <div
           key={day.id}
           onDragOver={(event) => {
             event.preventDefault();
@@ -226,7 +252,7 @@ export function ItineraryForm() {
             dragOverDayId === day.id ? "border-[#1a2e4a] bg-blue-50" : "border-slate-200"
           }`}
         >
-          <div className="mb-3 flex items-center justify-between">
+          <div className={`${isCollapsed ? "mb-0" : "mb-3"} flex items-center justify-between gap-2`}>
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -246,11 +272,15 @@ export function ItineraryForm() {
               >
                 <GripVertical className="h-4 w-4" />
               </button>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day.day}</div><span className="text-sm font-bold text-[#1a2e4a]">Dia {day.day}</span>
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day.day}</div><span className="max-w-40 truncate text-sm font-bold text-[#1a2e4a]">Dia {day.day} — {day.title || "Dia livre"}</span>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => removeItineraryDay(day.id)} className="h-8 w-8 p-0 text-red-500 hover:text-red-700" title={`Remover dia ${day.day}`}><Trash2 className="h-4 w-4" /></Button>
+            <div className="flex shrink-0 items-center gap-1">
+              <Button type="button" variant="ghost" size="sm" onClick={() => toggleDayCollapsed(day.id)} className="h-8 px-2 text-xs font-semibold text-[#1a2e4a] hover:bg-white" title={isCollapsed ? "Abrir edição" : "Recolher edição"}>{isCollapsed ? <><ChevronDown className="mr-1 h-4 w-4" />Abrir</> : <><ChevronUp className="mr-1 h-4 w-4" />Recolher</>}</Button>
+              <Button variant="ghost" size="sm" onClick={() => removeItineraryDay(day.id)} className="h-8 w-8 p-0 text-red-500 hover:text-red-700" title={`Remover dia ${day.day}`}><Trash2 className="h-4 w-4" /></Button>
+            </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          {isCollapsed && tour && <div className="mb-3 flex max-w-xs items-end gap-2"><div className="flex-1"><Label className="text-xs">{valueLabel} (R$)</Label><Input type="number" min="0" step="0.01" inputMode="decimal" value={quickValue} onChange={(event) => updateTour(tour.id, { ...tour, [tour.pricingMode === "perPerson" ? "pricePerPerson" : "totalPrice"]: Math.max(0, Number(event.target.value) || 0) })} className="mt-1 h-9 bg-white text-sm font-semibold" /></div>{tour.pricingMode === "perPerson" && <span className="pb-2 text-xs text-slate-500">por adulto</span>}</div>}
+          {!isCollapsed && <div className="grid gap-3 sm:grid-cols-2">
             <div><Label>Atividade</Label><Select value={day.tourId || "free"} onValueChange={(value) => {
               if (value === "free") updateItineraryDay(day.id, { tourId: undefined, title: "Dia livre" });
               else {
@@ -261,8 +291,9 @@ export function ItineraryForm() {
             <div><Label>Título exibido</Label><Input value={day.title} onChange={(event) => updateItineraryDay(day.id, { title: event.target.value })} placeholder="Ex.: Dia livre" className="mt-1" /></div>
             <div className="sm:col-span-2"><Label>Observações do dia</Label><Textarea value={day.notes} onChange={(event) => updateItineraryDay(day.id, { notes: event.target.value })} placeholder="Horários, recomendações ou informações adicionais" className="mt-1 min-h-20" /></div>
           </div>
-        </div>
-      ))}
+          }
+        </div>;
+      })}
 
       {itinerary.length === 0 && <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500"><CalendarDays className="mx-auto mb-2 h-5 w-5 text-slate-400" />Ainda não há dias no roteiro. Comece adicionando o primeiro dia.</div>}
       <Button variant="outline" onClick={addItineraryDay} className="h-12 w-full text-base font-bold shadow-md"><Plus className="mr-2 h-5 w-5" />Adicionar dia ao roteiro</Button>

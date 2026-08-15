@@ -343,3 +343,12 @@
 - [x] Permitir duplicar uma proposta salva para criar uma nova versão semelhante
 - [x] Adicionar status Pendente, Enviada e Aprovada às propostas salvas
 - [x] Validar por testes, visualmente e no PDF a ordem do roteiro e a gestão das propostas
+
+- [x] Criar o botão Nova Proposta para limpar somente os dados da proposta de passeios em edição
+- [x] Permitir recolher e expandir os cartões de dias/passeios, mantendo o valor editável no modo recolhido
+- [x] Adicionar preço adulto e preço de criança por passeio, sem o rótulo incorreto de valor por pessoa
+- [x] Aproximar o conteúdo da Proposta de Passeios da borda útil e replicar o estilo visual dos passeios do Roteiro Final
+- [x] Preservar margem superior em toda nova página dos PDFs independentes do Roteiro
+- [x] Incluir endereço com link do Google Maps e datas de check-in/check-out nos eventos de hospedagem do Roteiro Final
+- [x] Incluir companhia, número do voo, terminais e horários de partida/chegada nos eventos de voo do Roteiro Final
+- [x] Validar tipos, cálculos, testes, visualização e exportação em PDF dos novos recursos do Roteiro

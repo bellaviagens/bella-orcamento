@@ -95,6 +95,8 @@ export interface Tour {
   pricingMode?: "perPerson" | "total";
   pricePerPerson?: number;
   travelerCount?: number;
+  childPrice?: number;
+  childCount?: number;
   notes?: string;
   pageUrl?: string;
   photosUrl?: string;
@@ -122,6 +124,19 @@ export interface FinalItineraryEvent {
   sourceFlightId?: string;
   sourceHotelId?: string;
   sourceTourId?: string;
+  hotelAddress?: string;
+  hotelMapUrl?: string;
+  hotelCheckIn?: string;
+  hotelCheckOut?: string;
+  flightAirline?: string;
+  flightNumber?: string;
+  flightDate?: string;
+  flightDepartureAirport?: string;
+  flightDepartureTime?: string;
+  flightArrivalAirport?: string;
+  flightArrivalTime?: string;
+  flightDepartureTerminal?: string;
+  flightArrivalTerminal?: string;
 }
 
 export interface FinalItinerary {

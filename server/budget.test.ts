@@ -3,7 +3,7 @@ import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import { calculateCombinedInstallmentValue, calculateCombinedTotal, calculateEffectiveHotelTotal } from "../shared/paymentCalculations";
 import { calculateTourProposalInstallment, calculateTourTotal, getTourTravelerCount } from "../shared/tourPricing";
-import { duplicateHotelInBudget, duplicateTourInBudget, importQuotationActivitiesIntoBudget, reorderHotelsInBudget, reorderItineraryDaysInBudget, reorderToursInBudget } from "../client/src/contexts/BudgetContext";
+import { addFlightToFinalItineraryInBudget, addHotelToFinalItineraryInBudget, duplicateHotelInBudget, duplicateTourInBudget, importQuotationActivitiesIntoBudget, reorderHotelsInBudget, reorderItineraryDaysInBudget, reorderToursInBudget, resetTourProposalInBudget } from "../client/src/contexts/BudgetContext";
 
 function createMockContext(): TrpcContext {
   return {
@@ -108,6 +108,19 @@ describe("gestão de passeios e roteiro", () => {
     expect(calculateTourTotal(tour)).toBe(825);
   });
 
+  it("soma os valores de adultos e crianças quando o passeio possui preços distintos", () => {
+    const tour = {
+      pricingMode: "perPerson" as const,
+      pricePerPerson: 275,
+      travelerCount: 2,
+      childPrice: 150,
+      childCount: 2,
+      totalPrice: 0,
+    };
+
+    expect(calculateTourTotal(tour)).toBe(850);
+  });
+
   it("preserva o valor total informado quando o passeio não é cobrado por pessoa", () => {
     const tour = {
       pricingMode: "total" as const,
@@ -157,6 +170,39 @@ describe("gestão de passeios e roteiro", () => {
 
     expect(reorderedBudget.itinerary.map((day) => day.id)).toEqual(["day-2", "day-1"]);
     expect(reorderedBudget.itinerary.map((day) => day.day)).toEqual([1, 2]);
+  });
+
+  it("inicia uma nova proposta sem apagar o roteiro final já montado", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const budget = {
+      ...defaultBudgetData,
+      tours: [{ id: "tour-1", name: "Museu", location: "Centro", duration: "2 horas", description: "", totalPrice: 100 }],
+      itinerary: [{ id: "day-1", day: 1, title: "Museu", notes: "", tourId: "tour-1" }],
+      tourProposal: { title: "Proposta de Ana", introMessage: "Olá", paymentDetails: "PIX", clientName: "Ana", installments: 3 },
+      finalItinerary: { ...defaultBudgetData.finalItinerary, title: "Roteiro aprovado", events: [{ id: "event-1", day: 1, kind: "hotel" as const, title: "Hotel", time: "", description: "", linkUrl: "", photoUrl: "" }] },
+    };
+    const resetBudget = resetTourProposalInBudget(budget);
+
+    expect(resetBudget.tours).toEqual([]);
+    expect(resetBudget.itinerary).toEqual([]);
+    expect(resetBudget.tourProposal).toMatchObject({ title: "Proposta de passeios", introMessage: "", paymentDetails: "", installments: 1 });
+    expect(resetBudget.finalItinerary).toEqual(budget.finalItinerary);
+  });
+
+  it("leva endereço, GPS e detalhes disponíveis ao reutilizar hotel e voo no roteiro final", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const withHotel = addHotelToFinalItineraryInBudget(defaultBudgetData, defaultBudgetData.hotels[0].id);
+    const hotelEvent = withHotel.finalItinerary.events[0];
+    const withFlight = addFlightToFinalItineraryInBudget(defaultBudgetData, defaultBudgetData.flights[0].id);
+    const flightEvent = withFlight.finalItinerary.events[0];
+
+    expect(hotelEvent).toMatchObject({ hotelAddress: defaultBudgetData.hotels[0].address });
+    expect(hotelEvent.hotelMapUrl).toContain("google.com/maps/search");
+    expect(flightEvent).toMatchObject({
+      flightAirline: defaultBudgetData.flights[0].segments[0].airline,
+      flightNumber: defaultBudgetData.flights[0].segments[0].flightNumber,
+      flightDepartureAirport: defaultBudgetData.flights[0].segments[0].departureAirport,
+    });
   });
 
   it("cria passeios e dias cronológicos ao importar uma cotação sem duplicar a mesma atividade", async () => {

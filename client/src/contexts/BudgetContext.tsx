@@ -22,6 +22,7 @@ interface BudgetContextType {
   addItineraryDay: () => void;
   importItineraryFromQuotation: (activities: QuotationActivity[], quotationUrl: string) => void;
   updateTourProposal: (updates: Partial<TourProposal>) => void;
+  resetTourProposal: () => void;
   replaceBudget: (budget: BudgetData) => void;
   updateFinalItinerary: (updates: Partial<FinalItinerary>) => void;
   addFinalItineraryEvent: (event?: Partial<FinalItineraryEvent>) => void;
@@ -229,6 +230,21 @@ export function importQuotationActivitiesIntoBudget(
   };
 }
 
+export function resetTourProposalInBudget(budget: BudgetData): BudgetData {
+  return {
+    ...budget,
+    tours: [],
+    itinerary: [],
+    tourProposal: {
+      title: "Proposta de passeios",
+      introMessage: "",
+      paymentDetails: "",
+      clientName: "",
+      installments: 1,
+    },
+  };
+}
+
 function nextFinalItineraryDay(events: FinalItineraryEvent[]) {
   return Math.max(0, ...events.map((event) => event.day)) + 1;
 }
@@ -257,6 +273,19 @@ export function addFinalItineraryEventToBudget(budget: BudgetData, event: Partia
     sourceFlightId: event.sourceFlightId,
     sourceHotelId: event.sourceHotelId,
     sourceTourId: event.sourceTourId,
+    hotelAddress: event.hotelAddress || "",
+    hotelMapUrl: event.hotelMapUrl || "",
+    hotelCheckIn: event.hotelCheckIn || "",
+    hotelCheckOut: event.hotelCheckOut || "",
+    flightAirline: event.flightAirline || "",
+    flightNumber: event.flightNumber || "",
+    flightDate: event.flightDate || "",
+    flightDepartureAirport: event.flightDepartureAirport || "",
+    flightDepartureTime: event.flightDepartureTime || "",
+    flightArrivalAirport: event.flightArrivalAirport || "",
+    flightArrivalTime: event.flightArrivalTime || "",
+    flightDepartureTerminal: event.flightDepartureTerminal || "",
+    flightArrivalTerminal: event.flightArrivalTerminal || "",
   };
   return {
     ...budget,
@@ -280,6 +309,13 @@ export function addFlightToFinalItineraryInBudget(budget: BudgetData, flightId: 
     time: firstSegment?.departureTime || "",
     description: formatFlightForFinalItinerary(flight),
     sourceFlightId: flightId,
+    flightAirline: firstSegment?.airline || flight.operatingAirline || "",
+    flightNumber: firstSegment?.flightNumber || "",
+    flightDate: firstSegment?.date || "",
+    flightDepartureAirport: firstSegment?.departureAirport || "",
+    flightDepartureTime: firstSegment?.departureTime || "",
+    flightArrivalAirport: flight.segments[flight.segments.length - 1]?.arrivalAirport || "",
+    flightArrivalTime: flight.segments[flight.segments.length - 1]?.arrivalTime || "",
   });
 }
 
@@ -294,6 +330,8 @@ export function addHotelToFinalItineraryInBudget(budget: BudgetData, hotelId: st
     linkUrl: hotel.hotelUrl || "",
     photoUrl: hotel.photoUrl || "",
     sourceHotelId: hotelId,
+    hotelAddress: hotel.address || "",
+    hotelMapUrl: hotel.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hotel.address)}` : "",
   });
 }
 
@@ -426,6 +464,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       ...prev,
       tourProposal: { ...prev.tourProposal, ...updates },
     }));
+  }, []);
+
+  const resetTourProposal = useCallback(() => {
+    setBudget((prev) => resetTourProposalInBudget(prev));
   }, []);
 
   const replaceBudget = useCallback((nextBudget: BudgetData) => {
@@ -570,6 +612,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         addItineraryDay,
         importItineraryFromQuotation,
         updateTourProposal,
+        resetTourProposal,
         replaceBudget,
         updateFinalItinerary,
         addFinalItineraryEvent,

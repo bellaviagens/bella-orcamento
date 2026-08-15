@@ -69,9 +69,12 @@ export function usePdfGenerator() {
       // A4 dimensions: 210mm wide, 297mm tall
       const pdfWidthMm = 210;
       const pdfPageHeightMm = 297;
+      const isItineraryPdf = elementId === "itinerary-document" || elementId === "final-itinerary-document";
+      const continuedPageTopMarginMm = isItineraryPdf ? 8 : 0;
+      const pageContentHeightMm = pdfPageHeightMm - continuedPageTopMarginMm;
       // pixels per mm based on canvas width
       const pxPerMm = canvas.width / pdfWidthMm;
-      const pageHeightPx = pdfPageHeightMm * pxPerMm; // A4 height in pixels
+      const pageHeightPx = pageContentHeightMm * pxPerMm;
       const imgWidth = pdfWidthMm; // alias for readability
 
       // Todas as posições precisam ser lidas do clone: ele é o documento com largura
@@ -134,7 +137,7 @@ export function usePdfGenerator() {
         ctx.drawImage(canvas, 0, seg.start, canvas.width, segHeight, 0, 0, canvas.width, segHeight);
         const imgData = subCanvas.toDataURL("image/png");
         const rawHeightMm = (segHeight * imgWidth) / canvas.width;
-        const scale = rawHeightMm > pdfPageHeightMm ? pdfPageHeightMm / rawHeightMm : 1;
+        const scale = rawHeightMm > pageContentHeightMm ? pageContentHeightMm / rawHeightMm : 1;
         const widthMm = imgWidth * scale;
         const heightMm = rawHeightMm * scale;
         segmentData.push({
@@ -158,7 +161,8 @@ export function usePdfGenerator() {
         if (i > 0) {
           pdf.addPage("a4");
         }
-        pdf.addImage(seg.imgData, "PNG", seg.xOffsetMm, 0, seg.widthMm, seg.heightMm, undefined, "FAST");
+        const yOffsetMm = i > 0 ? continuedPageTopMarginMm : 0;
+        pdf.addImage(seg.imgData, "PNG", seg.xOffsetMm, yOffsetMm, seg.widthMm, seg.heightMm, undefined, "FAST");
       }
 
       // Add clickable links for elements with data-pdf-link
@@ -186,7 +190,7 @@ export function usePdfGenerator() {
         if (pageNum < totalPages) {
           const segment = segmentData[pageNum];
           const xMm = (bounds.left / canvas.width) * imgWidth * segment.scale + segment.xOffsetMm;
-          const yOnPage = ((yInCanvas - yOffset) / canvas.width) * imgWidth * segment.scale;
+          const yOnPage = ((yInCanvas - yOffset) / canvas.width) * imgWidth * segment.scale + (pageNum > 0 ? continuedPageTopMarginMm : 0);
           const wMm = (bounds.width / canvas.width) * imgWidth * segment.scale;
           const hMm = (bounds.height / canvas.width) * imgWidth * segment.scale;
           pdf.setPage(pageNum + 1);

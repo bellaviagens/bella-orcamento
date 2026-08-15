@@ -58,6 +58,10 @@ export function FinalItineraryForm() {
     reorderFinalItineraryEvents(nextEvents);
   };
 
+  const buildGoogleMapsUrl = (address: string) => address.trim()
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address.trim())}`
+    : "";
+
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs leading-relaxed text-emerald-900">
@@ -97,6 +101,23 @@ export function FinalItineraryForm() {
             <div><Label>Tipo</Label><Select value={event.kind} onValueChange={(value) => updateFinalItineraryEvent(event.id, { kind: value as FinalItineraryEventKind })}><SelectTrigger className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent>{Object.entries(EVENT_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></div>
             <div className="grid grid-cols-2 gap-2"><div><Label>Dia</Label><Input type="number" min="1" value={event.day} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { day: Math.max(1, Number(nativeEvent.target.value) || 1) })} className="mt-1 bg-white" /></div><div><Label>Horário</Label><Input value={event.time} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { time: nativeEvent.target.value })} placeholder="Ex.: 09:30" className="mt-1 bg-white" /></div></div>
             <div className="sm:col-span-2"><Label>Título</Label><Input value={event.title} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { title: nativeEvent.target.value })} placeholder="Ex.: Transfer irá buscar você no aeroporto" className="mt-1 bg-white" /></div>
+            {event.kind === "hotel" && <>
+              <div className="sm:col-span-2"><Label>Endereço da hospedagem</Label><Input value={event.hotelAddress || ""} onChange={(nativeEvent) => { const hotelAddress = nativeEvent.target.value; updateFinalItineraryEvent(event.id, { hotelAddress, hotelMapUrl: buildGoogleMapsUrl(hotelAddress) }); }} placeholder="Rua, número, bairro, cidade e país" className="mt-1 bg-white" /></div>
+              <div><Label>Check-in</Label><Input type="date" value={event.hotelCheckIn || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { hotelCheckIn: nativeEvent.target.value })} className="mt-1 bg-white" /></div>
+              <div><Label>Check-out</Label><Input type="date" value={event.hotelCheckOut || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { hotelCheckOut: nativeEvent.target.value })} className="mt-1 bg-white" /></div>
+              {event.hotelMapUrl && <div className="sm:col-span-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-[#1a2e4a]"><span className="font-semibold">GPS do hotel pronto: </span><a href={event.hotelMapUrl} target="_blank" rel="noreferrer" className="underline hover:text-amber-700">abrir no Google Maps</a></div>}
+            </>}
+            {(event.kind === "flight" || event.kind === "return") && <>
+              <div><Label>Companhia aérea</Label><Input value={event.flightAirline || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { flightAirline: nativeEvent.target.value })} placeholder="Ex.: LATAM" className="mt-1 bg-white" /></div>
+              <div><Label>Número do voo</Label><Input value={event.flightNumber || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { flightNumber: nativeEvent.target.value })} placeholder="Ex.: LA 8123" className="mt-1 bg-white" /></div>
+              <div className="sm:col-span-2"><Label>Data do voo</Label><Input type="date" value={event.flightDate || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { flightDate: nativeEvent.target.value })} className="mt-1 bg-white" /></div>
+              <div><Label>Aeroporto de partida</Label><Input value={event.flightDepartureAirport || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { flightDepartureAirport: nativeEvent.target.value })} placeholder="Ex.: GRU" className="mt-1 bg-white" /></div>
+              <div><Label>Horário de partida</Label><Input type="time" value={event.flightDepartureTime || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { flightDepartureTime: nativeEvent.target.value, time: nativeEvent.target.value })} className="mt-1 bg-white" /></div>
+              <div><Label>Terminal de partida</Label><Input value={event.flightDepartureTerminal || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { flightDepartureTerminal: nativeEvent.target.value })} placeholder="Ex.: Terminal 3" className="mt-1 bg-white" /></div>
+              <div><Label>Aeroporto de chegada</Label><Input value={event.flightArrivalAirport || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { flightArrivalAirport: nativeEvent.target.value })} placeholder="Ex.: SCL" className="mt-1 bg-white" /></div>
+              <div><Label>Horário de chegada</Label><Input type="time" value={event.flightArrivalTime || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { flightArrivalTime: nativeEvent.target.value })} className="mt-1 bg-white" /></div>
+              <div><Label>Terminal de chegada</Label><Input value={event.flightArrivalTerminal || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { flightArrivalTerminal: nativeEvent.target.value })} placeholder="Ex.: Terminal Internacional" className="mt-1 bg-white" /></div>
+            </>}
             <div className="sm:col-span-2"><Label>Detalhes e observações</Label><Textarea value={event.description} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { description: nativeEvent.target.value })} placeholder="Escreva as orientações, contato, ponto de encontro ou qualquer informação importante." className="mt-1 min-h-20 bg-white" /></div>
             <div><Label>Link útil (WhatsApp, empresa ou cartão de embarque)</Label><Input type="url" value={event.linkUrl} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { linkUrl: nativeEvent.target.value })} placeholder="https://..." className="mt-1 bg-white" /></div>
             <div><Label>Link da foto</Label><Input type="url" value={event.photoUrl} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { photoUrl: nativeEvent.target.value })} placeholder="https://..." className="mt-1 bg-white" /></div>
