@@ -4,6 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { duplicateTourProposal, getTourProposal, listTourProposals, saveTourProposal, updateTourProposalStatus } from "./db";
+import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
 import { lookup } from "node:dns/promises";
 import { z } from "zod";
@@ -19,6 +20,20 @@ const quotationActivitySchema = z.object({
 });
 
 type QuotationActivity = z.infer<typeof quotationActivitySchema>;
+
+const ITINERARY_ATTACHMENT_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"] as const;
+const MAX_ITINERARY_ATTACHMENT_BYTES = 8 * 1024 * 1024;
+
+function sanitizeAttachmentFileName(fileName: string): string {
+  const normalized = fileName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/-{2,}/g, "-")
+    .replace(/^[-.]+|[-.]+$/g, "")
+    .slice(0, 120);
+  return normalized || "anexo";
+}
 
 function isPrivateNetworkAddress(address: string): boolean {
   const normalized = address.toLowerCase();
@@ -176,6 +191,41 @@ export const appRouter = router({
         const updated = await updateTourProposalStatus(ctx.user.openId, input.id, input.status);
         if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Proposta não encontrada." });
         return { success: true };
+      }),
+  }),
+  itineraryAttachments: router({
+    upload: protectedProcedure
+      .input(z.object({
+        fileName: z.string().trim().min(1).max(180),
+        contentType: z.enum(ITINERARY_ATTACHMENT_TYPES),
+        dataBase64: z.string().min(4).max(11_200_000),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const base64 = input.dataBase64.replace(/^data:[^;]+;base64,/, "");
+        if (base64.length % 4 !== 0 || !/^[a-zA-Z0-9+/]+={0,2}$/.test(base64)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "O arquivo selecionado não é válido." });
+        }
+
+        const bytes = Buffer.from(base64, "base64");
+        if (bytes.length === 0 || bytes.length > MAX_ITINERARY_ATTACHMENT_BYTES) {
+          throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "O anexo deve ter no máximo 8 MB." });
+        }
+
+        const ownerDirectory = ctx.user.openId.replace(/[^a-zA-Z0-9_-]/g, "_");
+        const name = sanitizeAttachmentFileName(input.fileName);
+        const { url } = await storagePut(
+          `itinerary-attachments/${ownerDirectory}/${Date.now()}-${name}`,
+          bytes,
+          input.contentType,
+        );
+
+        return {
+          id: crypto.randomUUID(),
+          name: input.fileName,
+          url,
+          contentType: input.contentType,
+          size: bytes.length,
+        };
       }),
   }),
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly

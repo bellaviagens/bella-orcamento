@@ -286,6 +286,7 @@ export function addFinalItineraryEventToBudget(budget: BudgetData, event: Partia
     flightArrivalTime: event.flightArrivalTime || "",
     flightDepartureTerminal: event.flightDepartureTerminal || "",
     flightArrivalTerminal: event.flightArrivalTerminal || "",
+    attachments: event.attachments || [],
   };
   return {
     ...budget,

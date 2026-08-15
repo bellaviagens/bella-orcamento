@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useBudget } from "@/contexts/BudgetContext";
+import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, CalendarDays, CarFront, GripVertical, Hotel, Link2, Plane, Plus, Trash2 } from "lucide-react";
+import { Building2, CalendarDays, CarFront, ExternalLink, FileText, GripVertical, Hotel, Link2, Plane, Plus, Trash2, Upload, X } from "lucide-react";
 import type { FinalItineraryEventKind } from "@shared/budgetTypes";
 
 const EVENT_LABELS: Record<FinalItineraryEventKind, string> = {
@@ -28,6 +29,13 @@ const EVENT_ORDER: Record<FinalItineraryEventKind, number> = {
   custom: 6,
 };
 
+const ACCEPTED_ATTACHMENT_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+const MAX_ATTACHMENT_SIZE = 8 * 1024 * 1024;
+
+function formatFileSize(size: number) {
+  return size >= 1024 * 1024 ? `${(size / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(size / 1024))} KB`;
+}
+
 export function FinalItineraryForm() {
   const {
     budget,
@@ -42,6 +50,10 @@ export function FinalItineraryForm() {
   } = useBudget();
   const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
   const [dragOverEventId, setDragOverEventId] = useState<string | null>(null);
+  const [uploadingEventId, setUploadingEventId] = useState<string | null>(null);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const attachmentInputs = useRef<Record<string, HTMLInputElement | null>>({});
+  const uploadAttachment = trpc.itineraryAttachments.upload.useMutation();
   const finalItinerary = budget.finalItinerary;
   const events = [...finalItinerary.events].sort((first, second) =>
     first.day - second.day || EVENT_ORDER[first.kind] - EVENT_ORDER[second.kind] || first.time.localeCompare(second.time),
@@ -61,6 +73,50 @@ export function FinalItineraryForm() {
   const buildGoogleMapsUrl = (address: string) => address.trim()
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address.trim())}`
     : "";
+
+  const handleAttachmentSelection = (eventId: string, file: File | undefined) => {
+    if (!file) return;
+    setAttachmentError(null);
+
+    if (!ACCEPTED_ATTACHMENT_TYPES.includes(file.type)) {
+      setAttachmentError("Selecione um arquivo PDF, JPG, PNG ou WEBP.");
+      return;
+    }
+    if (file.size > MAX_ATTACHMENT_SIZE) {
+      setAttachmentError("Cada anexo pode ter no máximo 8 MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onerror = () => setAttachmentError("Não foi possível ler o arquivo selecionado.");
+    reader.onload = async () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      const dataBase64 = result.split(",")[1] || "";
+      if (!dataBase64) {
+        setAttachmentError("Não foi possível preparar o arquivo para envio.");
+        return;
+      }
+
+      setUploadingEventId(eventId);
+      try {
+        const attachment = await uploadAttachment.mutateAsync({
+          fileName: file.name,
+          contentType: file.type as "application/pdf" | "image/jpeg" | "image/png" | "image/webp",
+          dataBase64,
+        });
+        const targetEvent = finalItinerary.events.find((item) => item.id === eventId);
+        if (!targetEvent) return;
+        updateFinalItineraryEvent(eventId, { attachments: [...(targetEvent.attachments || []), attachment] });
+      } catch (error) {
+        setAttachmentError(error instanceof Error ? error.message : "Não foi possível enviar o anexo.");
+      } finally {
+        setUploadingEventId(null);
+        const input = attachmentInputs.current[eventId];
+        if (input) input.value = "";
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   return (
     <div className="space-y-4">
@@ -118,6 +174,23 @@ export function FinalItineraryForm() {
               <div><Label>Horário de chegada</Label><Input type="time" value={event.flightArrivalTime || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { flightArrivalTime: nativeEvent.target.value })} className="mt-1 bg-white" /></div>
               <div><Label>Terminal de chegada</Label><Input value={event.flightArrivalTerminal || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { flightArrivalTerminal: nativeEvent.target.value })} placeholder="Ex.: Terminal Internacional" className="mt-1 bg-white" /></div>
             </>}
+            {(event.kind === "hotel" || event.kind === "flight" || event.kind === "return") && <div className="sm:col-span-2 rounded-lg border border-dashed border-[#1a2e4a]/30 bg-blue-50/60 p-3">
+              <input
+                ref={(node) => { attachmentInputs.current[event.id] = node; }}
+                type="file"
+                accept="application/pdf,image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={(nativeEvent) => handleAttachmentSelection(event.id, nativeEvent.target.files?.[0])}
+              />
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div><p className="text-xs font-bold text-[#1a2e4a]">{event.kind === "hotel" ? "Reserva e comprovantes da hospedagem" : "Cartões de embarque e comprovantes do voo"}</p><p className="mt-0.5 text-[11px] text-slate-500">Anexe PDF, JPG, PNG ou WEBP de até 8 MB.</p></div>
+                <Button type="button" variant="outline" size="sm" disabled={uploadingEventId === event.id} onClick={() => attachmentInputs.current[event.id]?.click()} className="bg-white text-xs"><Upload className="mr-1.5 h-3.5 w-3.5" />{uploadingEventId === event.id ? "Enviando..." : "Anexar arquivo"}</Button>
+              </div>
+              {(event.attachments || []).length > 0 && <div className="mt-3 space-y-2">
+                {(event.attachments || []).map((attachment) => <div key={attachment.id} className="flex min-w-0 items-center gap-2 rounded-md border border-blue-100 bg-white px-2.5 py-2"><FileText className="h-4 w-4 shrink-0 text-[#1a2e4a]" /><a href={attachment.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-xs font-semibold text-[#1a2e4a] hover:text-amber-700 hover:underline">{attachment.name}</a><span className="shrink-0 text-[10px] text-slate-400">{formatFileSize(attachment.size)}</span><a href={attachment.url} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-[#1a2e4a]" title="Abrir anexo"><ExternalLink className="h-3.5 w-3.5" /></a><button type="button" onClick={() => updateFinalItineraryEvent(event.id, { attachments: (event.attachments || []).filter((attachmentItem) => attachmentItem.id !== attachment.id) })} className="text-slate-400 hover:text-red-600" title="Remover anexo"><X className="h-4 w-4" /></button></div>)}
+              </div>}
+              {attachmentError && <p className="mt-2 text-xs font-medium text-red-600">{attachmentError}</p>}
+            </div>}
             <div className="sm:col-span-2"><Label>Detalhes e observações</Label><Textarea value={event.description} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { description: nativeEvent.target.value })} placeholder="Escreva as orientações, contato, ponto de encontro ou qualquer informação importante." className="mt-1 min-h-20 bg-white" /></div>
             <div><Label>Link útil (WhatsApp, empresa ou cartão de embarque)</Label><Input type="url" value={event.linkUrl} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { linkUrl: nativeEvent.target.value })} placeholder="https://..." className="mt-1 bg-white" /></div>
             <div><Label>Link da foto</Label><Input type="url" value={event.photoUrl} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { photoUrl: nativeEvent.target.value })} placeholder="https://..." className="mt-1 bg-white" /></div>

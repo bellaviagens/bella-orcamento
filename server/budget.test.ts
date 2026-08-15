@@ -3,7 +3,7 @@ import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import { calculateCombinedInstallmentValue, calculateCombinedTotal, calculateEffectiveHotelTotal } from "../shared/paymentCalculations";
 import { calculateTourProposalInstallment, calculateTourTotal, getTourTravelerCount } from "../shared/tourPricing";
-import { addFlightToFinalItineraryInBudget, addHotelToFinalItineraryInBudget, duplicateHotelInBudget, duplicateTourInBudget, importQuotationActivitiesIntoBudget, reorderHotelsInBudget, reorderItineraryDaysInBudget, reorderToursInBudget, resetTourProposalInBudget } from "../client/src/contexts/BudgetContext";
+import { addFinalItineraryEventToBudget, addFlightToFinalItineraryInBudget, addHotelToFinalItineraryInBudget, duplicateHotelInBudget, duplicateTourInBudget, importQuotationActivitiesIntoBudget, reorderHotelsInBudget, reorderItineraryDaysInBudget, reorderToursInBudget, resetTourProposalInBudget } from "../client/src/contexts/BudgetContext";
 
 function createMockContext(): TrpcContext {
   return {
@@ -37,6 +37,11 @@ describe("appRouter", () => {
   it("has auth.me procedure", () => {
     const caller = appRouter.createCaller(createMockContext());
     expect(caller.auth.me).toBeDefined();
+  });
+
+  it("has itineraryAttachments.upload procedure", () => {
+    const caller = appRouter.createCaller(createMockContext());
+    expect(caller.itineraryAttachments.upload).toBeDefined();
   });
 });
 
@@ -203,6 +208,16 @@ describe("gestão de passeios e roteiro", () => {
       flightNumber: defaultBudgetData.flights[0].segments[0].flightNumber,
       flightDepartureAirport: defaultBudgetData.flights[0].segments[0].departureAirport,
     });
+  });
+
+  it("mantém anexos no evento do Roteiro Final e inicia eventos novos sem arquivos", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const attachment = { id: "file-1", name: "cartao.pdf", url: "/manus-storage/cartao.pdf", contentType: "application/pdf", size: 1024 };
+    const withAttachment = addFinalItineraryEventToBudget(defaultBudgetData, { kind: "flight", attachments: [attachment] });
+    const emptyEvent = addFinalItineraryEventToBudget(defaultBudgetData, { kind: "hotel" }).finalItinerary.events[0];
+
+    expect(withAttachment.finalItinerary.events[0].attachments).toEqual([attachment]);
+    expect(emptyEvent.attachments).toEqual([]);
   });
 
   it("cria passeios e dias cronológicos ao importar uma cotação sem duplicar a mesma atividade", async () => {

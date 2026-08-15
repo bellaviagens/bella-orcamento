@@ -112,6 +112,14 @@ export interface TourProposal {
 
 export type FinalItineraryEventKind = "arrival" | "transfer" | "hotel" | "flight" | "return" | "tour" | "custom";
 
+export interface FinalItineraryAttachment {
+  id: string;
+  name: string;
+  url: string;
+  contentType: string;
+  size: number;
+}
+
 export interface FinalItineraryEvent {
   id: string;
   day: number;
@@ -137,6 +145,7 @@ export interface FinalItineraryEvent {
   flightArrivalTime?: string;
   flightDepartureTerminal?: string;
   flightArrivalTerminal?: string;
+  attachments?: FinalItineraryAttachment[];
 }
 
 export interface FinalItinerary {

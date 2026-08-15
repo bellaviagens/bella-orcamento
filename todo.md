@@ -352,3 +352,8 @@
 - [x] Incluir endereço com link do Google Maps e datas de check-in/check-out nos eventos de hospedagem do Roteiro Final
 - [x] Incluir companhia, número do voo, terminais e horários de partida/chegada nos eventos de voo do Roteiro Final
 - [x] Validar tipos, cálculos, testes, visualização e exportação em PDF dos novos recursos do Roteiro
+
+- [x] Permitir anexar comprovantes e cartões de embarque nos eventos de voo e hospedagem do Roteiro Final
+- [x] Exibir e abrir os anexos de voo e hospedagem na visualização e no PDF do Roteiro Final
+- [x] Criar linha do tempo diária do Roteiro Final organizada por horário
+- [x] Validar tipos, anexos, linha do tempo, PDF e testes dos novos recursos
