@@ -7,12 +7,16 @@ export interface CombinedPaymentStep {
   installments: number;
   paymentMethod: CombinedPaymentMethod;
   cardRate?: number;
+  /** Cor escolhida para identificar esta forma no formulário e no PDF. */
+  color?: string;
 }
 
 /** Uma condição apresentada ao cliente, composta por uma ou mais formas. */
 export interface CombinedPaymentCondition {
   id: string;
   steps: CombinedPaymentStep[];
+  /** Título opcional exibido ao cliente no lugar de "Pagamento N". */
+  label?: string;
 }
 
 export interface CalculatedCombinedPaymentStep extends CombinedPaymentStep {
@@ -37,7 +41,7 @@ export function normalizeCombinedPaymentConditions(
 ): CombinedPaymentCondition[] {
   return entries.map((entry) => {
     if (isCondition(entry)) {
-      return { id: entry.id, steps: entry.steps };
+      return { ...entry, steps: entry.steps };
     }
 
     return { id: entry.id, steps: [entry] };
@@ -73,7 +77,7 @@ export function calculateCombinedPaymentPlan(
     }, []);
 
     return {
-      id: condition.id,
+      ...condition,
       steps,
       total: steps.reduce((sum, step) => sum + step.totalWithRate, 0),
     };

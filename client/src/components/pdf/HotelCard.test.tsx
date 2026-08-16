@@ -278,19 +278,24 @@ describe("HotelCard — parcelamento conjunto", () => {
         combinedPaymentSteps={[
           {
             id: "payment-1",
+            label: "Cartão e PIX",
             steps: [
-              { id: "card", paymentMethod: "cartao", amount: 4000, installments: 10 },
-              { id: "pix", paymentMethod: "pix", amount: 1000, installments: 1 },
+              { id: "card", paymentMethod: "cartao", amount: 4000, installments: 10, color: "#ef4444" },
+              { id: "pix", paymentMethod: "pix", amount: 1000, installments: 1, color: "#10b981" },
             ],
           },
         ]}
       />,
     );
 
-    expect(markup).toContain("Pagamento 1");
-    expect(markup).toContain("Forma 1 · Cartão: 10x de R$ 400,00");
-    expect(markup).toContain("Forma 2 · PIX: 1x de R$ 1.000,00");
-    expect(markup).toContain("Total Pagamento 1: R$ 5.000,00");
+    expect(markup).toContain("Cartão e PIX");
+    expect(markup).toContain("Cartão: 10x de R$ 400,00");
+    expect(markup).toContain("PIX: 1x de R$ 1.000,00");
+    expect(markup).toContain("Total de Cartão e PIX: R$ 5.000,00");
+    expect(markup).not.toContain("Forma 1");
+    expect(markup).not.toContain("Forma 2");
+    expect(markup).toContain("#ef4444");
+    expect(markup).toContain("#10b981");
     expect(markup).not.toContain("saldo:");
   });
 });

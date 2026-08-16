@@ -400,3 +400,8 @@
 - [x] Adicionar controles para recolher/expandir e duplicar cada condição de Pagamento
 - [x] Diferenciar visualmente cada Forma de pagamento no formulário, preview e PDF para identificar condições distintas
 - [x] Validar PDF multipágina, controles de pagamento, tipos e regressões
+
+- [x] Remover os rótulos Forma 1, Forma 2 e semelhantes do cadastro interno de cada Pagamento
+- [x] Permitir renomear cada condição de Pagamento para identificação no formulário, preview e PDF
+- [x] Permitir escolher manualmente a cor de cada forma de pagamento e refletir a escolha no preview e PDF
+- [x] Validar rótulos simplificados, renomeação, cores personalizadas, PDF e regressões

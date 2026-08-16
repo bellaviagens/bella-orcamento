@@ -15,6 +15,12 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
+const PAYMENT_STEP_COLORS = ["#0284c7", "#d97706", "#059669", "#7c3aed"];
+
+function getPaymentConditionLabel(condition: CombinedPaymentCondition, index: number): string {
+  return condition.label?.trim() || `Pagamento ${index + 1}`;
+}
+
 export function InstallmentsForm() {
   const { budget, updateInstallments, updatePaymentMethods, updateHotelPaymentMethods, updatePageBreaks } = useBudget();
   const { installments, pageBreaks } = budget;
@@ -448,7 +454,8 @@ export function InstallmentsForm() {
                   ...combinedPaymentConditions,
                   {
                     id: `combined-condition-${Date.now()}-${combinedPaymentConditions.length}`,
-                    steps: [{ id: `combined-step-${Date.now()}-0`, amount: 0, installments: 1, paymentMethod: "cartao" }],
+                    label: `Pagamento ${combinedPaymentConditions.length + 1}`,
+                    steps: [{ id: `combined-step-${Date.now()}-0`, amount: 0, installments: 1, paymentMethod: "cartao", color: PAYMENT_STEP_COLORS[0] }],
                   },
                 ])}
               >
@@ -469,7 +476,7 @@ export function InstallmentsForm() {
                     combinedPaymentConditions.map((current) => current.id === condition.id
                       ? {
                           ...current,
-                          steps: [...current.steps, { id: `combined-step-${Date.now()}-${current.steps.length}`, amount: 0, installments: 1, paymentMethod: "cartao" }],
+                          steps: [...current.steps, { id: `combined-step-${Date.now()}-${current.steps.length}`, amount: 0, installments: 1, paymentMethod: "cartao", color: PAYMENT_STEP_COLORS[current.steps.length % PAYMENT_STEP_COLORS.length] }],
                         }
                       : current),
                   );
@@ -490,6 +497,7 @@ export function InstallmentsForm() {
                     const duplicateId = `combined-condition-${Date.now()}-${index}`;
                     const duplicate: CombinedPaymentCondition = {
                       id: duplicateId,
+                      label: condition.label ? `${condition.label} (cópia)` : undefined,
                       steps: condition.steps.map((step, stepIndex) => ({
                         ...step,
                         id: `combined-step-${Date.now()}-${index}-${stepIndex}`,
@@ -505,7 +513,20 @@ export function InstallmentsForm() {
                   return (
                     <div key={condition.id} className="rounded-md border border-slate-200 bg-slate-50 p-2.5">
                       <div className="mb-2 flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-semibold text-[#1a2e4a]">Pagamento {index + 1}</span>
+                        <div className="min-w-0 flex-1">
+                          <Label htmlFor={`combined-payment-label-${condition.id}`} className="text-[10px] text-slate-500">Nome do Pagamento</Label>
+                          <Input
+                            id={`combined-payment-label-${condition.id}`}
+                            value={condition.label ?? `Pagamento ${index + 1}`}
+                            onChange={(event) => updateConditions(
+                              combinedPaymentConditions.map((current) => current.id === condition.id
+                                ? { ...current, label: event.target.value }
+                                : current),
+                            )}
+                            className="mt-1 h-7 max-w-56 bg-white text-[11px] font-semibold text-[#1a2e4a]"
+                            aria-label={`Nome do pagamento ${index + 1}`}
+                          />
+                        </div>
                         <div className="flex items-center gap-1">
                           <Button
                             type="button"
@@ -542,25 +563,36 @@ export function InstallmentsForm() {
                       </div>
                       {isCollapsed && sampleCondition && (
                         <p className="-mt-1 mb-2 text-[10px] font-semibold text-[#1a2e4a]">
-                          Total do Pagamento {index + 1}: {formatCurrency(sampleCondition.total)}
+                          Total de {getPaymentConditionLabel(condition, index)}: {formatCurrency(sampleCondition.total)}
                         </p>
                       )}
                       {!isCollapsed && <div className="space-y-2">
-                        {condition.steps.map((step, stepIndex) => (
+                        {condition.steps.map((step, stepIndex) => {
+                          const stepColor = step.color || PAYMENT_STEP_COLORS[stepIndex % PAYMENT_STEP_COLORS.length];
+                          return (
                           <div
                             key={step.id}
-                            className={`rounded border border-slate-200 border-l-4 bg-white p-2 ${["border-l-sky-500", "border-l-amber-500", "border-l-emerald-500", "border-l-violet-500"][stepIndex % 4]}`}
+                            className="rounded border border-slate-200 bg-white p-2"
+                            style={{ borderLeft: `4px solid ${stepColor}`, backgroundColor: `${stepColor}0d` }}
                           >
                             <div className="mb-1 flex items-center justify-between gap-2">
-                              <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${["bg-sky-100 text-sky-700", "bg-amber-100 text-amber-700", "bg-emerald-100 text-emerald-700", "bg-violet-100 text-violet-700"][stepIndex % 4]}`}>
-                                • Forma {stepIndex + 1}
-                              </span>
+                              <span className="text-[10px] font-semibold text-slate-600">Opção de pagamento</span>
+                              <label className="flex items-center gap-1 text-[10px] font-medium text-slate-500">
+                                Cor
+                                <input
+                                  type="color"
+                                  value={stepColor}
+                                  onChange={(event) => updateStep(step.id, { color: event.target.value })}
+                                  className="h-5 w-7 cursor-pointer rounded border border-slate-300 bg-white p-0.5"
+                                  aria-label={`Cor da opção de pagamento ${stepIndex + 1}`}
+                                />
+                              </label>
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
                                 className="h-5 w-5 text-slate-400 hover:bg-red-50 hover:text-red-600"
-                                aria-label={`Remover forma ${stepIndex + 1} do pagamento ${index + 1}`}
+                                aria-label={`Remover opção de pagamento ${stepIndex + 1} do pagamento ${index + 1}`}
                                 onClick={() => removeStep(step.id)}
                               >
                                 <Trash2 className="h-3 w-3" />
@@ -591,14 +623,15 @@ export function InstallmentsForm() {
                               </div>
                             )}
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>}
                       {!isCollapsed && <Button type="button" variant="outline" size="sm" className="mt-2 h-7 border-slate-300 bg-white text-[10px] text-[#1a2e4a]" onClick={addStep}>
                         <Plus className="mr-1 h-3 w-3" /> Adicionar forma
                       </Button>}
                       {sampleCondition && (
                         <p className={`${isCollapsed ? "hidden" : "mt-2"} text-[10px] font-semibold text-[#1a2e4a]`}>
-                          Total do Pagamento {index + 1}: {formatCurrency(sampleCondition.total)}
+                          Total de {getPaymentConditionLabel(condition, index)}: {formatCurrency(sampleCondition.total)}
                         </p>
                       )}
                     </div>
