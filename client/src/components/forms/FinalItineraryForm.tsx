@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, CalendarDays, CarFront, ExternalLink, FileText, GripVertical, Hotel, Link2, Plane, Plus, Trash2, Upload, X } from "lucide-react";
+import { Building2, CalendarDays, CarFront, ExternalLink, FileText, GripVertical, Hotel, Link2, Phone, Plane, Plus, Trash2, Upload, UserRound, Users, X } from "lucide-react";
 import type { FinalItineraryEventKind } from "@shared/budgetTypes";
 
 const EVENT_LABELS: Record<FinalItineraryEventKind, string> = {
@@ -52,6 +52,8 @@ export function FinalItineraryForm() {
   const [dragOverEventId, setDragOverEventId] = useState<string | null>(null);
   const [uploadingEventId, setUploadingEventId] = useState<string | null>(null);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [newPassengerName, setNewPassengerName] = useState("");
+  const [attachmentPassengerByEvent, setAttachmentPassengerByEvent] = useState<Record<string, string>>({});
   const attachmentInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const uploadAttachment = trpc.itineraryAttachments.upload.useMutation();
   const finalItinerary = budget.finalItinerary;
@@ -73,6 +75,22 @@ export function FinalItineraryForm() {
   const buildGoogleMapsUrl = (address: string) => address.trim()
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address.trim())}`
     : "";
+
+  const addPassenger = () => {
+    const name = newPassengerName.trim();
+    if (!name) return;
+    updateFinalItinerary({ enabled: true, passengers: [...(finalItinerary.passengers || []), { id: crypto.randomUUID(), name }] });
+    setNewPassengerName("");
+  };
+
+  const removePassenger = (passengerId: string) => {
+    finalItinerary.events.forEach((event) => {
+      if (event.attachments?.some((attachment) => attachment.passengerId === passengerId)) {
+        updateFinalItineraryEvent(event.id, { attachments: event.attachments.map((attachment) => attachment.passengerId === passengerId ? { ...attachment, passengerId: undefined } : attachment) });
+      }
+    });
+    updateFinalItinerary({ passengers: (finalItinerary.passengers || []).filter((passenger) => passenger.id !== passengerId) });
+  };
 
   const handleAttachmentSelection = (eventId: string, file: File | undefined) => {
     if (!file) return;
@@ -106,7 +124,8 @@ export function FinalItineraryForm() {
         });
         const targetEvent = finalItinerary.events.find((item) => item.id === eventId);
         if (!targetEvent) return;
-        updateFinalItineraryEvent(eventId, { attachments: [...(targetEvent.attachments || []), attachment] });
+        const passengerId = attachmentPassengerByEvent[eventId];
+        updateFinalItineraryEvent(eventId, { attachments: [...(targetEvent.attachments || []), { ...attachment, passengerId: passengerId || undefined }] });
       } catch (error) {
         setAttachmentError(error instanceof Error ? error.message : "Não foi possível enviar o anexo.");
       } finally {
@@ -125,12 +144,22 @@ export function FinalItineraryForm() {
       </div>
 
       <div className="rounded-lg border border-[#1a2e4a]/15 bg-blue-50/60 p-3">
-        <div className="mb-3 flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><CalendarDays className="h-4 w-4" />Abertura do roteiro final</div>
+        <div className="mb-3 flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><CalendarDays className="h-4 w-4" />Capa e informações essenciais</div>
         <div className="grid gap-3">
           <div><Label htmlFor="final-title">Título</Label><Input id="final-title" value={finalItinerary.title} onChange={(event) => updateFinalItinerary({ title: event.target.value, enabled: true })} className="mt-1 bg-white" /></div>
           <div><Label htmlFor="final-intro">Mensagem inicial</Label><Textarea id="final-intro" value={finalItinerary.introMessage} onChange={(event) => updateFinalItinerary({ introMessage: event.target.value, enabled: true })} placeholder="Ex.: Olá, Suelen! Abaixo está o seu roteiro completo, com horários e contatos importantes." className="mt-1 min-h-20 bg-white" /></div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div><Label htmlFor="final-essential-info">Informações essenciais</Label><Textarea id="final-essential-info" value={finalItinerary.essentialInfo || ""} onChange={(event) => updateFinalItinerary({ essentialInfo: event.target.value, enabled: true })} placeholder="Ex.: Levar passaporte, chegar ao aeroporto com 3 horas de antecedência..." className="mt-1 min-h-24 bg-white" /></div>
+            <div><Label htmlFor="final-emergency-contacts">Contatos de emergência</Label><Textarea id="final-emergency-contacts" value={finalItinerary.emergencyContacts || ""} onChange={(event) => updateFinalItinerary({ emergencyContacts: event.target.value, enabled: true })} placeholder="Ex.: Agência: +55...&#10;Transfer: +56...&#10;Seguro: +55..." className="mt-1 min-h-24 bg-white" /></div>
+          </div>
         </div>
       </div>
+
+      <section className="rounded-lg border border-[#1a2e4a]/15 bg-white p-3">
+        <div className="mb-3 flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><Users className="h-4 w-4" />Passageiros para organização dos documentos</div>
+        <div className="flex gap-2"><Input value={newPassengerName} onChange={(event) => setNewPassengerName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); addPassenger(); } }} placeholder="Nome do passageiro" className="bg-white" /><Button type="button" variant="outline" onClick={addPassenger} className="shrink-0 bg-white text-xs"><Plus className="mr-1 h-3.5 w-3.5" />Adicionar</Button></div>
+        {(finalItinerary.passengers || []).length > 0 ? <div className="mt-3 flex flex-wrap gap-2">{finalItinerary.passengers?.map((passenger) => <span key={passenger.id} className="inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[#1a2e4a]"><UserRound className="h-3.5 w-3.5" />{passenger.name}<button type="button" onClick={() => removePassenger(passenger.id)} className="ml-0.5 text-slate-400 hover:text-red-600" title={`Remover ${passenger.name}`}><X className="h-3.5 w-3.5" /></button></span>)}</div> : <p className="mt-2 text-xs text-slate-500">Cadastre os passageiros para vincular cartões, reservas e comprovantes a cada pessoa.</p>}
+      </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-3">
         <div className="mb-3"><h4 className="text-sm font-bold text-[#1a2e4a]">Adicionar informações já cadastradas</h4><p className="mt-1 text-xs text-slate-500">Os itens são copiados para o roteiro final; os cadastros de Voos, Hotéis e Passeios permanecem intactos.</p></div>
@@ -186,8 +215,9 @@ export function FinalItineraryForm() {
                 <div><p className="text-xs font-bold text-[#1a2e4a]">{event.kind === "hotel" ? "Reserva e comprovantes da hospedagem" : "Cartões de embarque e comprovantes do voo"}</p><p className="mt-0.5 text-[11px] text-slate-500">Anexe PDF, JPG, PNG ou WEBP de até 8 MB.</p></div>
                 <Button type="button" variant="outline" size="sm" disabled={uploadingEventId === event.id} onClick={() => attachmentInputs.current[event.id]?.click()} className="bg-white text-xs"><Upload className="mr-1.5 h-3.5 w-3.5" />{uploadingEventId === event.id ? "Enviando..." : "Anexar arquivo"}</Button>
               </div>
+              {(finalItinerary.passengers || []).length > 0 && <div className="mt-3 max-w-xs"><Label className="text-[11px]">Vincular o próximo anexo a</Label><Select value={attachmentPassengerByEvent[event.id] || "general"} onValueChange={(value) => setAttachmentPassengerByEvent((current) => ({ ...current, [event.id]: value === "general" ? "" : value }))}><SelectTrigger className="mt-1 h-9 bg-white text-xs"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="general">Documento geral</SelectItem>{finalItinerary.passengers?.map((passenger) => <SelectItem key={passenger.id} value={passenger.id}>{passenger.name}</SelectItem>)}</SelectContent></Select></div>}
               {(event.attachments || []).length > 0 && <div className="mt-3 space-y-2">
-                {(event.attachments || []).map((attachment) => <div key={attachment.id} className="flex min-w-0 items-center gap-2 rounded-md border border-blue-100 bg-white px-2.5 py-2"><FileText className="h-4 w-4 shrink-0 text-[#1a2e4a]" /><a href={attachment.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-xs font-semibold text-[#1a2e4a] hover:text-amber-700 hover:underline">{attachment.name}</a><span className="shrink-0 text-[10px] text-slate-400">{formatFileSize(attachment.size)}</span><a href={attachment.url} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-[#1a2e4a]" title="Abrir anexo"><ExternalLink className="h-3.5 w-3.5" /></a><button type="button" onClick={() => updateFinalItineraryEvent(event.id, { attachments: (event.attachments || []).filter((attachmentItem) => attachmentItem.id !== attachment.id) })} className="text-slate-400 hover:text-red-600" title="Remover anexo"><X className="h-4 w-4" /></button></div>)}
+                {(event.attachments || []).map((attachment) => { const passengerName = finalItinerary.passengers?.find((passenger) => passenger.id === attachment.passengerId)?.name; return <div key={attachment.id} className="flex min-w-0 items-center gap-2 rounded-md border border-blue-100 bg-white px-2.5 py-2"><FileText className="h-4 w-4 shrink-0 text-[#1a2e4a]" /><a href={attachment.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-xs font-semibold text-[#1a2e4a] hover:text-amber-700 hover:underline">{attachment.name}</a>{passengerName && <span className="hidden shrink-0 rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-[#1a2e4a] sm:inline">{passengerName}</span>}<span className="shrink-0 text-[10px] text-slate-400">{formatFileSize(attachment.size)}</span><a href={attachment.url} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-[#1a2e4a]" title="Abrir anexo"><ExternalLink className="h-3.5 w-3.5" /></a><button type="button" onClick={() => updateFinalItineraryEvent(event.id, { attachments: (event.attachments || []).filter((attachmentItem) => attachmentItem.id !== attachment.id) })} className="text-slate-400 hover:text-red-600" title="Remover anexo"><X className="h-4 w-4" /></button></div>; })}
               </div>}
               {attachmentError && <p className="mt-2 text-xs font-medium text-red-600">{attachmentError}</p>}
             </div>}

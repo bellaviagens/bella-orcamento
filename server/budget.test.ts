@@ -212,12 +212,34 @@ describe("gestão de passeios e roteiro", () => {
 
   it("mantém anexos no evento do Roteiro Final e inicia eventos novos sem arquivos", async () => {
     const { defaultBudgetData } = await import("../shared/budgetTypes");
-    const attachment = { id: "file-1", name: "cartao.pdf", url: "/manus-storage/cartao.pdf", contentType: "application/pdf", size: 1024 };
+    const attachment = { id: "file-1", name: "cartao.pdf", url: "/manus-storage/cartao.pdf", contentType: "application/pdf", size: 1024, passengerId: "passenger-1" };
     const withAttachment = addFinalItineraryEventToBudget(defaultBudgetData, { kind: "flight", attachments: [attachment] });
     const emptyEvent = addFinalItineraryEventToBudget(defaultBudgetData, { kind: "hotel" }).finalItinerary.events[0];
 
     expect(withAttachment.finalItinerary.events[0].attachments).toEqual([attachment]);
     expect(emptyEvent.attachments).toEqual([]);
+  });
+
+  it("mantém os dados de capa e os passageiros no Roteiro Final", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const finalItinerary = {
+      ...defaultBudgetData.finalItinerary,
+      essentialInfo: "Levar o passaporte e chegar com antecedência.",
+      emergencyContacts: "Agência: +55 11 99999-9999",
+      passengers: [{ id: "passenger-1", name: "Ana Souza" }],
+    };
+    const budget = { ...defaultBudgetData, finalItinerary };
+    const withAttachment = addFinalItineraryEventToBudget(budget, {
+      kind: "hotel",
+      attachments: [{ id: "hotel-1", name: "reserva.pdf", url: "/manus-storage/reserva.pdf", contentType: "application/pdf", size: 2048, passengerId: "passenger-1" }],
+    });
+
+    expect(withAttachment.finalItinerary).toMatchObject({
+      essentialInfo: "Levar o passaporte e chegar com antecedência.",
+      emergencyContacts: "Agência: +55 11 99999-9999",
+      passengers: [{ id: "passenger-1", name: "Ana Souza" }],
+    });
+    expect(withAttachment.finalItinerary.events[0].attachments?.[0].passengerId).toBe("passenger-1");
   });
 
   it("cria passeios e dias cronológicos ao importar uma cotação sem duplicar a mesma atividade", async () => {

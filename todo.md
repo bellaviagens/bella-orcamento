@@ -357,3 +357,8 @@
 - [x] Exibir e abrir os anexos de voo e hospedagem na visualização e no PDF do Roteiro Final
 - [x] Criar linha do tempo diária do Roteiro Final organizada por horário
 - [x] Validar tipos, anexos, linha do tempo, PDF e testes dos novos recursos
+
+- [x] Criar uma capa resumida do Roteiro Final com informações essenciais e contatos de emergência
+- [x] Permitir cadastrar passageiros e organizar anexos de voo e hospedagem por passageiro
+- [x] Adicionar alertas visuais na linha do tempo para compromissos próximos
+- [x] Validar tipos, alertas, capa, anexos por passageiro, PDF e testes dos novos recursos

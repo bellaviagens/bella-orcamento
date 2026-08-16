@@ -118,6 +118,12 @@ export interface FinalItineraryAttachment {
   url: string;
   contentType: string;
   size: number;
+  passengerId?: string;
+}
+
+export interface FinalItineraryPassenger {
+  id: string;
+  name: string;
 }
 
 export interface FinalItineraryEvent {
@@ -152,6 +158,9 @@ export interface FinalItinerary {
   enabled: boolean;
   title: string;
   introMessage: string;
+  essentialInfo?: string;
+  emergencyContacts?: string;
+  passengers?: FinalItineraryPassenger[];
   events: FinalItineraryEvent[];
 }
 
@@ -320,6 +329,9 @@ export const defaultBudgetData: BudgetData = {
     enabled: false,
     title: "Roteiro final da viagem",
     introMessage: "",
+    essentialInfo: "",
+    emergencyContacts: "",
+    passengers: [],
     events: [],
   },
   installments: {
