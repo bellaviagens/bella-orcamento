@@ -29,6 +29,13 @@
       "when": 1786886557363,
       "tag": "0003_equal_spectrum",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1786891657904,
+      "tag": "0004_bent_black_panther",
+      "breakpoints": true
     }
   ]
 }

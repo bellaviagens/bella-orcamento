@@ -3,7 +3,7 @@ import { invokeLLM } from "./_core/llm";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
-import { createSharedItinerary, duplicateTourProposal, getSharedItinerary, getTourProposal, listTourProposals, saveTourProposal, updateTourProposalStatus } from "./db";
+import { createSharedItinerary, duplicateTourProposal, getSharedItinerary, getTourProposal, listTourProposals, revokeSharedItinerary, saveTourProposal, updateTourProposalStatus } from "./db";
 import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
 import { lookup } from "node:dns/promises";
@@ -211,7 +211,7 @@ async function fetchWeatherForecast(input: z.infer<typeof weatherInputSchema>) {
 export const appRouter = router({
   sharedItineraries: router({
     create: protectedProcedure
-      .input(z.object({ snapshot: z.string().min(2).max(4_000_000) }))
+      .input(z.object({ snapshot: z.string().min(2).max(4_000_000), expiresAt: z.string().datetime().optional() }))
       .mutation(async ({ ctx, input }) => {
         try {
           JSON.parse(input.snapshot);
@@ -219,13 +219,25 @@ export const appRouter = router({
           throw new TRPCError({ code: "BAD_REQUEST", message: "O roteiro não pôde ser preparado para compartilhamento." });
         }
         const token = crypto.randomUUID().replace(/-/g, "");
-        return createSharedItinerary({ ownerOpenId: ctx.user.openId, token, snapshot: input.snapshot });
+        const expiresAt = input.expiresAt ? new Date(input.expiresAt) : null;
+        if (expiresAt && expiresAt.getTime() <= Date.now()) throw new TRPCError({ code: "BAD_REQUEST", message: "Escolha uma data de expiração futura para o link." });
+        const created = await createSharedItinerary({ ownerOpenId: ctx.user.openId, token, snapshot: input.snapshot, expiresAt });
+        return { ...created, expiresAt: created.expiresAt?.toISOString() ?? null };
+      }),
+    revoke: protectedProcedure
+      .input(z.object({ token: z.string().regex(/^[a-zA-Z0-9]{20,64}$/) }))
+      .mutation(async ({ ctx, input }) => {
+        const affected = await revokeSharedItinerary(ctx.user.openId, input.token);
+        if (!affected) throw new TRPCError({ code: "NOT_FOUND", message: "Este link não está disponível para revogação." });
+        return { revoked: true };
       }),
     get: publicProcedure
       .input(z.object({ token: z.string().regex(/^[a-zA-Z0-9]{20,64}$/) }))
       .query(async ({ input }) => {
         const shared = await getSharedItinerary(input.token);
         if (!shared) throw new TRPCError({ code: "NOT_FOUND", message: "Este link de roteiro não foi encontrado ou não está mais disponível." });
+        if (shared.revokedAt) throw new TRPCError({ code: "NOT_FOUND", message: "Este link de roteiro foi revogado pela consultora." });
+        if (shared.expiresAt && shared.expiresAt.getTime() <= Date.now()) throw new TRPCError({ code: "NOT_FOUND", message: "Este link de roteiro expirou. Peça à sua consultora um novo acesso." });
         return shared;
       }),
   }),

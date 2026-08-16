@@ -367,3 +367,9 @@
 - [x] Criar checklist de bagagem personalizado e marcável para cada passageiro
 - [x] Integrar previsão do tempo na capa usando destino e período da viagem
 - [x] Validar compartilhamento, checklist, previsão, PDF, tipos e testes dos novos recursos
+
+- [x] Deixar todos os cartões da Proposta de Passeios recolhidos por padrão
+- [x] Preservar as quebras de linha digitadas nas observações de parcelamento no preview e PDF
+- [x] Permitir definir data de expiração para o link compartilhado do Roteiro Final
+- [x] Permitir revogar manualmente o acesso de um link compartilhado
+- [x] Validar tipos, testes, linhas de observações e acesso expirado ou revogado

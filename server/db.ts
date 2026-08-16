@@ -1,4 +1,4 @@
-import { and, desc, eq, like, or } from "drizzle-orm";
+import { and, desc, eq, isNull, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, savedTourProposals, sharedItineraries, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -184,13 +184,13 @@ export async function updateTourProposalStatus(ownerOpenId: string, id: string, 
   return result[0]?.affectedRows ?? 0;
 }
 
-export async function createSharedItinerary(input: { ownerOpenId: string; token: string; snapshot: string }) {
+export async function createSharedItinerary(input: { ownerOpenId: string; token: string; snapshot: string; expiresAt?: Date | null }) {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível para compartilhar o roteiro.");
 
   const id = crypto.randomUUID();
   await db.insert(sharedItineraries).values({ ...input, id });
-  return { id, token: input.token };
+  return { id, token: input.token, expiresAt: input.expiresAt ?? null };
 }
 
 export async function getSharedItinerary(token: string) {
@@ -200,6 +200,18 @@ export async function getSharedItinerary(token: string) {
   const result = await db.select({
     snapshot: sharedItineraries.snapshot,
     updatedAt: sharedItineraries.updatedAt,
+    expiresAt: sharedItineraries.expiresAt,
+    revokedAt: sharedItineraries.revokedAt,
   }).from(sharedItineraries).where(eq(sharedItineraries.token, token)).limit(1);
   return result[0];
+}
+
+export async function revokeSharedItinerary(ownerOpenId: string, token: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para revogar o link compartilhado.");
+
+  const result = await db.update(sharedItineraries)
+    .set({ revokedAt: new Date(), updatedAt: new Date() })
+    .where(and(eq(sharedItineraries.ownerOpenId, ownerOpenId), eq(sharedItineraries.token, token), isNull(sharedItineraries.revokedAt)));
+  return result[0]?.affectedRows ?? 0;
 }

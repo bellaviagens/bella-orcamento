@@ -168,6 +168,7 @@ export interface FinalItinerary {
   essentialInfo?: string;
   emergencyContacts?: string;
   shareToken?: string;
+  shareExpiresAt?: string;
   passengers?: FinalItineraryPassenger[];
   events: FinalItineraryEvent[];
 }

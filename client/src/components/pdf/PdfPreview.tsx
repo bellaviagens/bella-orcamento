@@ -433,7 +433,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
 
       {installments?.observations && (
         <div className="px-4 pb-4">
-          <div data-pdf-keep-together="true" className="p-2 bg-amber-50 border border-amber-200 rounded text-xs text-slate-700">
+          <div data-pdf-keep-together="true" className="whitespace-pre-wrap p-2 bg-amber-50 border border-amber-200 rounded text-xs text-slate-700">
             {installments.observations}
           </div>
         </div>

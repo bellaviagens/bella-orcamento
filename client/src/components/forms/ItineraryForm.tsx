@@ -1,5 +1,5 @@
 import { useBudget } from "@/contexts/BudgetContext";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,10 @@ export function ItineraryForm() {
   const [quotationUrl, setQuotationUrl] = useState("");
   const [draggedDayId, setDraggedDayId] = useState<string | null>(null);
   const [dragOverDayId, setDragOverDayId] = useState<string | null>(null);
-  const [collapsedDayIds, setCollapsedDayIds] = useState<Set<string>>(new Set());
+  const knownDayIdsRef = useRef<Set<string>>(new Set(itinerary.map((day) => day.id)));
+  const [collapsedDayIds, setCollapsedDayIds] = useState<Set<string>>(
+    () => new Set(itinerary.map((day) => day.id)),
+  );
   const importQuotationMutation = trpc.importQuotationUrl.useMutation();
   const utils = trpc.useUtils();
   const saveProposalMutation = trpc.tourProposals.save.useMutation();
@@ -88,6 +91,8 @@ export function ItineraryForm() {
         throw new Error("O arquivo salvo desta proposta está inválido.");
       }
       replaceBudget(restored);
+      setCollapsedDayIds(new Set(restored.itinerary.map((day: { id: string }) => day.id)));
+      knownDayIdsRef.current = new Set(restored.itinerary.map((day: { id: string }) => day.id));
       toast.success(`Proposta de ${saved.clientName} carregada.`);
     } catch (error) {
       console.error("Load tour proposal error:", error);
@@ -96,6 +101,16 @@ export function ItineraryForm() {
       setSelectedProposalId(null);
     }
   }, [replaceBudget, selectedProposalId, selectedProposalQuery.data]);
+
+  useEffect(() => {
+    const addedDayIds = itinerary
+      .map((day) => day.id)
+      .filter((dayId) => !knownDayIdsRef.current.has(dayId));
+    if (addedDayIds.length === 0) return;
+
+    addedDayIds.forEach((dayId) => knownDayIdsRef.current.add(dayId));
+    setCollapsedDayIds((current) => new Set(Array.from(current).concat(addedDayIds)));
+  }, [itinerary]);
 
   const handleQuotationImport = async () => {
     const normalizedUrl = quotationUrl.trim();
@@ -141,6 +156,7 @@ export function ItineraryForm() {
     if (!window.confirm("Iniciar uma nova proposta? Os passeios, dias e dados da proposta atual serão limpos. O Roteiro Final e as propostas salvas permanecerão preservados.")) return;
     resetTourProposal();
     setCollapsedDayIds(new Set());
+    knownDayIdsRef.current = new Set();
     setQuotationUrl("");
     toast.success("Nova proposta iniciada. O Roteiro Final e as propostas salvas foram preservados.");
   };

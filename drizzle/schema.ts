@@ -44,6 +44,8 @@ export const sharedItineraries = mysqlTable("shared_itineraries", {
   ownerOpenId: varchar("ownerOpenId", { length: 64 }).notNull(),
   token: varchar("token", { length: 64 }).notNull().unique(),
   snapshot: text("snapshot").notNull(),
+  expiresAt: timestamp("expiresAt"),
+  revokedAt: timestamp("revokedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
