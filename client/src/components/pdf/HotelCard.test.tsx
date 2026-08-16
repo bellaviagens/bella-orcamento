@@ -267,7 +267,7 @@ describe("HotelCard — parcelamento conjunto", () => {
     expect(markup).toContain("1 entrada de R$ 1.000,00 + 10x de R$ 400,00");
   });
 
-  it("exibe pagamentos combinados sequenciais e seus saldos dentro do card", () => {
+  it("exibe alternativas de pagamento combinado sem saldo dentro do card", () => {
     const markup = renderToStaticMarkup(
       <HotelCard
         hotel={{ id: "hotel-steps", name: "Hotel Exemplo", stars: 4, address: "Endereço", description: "", rating: 0, ratingLabel: "", amenities: [], photoUrl: "", totalPrice: 3000, prices: {} }}
@@ -283,7 +283,8 @@ describe("HotelCard — parcelamento conjunto", () => {
     );
 
     expect(markup).toContain("Pagamento 1 • Cartão: 10x de R$ 400,00");
-    expect(markup).toContain("saldo: R$ 1.000,00");
+    expect(markup).toContain("total: R$ 4.000,00");
+    expect(markup).not.toContain("saldo:");
     expect(markup).toContain("Pagamento 2 • PIX: 1x de R$ 1.000,00");
   });
 });

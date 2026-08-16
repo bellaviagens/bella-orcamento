@@ -3,7 +3,7 @@ import { invokeLLM } from "./_core/llm";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
-import { createSharedItinerary, duplicateTourProposal, getBudgetDraft, getSharedItinerary, getTourProposal, listBudgetDrafts, listTourProposals, revokeSharedItinerary, saveBudgetDraft, saveTourProposal, updateTourProposalStatus } from "./db";
+import { createSharedItinerary, deleteBudgetDraft, duplicateTourProposal, getBudgetDraft, getSharedItinerary, getTourProposal, listBudgetDrafts, listTourProposals, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveTourProposal, updateTourProposalStatus } from "./db";
 import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
 import { lookup } from "node:dns/promises";
@@ -301,13 +301,29 @@ export const appRouter = router({
         const id = await saveBudgetDraft({ ...input, ownerOpenId: ctx.user.openId });
         return { id };
       }),
-    list: protectedProcedure.query(({ ctx }) => listBudgetDrafts(ctx.user.openId)),
+    list: protectedProcedure
+      .input(z.object({ search: z.string().trim().max(255).optional() }).optional())
+      .query(({ ctx, input }) => listBudgetDrafts(ctx.user.openId, input?.search)),
     get: protectedProcedure
       .input(z.object({ id: z.string().uuid() }))
       .query(async ({ ctx, input }) => {
         const draft = await getBudgetDraft(ctx.user.openId, input.id);
         if (!draft) throw new TRPCError({ code: "NOT_FOUND", message: "Rascunho não encontrado." });
         return draft;
+      }),
+    rename: protectedProcedure
+      .input(z.object({ id: z.string().uuid(), label: z.string().trim().min(1, "Informe um nome para o rascunho.").max(255) }))
+      .mutation(async ({ ctx, input }) => {
+        const updated = await renameBudgetDraft(ctx.user.openId, input.id, input.label);
+        if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Rascunho não encontrado." });
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .mutation(async ({ ctx, input }) => {
+        const removed = await deleteBudgetDraft(ctx.user.openId, input.id);
+        if (!removed) throw new TRPCError({ code: "NOT_FOUND", message: "Rascunho não encontrado." });
+        return { success: true };
       }),
   }),
   itineraryAttachments: router({

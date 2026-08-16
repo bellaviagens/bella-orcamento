@@ -434,7 +434,7 @@ export function InstallmentsForm() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <Label className="text-xs font-semibold text-[#1a2e4a]">Outras formas de pagamento</Label>
-                <p className="mt-1 text-[10px] text-slate-500">Adicione valores em sequência: o saldo de cada etapa é descontado antes da próxima.</p>
+                <p className="mt-1 text-[10px] text-slate-500">Cada pagamento é uma alternativa independente para o total de aéreo + hotel. Informe o valor e as condições que deseja apresentar.</p>
               </div>
               <Button
                 type="button"
@@ -493,9 +493,24 @@ export function InstallmentsForm() {
                           </select>
                         </div>
                       </div>
+                      {step.paymentMethod === "cartao" && (
+                        <div className="mt-2 max-w-36">
+                          <Label className="text-[10px] text-slate-500">Taxa do cartão (%)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={step.cardRate || ""}
+                            onChange={(event) => updateStep({ cardRate: Number(event.target.value) || 0 })}
+                            placeholder="Opcional"
+                            className="mt-1 h-8 text-xs"
+                          />
+                        </div>
+                      )}
                       {sampleStep && (
                         <p className="mt-2 text-[10px] text-slate-500">
-                          {sampleStep.installments}x de {formatCurrency(sampleStep.installmentValue)} • saldo após esta etapa: {formatCurrency(sampleStep.remainingBalance)}
+                          {sampleStep.installments}x de {formatCurrency(sampleStep.installmentValue)} • total desta condição: {formatCurrency(sampleStep.totalWithRate)}
+                          {(sampleStep.cardRate ?? 0) > 0 ? ` (taxa de ${(sampleStep.cardRate ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%)` : ""}
                         </p>
                       )}
                     </div>

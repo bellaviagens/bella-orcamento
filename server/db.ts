@@ -107,17 +107,44 @@ export async function saveBudgetDraft(input: { ownerOpenId: string; label: strin
   return id;
 }
 
-export async function listBudgetDrafts(ownerOpenId: string) {
+function getBudgetDraftMetadata(snapshot: string) {
+  try {
+    const data = JSON.parse(snapshot) as {
+      tripInfo?: { destination?: string };
+      tourProposal?: { clientName?: string };
+    };
+    return {
+      destination: data.tripInfo?.destination?.trim() || "",
+      clientName: data.tourProposal?.clientName?.trim() || "",
+    };
+  } catch {
+    return { destination: "", clientName: "" };
+  }
+}
+
+export async function listBudgetDrafts(ownerOpenId: string, search = "") {
   const db = await getDb();
   if (!db) return [];
 
-  return db.select({
+  const drafts = await db.select({
     id: savedBudgetDrafts.id,
     label: savedBudgetDrafts.label,
+    snapshot: savedBudgetDrafts.snapshot,
     updatedAt: savedBudgetDrafts.updatedAt,
   }).from(savedBudgetDrafts)
     .where(eq(savedBudgetDrafts.ownerOpenId, ownerOpenId))
     .orderBy(desc(savedBudgetDrafts.updatedAt));
+
+  const term = search.trim().toLocaleLowerCase("pt-BR");
+  return drafts
+    .map((draft) => ({
+      id: draft.id,
+      label: draft.label,
+      updatedAt: draft.updatedAt,
+      ...getBudgetDraftMetadata(draft.snapshot),
+    }))
+    .filter((draft) => !term || [draft.label, draft.destination, draft.clientName]
+      .some((value) => value.toLocaleLowerCase("pt-BR").includes(term)));
 }
 
 export async function getBudgetDraft(ownerOpenId: string, id: string) {
@@ -128,6 +155,25 @@ export async function getBudgetDraft(ownerOpenId: string, id: string) {
     .where(and(eq(savedBudgetDrafts.id, id), eq(savedBudgetDrafts.ownerOpenId, ownerOpenId)))
     .limit(1);
   return result[0];
+}
+
+export async function renameBudgetDraft(ownerOpenId: string, id: string, label: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para renomear o rascunho.");
+
+  const result = await db.update(savedBudgetDrafts)
+    .set({ label, updatedAt: new Date() })
+    .where(and(eq(savedBudgetDrafts.id, id), eq(savedBudgetDrafts.ownerOpenId, ownerOpenId)));
+  return (result[0]?.affectedRows ?? 0) > 0;
+}
+
+export async function deleteBudgetDraft(ownerOpenId: string, id: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para excluir o rascunho.");
+
+  const result = await db.delete(savedBudgetDrafts)
+    .where(and(eq(savedBudgetDrafts.id, id), eq(savedBudgetDrafts.ownerOpenId, ownerOpenId)));
+  return (result[0]?.affectedRows ?? 0) > 0;
 }
 
 export async function saveTourProposal(input: { ownerOpenId: string; clientName: string; proposalTitle: string; snapshot: string; status?: TourProposalStatus }) {

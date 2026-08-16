@@ -346,7 +346,7 @@ describe("parcelamento conjunto", () => {
     expect(basicComHotelA).not.toBe(plusComHotelB);
   });
 
-  it("distribui pagamentos combinados sequenciais e informa o saldo restante", () => {
+  it("calcula cada alternativa de pagamento combinado de forma independente", () => {
     const plan = calculateCombinedPaymentPlan(10000, [
       { id: "card", paymentMethod: "cartao", amount: 4000, installments: 10 },
       { id: "pix-now", paymentMethod: "pix", amount: 1000, installments: 1 },
@@ -354,14 +354,24 @@ describe("parcelamento conjunto", () => {
     ]);
 
     expect(plan.map((step) => step.installmentValue)).toEqual([400, 1000, 1000]);
-    expect(plan.map((step) => step.remainingBalance)).toEqual([6000, 5000, 2000]);
+    expect(plan.map((step) => step.remainingBalance)).toEqual([6000, 9000, 7000]);
   });
 
-  it("não permite que uma etapa ultrapasse o saldo da combinação", () => {
+  it("mantém uma alternativa acima do total como condição independente", () => {
     const plan = calculateCombinedPaymentPlan(3000, [
       { id: "pix", paymentMethod: "pix", amount: 5000, installments: 1 },
     ]);
 
-    expect(plan[0]).toMatchObject({ appliedAmount: 3000, remainingBalance: 0, installmentValue: 3000 });
+    expect(plan[0]).toMatchObject({ appliedAmount: 5000, remainingBalance: 0, installmentValue: 5000 });
+  });
+
+  it("aplica taxa somente em uma alternativa por cartão", () => {
+    const plan = calculateCombinedPaymentPlan(10000, [
+      { id: "card", paymentMethod: "cartao", amount: 4000, installments: 10, cardRate: 5 },
+      { id: "pix", paymentMethod: "pix", amount: 4000, installments: 10, cardRate: 5 },
+    ]);
+
+    expect(plan[0]).toMatchObject({ totalWithRate: 4200, installmentValue: 420, cardRate: 5 });
+    expect(plan[1]).toMatchObject({ totalWithRate: 4000, installmentValue: 400, cardRate: 0 });
   });
 });

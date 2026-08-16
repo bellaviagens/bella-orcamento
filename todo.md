@@ -384,3 +384,9 @@
 - [x] Exibir no preview/PDF cada etapa de pagamento combinado e o saldo remanescente correspondente
 - [x] Permitir salvar o orçamento atual como rascunho e retomá-lo posteriormente para editar hotéis, voos e demais informações
 - [x] Validar cálculos sequenciais, recuperação de rascunhos, tipos, testes e regressões
+
+- [x] Fazer cada Pagamento adicional funcionar como uma alternativa independente calculada sobre o total completo de Hotel + Aéreo
+- [x] Remover a exibição de saldo das alternativas adicionais no preview e PDF, mantendo apenas o total correspondente de cada alternativa
+- [x] Permitir taxa percentual opcional em alternativas de pagamento por Cartão, aplicando-a somente quando preenchida
+- [x] Criar interface de gestão de rascunhos com busca por destino ou cliente, renomeação e exclusão
+- [x] Validar alternativas de pagamento, taxa opcional, preview/PDF, gestão de rascunhos, tipos e regressões

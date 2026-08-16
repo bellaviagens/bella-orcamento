@@ -20,7 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff, CalendarDays, MapPinned, FolderOpen, Save } from "lucide-react";
+import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff, CalendarDays, MapPinned, FolderOpen, Save, Pencil, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 
@@ -37,12 +37,17 @@ function BuilderContent() {
   const [draftLabel, setDraftLabel] = useState("");
   const [currentDraftId, setCurrentDraftId] = useState<string | undefined>();
   const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
-  const draftsQuery = trpc.budgetDrafts.list.useQuery();
+  const [draftSearch, setDraftSearch] = useState("");
+  const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
+  const [editingDraftLabel, setEditingDraftLabel] = useState("");
+  const draftsQuery = trpc.budgetDrafts.list.useQuery({ search: draftSearch });
   const selectedDraftQuery = trpc.budgetDrafts.get.useQuery(
     { id: selectedDraftId || "00000000-0000-0000-0000-000000000000" },
     { enabled: Boolean(selectedDraftId) },
   );
   const saveDraftMutation = trpc.budgetDrafts.save.useMutation();
+  const renameDraftMutation = trpc.budgetDrafts.rename.useMutation();
+  const deleteDraftMutation = trpc.budgetDrafts.delete.useMutation();
   const showingItinerary = activeTab === "itinerary";
   const showingFinalItinerary = showingItinerary && itineraryMode === "final";
 
@@ -81,6 +86,36 @@ function BuilderContent() {
       toast.success("Orçamento salvo como rascunho.");
     } catch {
       toast.error("Não foi possível salvar o rascunho. Tente novamente.");
+    }
+  };
+
+  const renameDraft = async () => {
+    const label = editingDraftLabel.trim();
+    if (!editingDraftId || !label) {
+      toast.error("Informe um nome para o rascunho.");
+      return;
+    }
+    try {
+      await renameDraftMutation.mutateAsync({ id: editingDraftId, label });
+      if (currentDraftId === editingDraftId) setDraftLabel(label);
+      setEditingDraftId(null);
+      await utils.budgetDrafts.list.invalidate();
+      toast.success("Rascunho renomeado.");
+    } catch {
+      toast.error("Não foi possível renomear o rascunho.");
+    }
+  };
+
+  const deleteDraft = async (id: string, label: string) => {
+    if (!window.confirm(`Excluir o rascunho “${label}”? Esta ação não pode ser desfeita.`)) return;
+    try {
+      await deleteDraftMutation.mutateAsync({ id });
+      if (currentDraftId === id) setCurrentDraftId(undefined);
+      if (editingDraftId === id) setEditingDraftId(null);
+      await utils.budgetDrafts.list.invalidate();
+      toast.success("Rascunho excluído.");
+    } catch {
+      toast.error("Não foi possível excluir o rascunho.");
     }
   };
 
@@ -158,7 +193,7 @@ function BuilderContent() {
       </header>
 
       <Dialog open={draftDialogOpen} onOpenChange={setDraftDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-[#1a2e4a]">Rascunhos de orçamento</DialogTitle>
             <DialogDescription>Salve o trabalho atual e retome-o depois para editar voos, hotéis e todas as demais informações.</DialogDescription>
@@ -173,22 +208,48 @@ function BuilderContent() {
           </div>
           <div className="border-t border-slate-200 pt-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#1a2e4a]"><FolderOpen className="h-4 w-4" /> Rascunhos salvos</div>
+            <div className="relative mb-3">
+              <Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+              <Input
+                value={draftSearch}
+                onChange={(event) => setDraftSearch(event.target.value)}
+                placeholder="Buscar por cliente, destino ou nome"
+                className="h-9 pl-8 text-xs"
+              />
+            </div>
             {draftsQuery.isLoading ? (
               <p className="text-xs text-slate-500">Carregando rascunhos...</p>
             ) : draftsQuery.data?.length ? (
               <div className="max-h-48 space-y-2 overflow-y-auto pr-1">
                 {draftsQuery.data.map((draft) => (
-                  <button key={draft.id} type="button" onClick={() => setSelectedDraftId(draft.id)} className="flex w-full items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-2.5 text-left transition-colors hover:border-amber-300 hover:bg-amber-50">
-                    <span className="min-w-0">
-                      <span className="block truncate text-xs font-semibold text-[#1a2e4a]">{draft.label}</span>
+                  <div key={draft.id} className="flex w-full items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-2.5 text-left transition-colors hover:border-amber-300 hover:bg-amber-50">
+                    <div className="min-w-0 flex-1">
+                      {editingDraftId === draft.id ? (
+                        <Input value={editingDraftLabel} onChange={(event) => setEditingDraftLabel(event.target.value)} className="h-8 text-xs" autoFocus />
+                      ) : (
+                        <span className="block truncate text-xs font-semibold text-[#1a2e4a]">{draft.label}</span>
+                      )}
+                      <span className="mt-1 block text-[10px] text-slate-500">
+                        {[draft.clientName && `Cliente: ${draft.clientName}`, draft.destination && `Destino: ${draft.destination}`].filter(Boolean).join(" • ") || "Cliente e destino não informados"}
+                      </span>
                       <span className="block text-[10px] text-slate-500">Atualizado em {new Date(draft.updatedAt).toLocaleString("pt-BR")}</span>
-                    </span>
-                    <span className="shrink-0 text-[10px] font-semibold text-[#1a2e4a]">Abrir</span>
-                  </button>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      {editingDraftId === draft.id ? (
+                        <Button type="button" size="sm" className="h-7 bg-[#1a2e4a] px-2 text-[10px] text-white hover:bg-[#243c62]" onClick={renameDraft} disabled={renameDraftMutation.isPending}>Salvar</Button>
+                      ) : (
+                        <>
+                          <Button type="button" variant="outline" size="sm" className="h-7 px-2 text-[10px]" onClick={() => setSelectedDraftId(draft.id)}>Abrir</Button>
+                          <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-slate-500 hover:text-[#1a2e4a]" aria-label={`Renomear ${draft.label}`} onClick={() => { setEditingDraftId(draft.id); setEditingDraftLabel(draft.label); }}><Pencil className="h-3.5 w-3.5" /></Button>
+                        </>
+                      )}
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={`Excluir ${draft.label}`} onClick={() => deleteDraft(draft.id, draft.label)} disabled={deleteDraftMutation.isPending}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500">Nenhum rascunho salvo ainda.</p>
+              <p className="text-xs text-slate-500">{draftSearch ? "Nenhum rascunho encontrado." : "Nenhum rascunho salvo ainda."}</p>
             )}
           </div>
         </DialogContent>
