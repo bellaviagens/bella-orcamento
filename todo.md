@@ -390,3 +390,8 @@
 - [x] Permitir taxa percentual opcional em alternativas de pagamento por Cartão, aplicando-a somente quando preenchida
 - [x] Criar interface de gestão de rascunhos com busca por destino ou cliente, renomeação e exclusão
 - [x] Validar alternativas de pagamento, taxa opcional, preview/PDF, gestão de rascunhos, tipos e regressões
+
+- [x] Permitir que cada Pagamento seja uma condição independente contendo várias formas internas de pagamento
+- [x] Somar as formas internas e exibir o Total do Pagamento em cada condição, com taxa opcional somente em cartão
+- [x] Exibir no preview e PDF cada condição com suas formas internas e seu total, sem alterar as demais regras
+- [x] Validar somatórios internos, taxas, preview/PDF, tipos e regressões do orçamento

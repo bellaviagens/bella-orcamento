@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 import { defaultBudgetData, type BudgetData, type FinalItinerary, type FinalItineraryEvent, type FinalItineraryEventKind, type Flight, type Hotel, type FareTier, type ItineraryDay, type QuotationActivity, type Tour, type TourProposal } from "@shared/budgetTypes";
-import type { CombinedPaymentStep } from "@shared/combinedPaymentPlan";
+import type { CombinedPaymentCondition, CombinedPaymentStep } from "@shared/combinedPaymentPlan";
 import { reconcileFareBenefits } from "@shared/fareBenefits";
 import { nanoid } from "nanoid";
 
@@ -40,7 +40,7 @@ interface BudgetContextType {
   updateFareTier: (id: string, tier: Partial<FareTier>) => void;
   removeFareTier: (id: string) => void;
   updateBaggage: (index: number, field: string, value: string | number) => void;
-  updateInstallments: (field: "flight" | "hotel" | "combined" | "combinedInstallments" | "combinedPaymentSteps" | "hotelDownpayment" | "hotelDownpaymentAmount" | "flightDownpayment" | "flightDownpaymentAmount" | "combinedDownpayment" | "combinedDownpaymentAmount" | "observations" | "flightCashPrice" | "flightCashPaymentMethods" | "flightMachineRate" | "flightInstallmentsWithRate" | "showCashOption", value: number | boolean | string | string[] | CombinedPaymentStep[] | undefined) => void;
+  updateInstallments: (field: "flight" | "hotel" | "combined" | "combinedInstallments" | "combinedPaymentSteps" | "hotelDownpayment" | "hotelDownpaymentAmount" | "flightDownpayment" | "flightDownpaymentAmount" | "combinedDownpayment" | "combinedDownpaymentAmount" | "observations" | "flightCashPrice" | "flightCashPaymentMethods" | "flightMachineRate" | "flightInstallmentsWithRate" | "showCashOption", value: number | boolean | string | string[] | Array<CombinedPaymentCondition | CombinedPaymentStep> | undefined) => void;
   updatePaymentMethods: (methods: string[]) => void;
   updateHotelPaymentMethods: (methods: string[]) => void;
   updatePageBreaks: (field: "flights" | "hotels" | "baggage" | "payment", value: boolean) => void;
@@ -549,7 +549,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const updateInstallments = useCallback((field: "flight" | "hotel" | "combined" | "combinedInstallments" | "combinedPaymentSteps" | "hotelDownpayment" | "hotelDownpaymentAmount" | "flightDownpayment" | "flightDownpaymentAmount" | "combinedDownpayment" | "combinedDownpaymentAmount" | "observations" | "flightCashPrice" | "flightCashPaymentMethods" | "flightMachineRate" | "flightInstallmentsWithRate" | "showCashOption", value: number | boolean | string | string[] | CombinedPaymentStep[] | undefined) => {
+  const updateInstallments = useCallback((field: "flight" | "hotel" | "combined" | "combinedInstallments" | "combinedPaymentSteps" | "hotelDownpayment" | "hotelDownpaymentAmount" | "flightDownpayment" | "flightDownpaymentAmount" | "combinedDownpayment" | "combinedDownpaymentAmount" | "observations" | "flightCashPrice" | "flightCashPaymentMethods" | "flightMachineRate" | "flightInstallmentsWithRate" | "showCashOption", value: number | boolean | string | string[] | Array<CombinedPaymentCondition | CombinedPaymentStep> | undefined) => {
     setBudget((prev) => ({
       ...prev,
       installments: {

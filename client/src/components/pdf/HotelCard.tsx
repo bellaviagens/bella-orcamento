@@ -2,7 +2,7 @@ import { Star, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Hotel, FareTier } from "@shared/budgetTypes";
 import { calculateEffectiveHotelTotal, calculateInstallmentWithDownpayment } from "@shared/paymentCalculations";
-import { calculateCombinedPaymentPlan, type CombinedPaymentStep } from "@shared/combinedPaymentPlan";
+import { calculateCombinedPaymentPlan, type CombinedPaymentCondition, type CombinedPaymentStep } from "@shared/combinedPaymentPlan";
 import { normalizeExternalUrl } from "@shared/pdfExternalLink";
 import { trpc } from "@/lib/trpc";
 
@@ -25,7 +25,7 @@ interface HotelCardProps {
   flightDownpaymentAmount?: number;
   flightMachineRate?: number;
   combinedInstallments?: number;
-  combinedPaymentSteps?: CombinedPaymentStep[];
+  combinedPaymentSteps?: Array<CombinedPaymentCondition | CombinedPaymentStep>;
   combinedDownpayment?: boolean;
   combinedDownpaymentAmount?: number;
   showCashOption?: boolean;
@@ -343,10 +343,16 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                                   const methodLabel = { cartao: "Cartão", pix: "PIX", dinheiro: "Dinheiro" } as const;
                                   return (
                                     <div className="space-y-0.5">
-                                      {paymentPlan.map((step, stepIndex) => (
-                                        <div key={step.id}>
-                                          <span>{`Pagamento ${stepIndex + 1} • ${methodLabel[step.paymentMethod]}: ${step.installments}x de ${formatCurrency(step.installmentValue)} • total: ${formatCurrency(step.totalWithRate)}`}</span>
-                                          {(step.cardRate ?? 0) > 0 && <span className="ml-1 font-normal text-slate-500">• taxa: {step.cardRate!.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%</span>}
+                                      {paymentPlan.map((condition, conditionIndex) => (
+                                        <div key={condition.id}>
+                                          <div className="font-semibold">Pagamento {conditionIndex + 1}</div>
+                                          {condition.steps.map((step) => (
+                                            <div key={step.id} className="ml-1 font-normal">
+                                              <span>{`${methodLabel[step.paymentMethod]}: ${step.installments}x de ${formatCurrency(step.installmentValue)}`}</span>
+                                              {(step.cardRate ?? 0) > 0 && <span className="ml-1 text-slate-500">• taxa: {step.cardRate!.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%</span>}
+                                            </div>
+                                          ))}
+                                          <div>Total Pagamento {conditionIndex + 1}: {formatCurrency(condition.total)}</div>
                                         </div>
                                       ))}
                                     </div>

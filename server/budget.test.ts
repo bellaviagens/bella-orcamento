@@ -346,32 +346,49 @@ describe("parcelamento conjunto", () => {
     expect(basicComHotelA).not.toBe(plusComHotelB);
   });
 
-  it("calcula cada alternativa de pagamento combinado de forma independente", () => {
+  it("soma formas internas em cada condição de pagamento combinado", () => {
     const plan = calculateCombinedPaymentPlan(10000, [
-      { id: "card", paymentMethod: "cartao", amount: 4000, installments: 10 },
-      { id: "pix-now", paymentMethod: "pix", amount: 1000, installments: 1 },
-      { id: "pix-later", paymentMethod: "pix", amount: 3000, installments: 3 },
+      {
+        id: "condition-1",
+        steps: [
+          { id: "card", paymentMethod: "cartao", amount: 4000, installments: 10 },
+          { id: "pix-now", paymentMethod: "pix", amount: 1000, installments: 1 },
+          { id: "pix-later", paymentMethod: "pix", amount: 3000, installments: 3 },
+        ],
+      },
+      {
+        id: "condition-2",
+        steps: [{ id: "card-rate", paymentMethod: "cartao", amount: 10000, installments: 10, cardRate: 10 }],
+      },
     ]);
 
-    expect(plan.map((step) => step.installmentValue)).toEqual([400, 1000, 1000]);
-    expect(plan.map((step) => step.remainingBalance)).toEqual([6000, 9000, 7000]);
+    expect(plan[0].steps.map((step) => step.installmentValue)).toEqual([400, 1000, 1000]);
+    expect(plan[0].total).toBe(8000);
+    expect(plan[1].total).toBe(11000);
   });
 
-  it("mantém uma alternativa acima do total como condição independente", () => {
+  it("mantém uma condição acima do total de referência como alternativa independente", () => {
     const plan = calculateCombinedPaymentPlan(3000, [
-      { id: "pix", paymentMethod: "pix", amount: 5000, installments: 1 },
+      { id: "condition", steps: [{ id: "pix", paymentMethod: "pix", amount: 5000, installments: 1 }] },
     ]);
 
-    expect(plan[0]).toMatchObject({ appliedAmount: 5000, remainingBalance: 0, installmentValue: 5000 });
+    expect(plan[0]).toMatchObject({ total: 5000 });
+    expect(plan[0].steps[0]).toMatchObject({ installmentValue: 5000 });
   });
 
-  it("aplica taxa somente em uma alternativa por cartão", () => {
+  it("aplica taxa somente ao cartão dentro de uma condição", () => {
     const plan = calculateCombinedPaymentPlan(10000, [
-      { id: "card", paymentMethod: "cartao", amount: 4000, installments: 10, cardRate: 5 },
-      { id: "pix", paymentMethod: "pix", amount: 4000, installments: 10, cardRate: 5 },
+      {
+        id: "condition",
+        steps: [
+          { id: "card", paymentMethod: "cartao", amount: 4000, installments: 10, cardRate: 5 },
+          { id: "pix", paymentMethod: "pix", amount: 4000, installments: 10, cardRate: 5 },
+        ],
+      },
     ]);
 
-    expect(plan[0]).toMatchObject({ totalWithRate: 4200, installmentValue: 420, cardRate: 5 });
-    expect(plan[1]).toMatchObject({ totalWithRate: 4000, installmentValue: 400, cardRate: 0 });
+    expect(plan[0].steps[0]).toMatchObject({ totalWithRate: 4200, installmentValue: 420, cardRate: 5 });
+    expect(plan[0].steps[1]).toMatchObject({ totalWithRate: 4000, installmentValue: 400, cardRate: 0 });
+    expect(plan[0].total).toBe(8200);
   });
 });
