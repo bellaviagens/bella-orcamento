@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BudgetProvider, useBudget } from "@/contexts/BudgetContext";
 import { TripInfoForm } from "@/components/forms/TripInfoForm";
 import { FlightForm } from "@/components/forms/FlightForm";
@@ -14,23 +14,75 @@ import { ItineraryPreview } from "@/components/itinerary/ItineraryPreview";
 import { FinalItineraryPreview } from "@/components/itinerary/FinalItineraryPreview";
 import { usePdfGenerator } from "@/hooks/usePdfGenerator";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff, CalendarDays, MapPinned } from "lucide-react";
+import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff, CalendarDays, MapPinned, FolderOpen, Save } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 function BuilderContent() {
-  const { budget } = useBudget();
+  const { budget, replaceBudget } = useBudget();
   const { generatePdf } = usePdfGenerator();
+  const utils = trpc.useUtils();
   const [showPreview, setShowPreview] = useState(true);
   const [includeAirfare, setIncludeAirfare] = useState(true);
   const [includeHotel, setIncludeHotel] = useState(true);
   const [activeTab, setActiveTab] = useState("trip");
   const [itineraryMode, setItineraryMode] = useState<"proposal" | "final">("proposal");
+  const [draftDialogOpen, setDraftDialogOpen] = useState(false);
+  const [draftLabel, setDraftLabel] = useState("");
+  const [currentDraftId, setCurrentDraftId] = useState<string | undefined>();
+  const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
+  const draftsQuery = trpc.budgetDrafts.list.useQuery();
+  const selectedDraftQuery = trpc.budgetDrafts.get.useQuery(
+    { id: selectedDraftId || "00000000-0000-0000-0000-000000000000" },
+    { enabled: Boolean(selectedDraftId) },
+  );
+  const saveDraftMutation = trpc.budgetDrafts.save.useMutation();
   const showingItinerary = activeTab === "itinerary";
   const showingFinalItinerary = showingItinerary && itineraryMode === "final";
+
+  useEffect(() => {
+    if (!selectedDraftId || !selectedDraftQuery.data) return;
+    try {
+      replaceBudget(JSON.parse(selectedDraftQuery.data.snapshot));
+      setCurrentDraftId(selectedDraftQuery.data.id);
+      setDraftLabel(selectedDraftQuery.data.label);
+      setSelectedDraftId(null);
+      setDraftDialogOpen(false);
+      toast.success("Rascunho aberto. Você pode continuar editando hotéis, voos e demais dados.");
+    } catch {
+      toast.error("Não foi possível abrir este rascunho.");
+      setSelectedDraftId(null);
+    }
+  }, [replaceBudget, selectedDraftId, selectedDraftQuery.data]);
+
+  const openDrafts = () => {
+    if (!draftLabel.trim()) {
+      setDraftLabel(budget.tripInfo.destination ? `Orçamento — ${budget.tripInfo.destination}` : "Orçamento em rascunho");
+    }
+    setDraftDialogOpen(true);
+  };
+
+  const saveDraft = async () => {
+    const label = draftLabel.trim();
+    if (!label) {
+      toast.error("Informe um nome para o rascunho.");
+      return;
+    }
+    try {
+      const result = await saveDraftMutation.mutateAsync({ id: currentDraftId, label, snapshot: JSON.stringify(budget) });
+      setCurrentDraftId(result.id);
+      await utils.budgetDrafts.list.invalidate();
+      toast.success("Orçamento salvo como rascunho.");
+    } catch {
+      toast.error("Não foi possível salvar o rascunho. Tente novamente.");
+    }
+  };
 
   return (
     <div className="h-screen flex flex-col bg-slate-50">
@@ -45,6 +97,15 @@ function BuilderContent() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={openDrafts}
+            className="text-white hover:bg-white/10"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Rascunho
+          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -95,6 +156,43 @@ function BuilderContent() {
           </div>
         </div>
       </header>
+
+      <Dialog open={draftDialogOpen} onOpenChange={setDraftDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[#1a2e4a]">Rascunhos de orçamento</DialogTitle>
+            <DialogDescription>Salve o trabalho atual e retome-o depois para editar voos, hotéis e todas as demais informações.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="draft-label" className="text-xs font-semibold text-slate-600">Nome do rascunho</Label>
+            <Input id="draft-label" value={draftLabel} onChange={(event) => setDraftLabel(event.target.value)} placeholder="Ex.: Orçamento — Santiago" />
+            <Button type="button" className="w-full bg-[#1a2e4a] text-white hover:bg-[#243c62]" onClick={saveDraft} disabled={saveDraftMutation.isPending}>
+              <Save className="mr-2 h-4 w-4" />
+              {saveDraftMutation.isPending ? "Salvando..." : "Salvar rascunho atual"}
+            </Button>
+          </div>
+          <div className="border-t border-slate-200 pt-4">
+            <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#1a2e4a]"><FolderOpen className="h-4 w-4" /> Rascunhos salvos</div>
+            {draftsQuery.isLoading ? (
+              <p className="text-xs text-slate-500">Carregando rascunhos...</p>
+            ) : draftsQuery.data?.length ? (
+              <div className="max-h-48 space-y-2 overflow-y-auto pr-1">
+                {draftsQuery.data.map((draft) => (
+                  <button key={draft.id} type="button" onClick={() => setSelectedDraftId(draft.id)} className="flex w-full items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-2.5 text-left transition-colors hover:border-amber-300 hover:bg-amber-50">
+                    <span className="min-w-0">
+                      <span className="block truncate text-xs font-semibold text-[#1a2e4a]">{draft.label}</span>
+                      <span className="block text-[10px] text-slate-500">Atualizado em {new Date(draft.updatedAt).toLocaleString("pt-BR")}</span>
+                    </span>
+                    <span className="shrink-0 text-[10px] font-semibold text-[#1a2e4a]">Abrir</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500">Nenhum rascunho salvo ainda.</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">

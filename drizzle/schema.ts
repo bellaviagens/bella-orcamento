@@ -39,6 +39,18 @@ export const savedTourProposals = mysqlTable("saved_tour_proposals", {
 export type SavedTourProposal = typeof savedTourProposals.$inferSelect;
 export type InsertSavedTourProposal = typeof savedTourProposals.$inferInsert;
 
+export const savedBudgetDrafts = mysqlTable("saved_budget_drafts", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  ownerOpenId: varchar("ownerOpenId", { length: 64 }).notNull(),
+  label: varchar("label", { length: 255 }).notNull(),
+  snapshot: text("snapshot").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SavedBudgetDraft = typeof savedBudgetDrafts.$inferSelect;
+export type InsertSavedBudgetDraft = typeof savedBudgetDrafts.$inferInsert;
+
 export const sharedItineraries = mysqlTable("shared_itineraries", {
   id: varchar("id", { length: 36 }).primaryKey(),
   ownerOpenId: varchar("ownerOpenId", { length: 64 }).notNull(),

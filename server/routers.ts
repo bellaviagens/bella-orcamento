@@ -3,7 +3,7 @@ import { invokeLLM } from "./_core/llm";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
-import { createSharedItinerary, duplicateTourProposal, getSharedItinerary, getTourProposal, listTourProposals, revokeSharedItinerary, saveTourProposal, updateTourProposalStatus } from "./db";
+import { createSharedItinerary, duplicateTourProposal, getBudgetDraft, getSharedItinerary, getTourProposal, listBudgetDrafts, listTourProposals, revokeSharedItinerary, saveBudgetDraft, saveTourProposal, updateTourProposalStatus } from "./db";
 import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
 import { lookup } from "node:dns/promises";
@@ -283,6 +283,31 @@ export const appRouter = router({
         const updated = await updateTourProposalStatus(ctx.user.openId, input.id, input.status);
         if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Proposta não encontrada." });
         return { success: true };
+    }),
+  }),
+  budgetDrafts: router({
+    save: protectedProcedure
+      .input(z.object({
+        id: z.string().uuid().optional(),
+        label: z.string().trim().min(1, "Informe um nome para o rascunho.").max(255),
+        snapshot: z.string().min(2).max(4_000_000),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          JSON.parse(input.snapshot);
+        } catch {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "O orçamento não pôde ser preparado para salvar." });
+        }
+        const id = await saveBudgetDraft({ ...input, ownerOpenId: ctx.user.openId });
+        return { id };
+      }),
+    list: protectedProcedure.query(({ ctx }) => listBudgetDrafts(ctx.user.openId)),
+    get: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .query(async ({ ctx, input }) => {
+        const draft = await getBudgetDraft(ctx.user.openId, input.id);
+        if (!draft) throw new TRPCError({ code: "NOT_FOUND", message: "Rascunho não encontrado." });
+        return draft;
       }),
   }),
   itineraryAttachments: router({

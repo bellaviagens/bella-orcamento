@@ -379,3 +379,8 @@
 - [x] Manter a tarja institucional no rodapé da última página do PDF
 - [x] Criar espaço superior suficiente para evitar cortes de título e hotel no início de páginas novas
 - [x] Validar cálculos combinados, paginação, PDF, tipos e testes dos ajustes
+
+- [x] Permitir dividir o pagamento combinado Hotel + Aéreo em múltiplas etapas sequenciais, com forma de pagamento e parcelas próprias por etapa
+- [x] Exibir no preview/PDF cada etapa de pagamento combinado e o saldo remanescente correspondente
+- [x] Permitir salvar o orçamento atual como rascunho e retomá-lo posteriormente para editar hotéis, voos e demais informações
+- [x] Validar cálculos sequenciais, recuperação de rascunhos, tipos, testes e regressões

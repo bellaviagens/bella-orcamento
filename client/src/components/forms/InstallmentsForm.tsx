@@ -2,7 +2,10 @@ import { useBudget } from "@/contexts/BudgetContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { calculateCombinedTotal, calculateEffectiveHotelTotal } from "@shared/paymentCalculations";
+import { calculateCombinedPaymentPlan, type CombinedPaymentMethod, type CombinedPaymentStep } from "@shared/combinedPaymentPlan";
+import { Plus, Trash2 } from "lucide-react";
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("pt-BR", {
@@ -26,6 +29,8 @@ export function InstallmentsForm() {
   const hotelInstallments = installments?.hotel || 1;
   const combinedInstallments = installments?.combinedInstallments ?? flightInstallments;
   const combinedDownpaymentAmount = installments?.combinedDownpaymentAmount ?? 0;
+  const combinedPaymentSteps = installments?.combinedPaymentSteps ?? [];
+  const hasCombinedPaymentSteps = combinedPaymentSteps.length > 0;
   const combinedOptions = budget.fareComparison.tiers.flatMap((tier) =>
     budget.hotels.map((hotel) => ({
       id: `${tier.id}-${hotel.id}`,
@@ -386,13 +391,13 @@ export function InstallmentsForm() {
             />
           </div>
         )}
-        {installments?.combined && combinedOptions.map((option) => (
+        {installments?.combined && !hasCombinedPaymentSteps && combinedOptions.map((option) => (
           <p key={option.id} className="text-[10px] text-[#1a2e4a] font-semibold mt-2 ml-6">
             {combinedOptions.length > 1 ? `${option.label}: ` : ""}
             {combinedInstallments}x de {formatCurrency(option.total / combinedInstallments)}
           </p>
         ))}
-        {installments?.combined && (
+        {installments?.combined && !hasCombinedPaymentSteps && (
           <div className="mt-3">
             <div className="flex items-center gap-2">
               <Checkbox
@@ -420,6 +425,82 @@ export function InstallmentsForm() {
                     Entrada: {formatCurrency(combinedDownpaymentAmount)} + {combinedInstallments}x de {formatCurrency((option.total - combinedDownpaymentAmount) / combinedInstallments)}
                   </p>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+        {installments?.combined && (
+          <div className="mt-4 ml-6 max-w-md border-t border-slate-200 pt-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <Label className="text-xs font-semibold text-[#1a2e4a]">Outras formas de pagamento</Label>
+                <p className="mt-1 text-[10px] text-slate-500">Adicione valores em sequência: o saldo de cada etapa é descontado antes da próxima.</p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 shrink-0 border-slate-300 bg-white text-xs text-[#1a2e4a]"
+                onClick={() => updateInstallments("combinedPaymentSteps", [
+                  ...combinedPaymentSteps,
+                  { id: `combined-${Date.now()}-${combinedPaymentSteps.length}`, amount: 0, installments: 1, paymentMethod: "cartao" },
+                ])}
+              >
+                <Plus className="mr-1 h-3.5 w-3.5" /> Adicionar
+              </Button>
+            </div>
+
+            {hasCombinedPaymentSteps && (
+              <div className="mt-3 space-y-2">
+                {combinedPaymentSteps.map((step, index) => {
+                  const updateStep = (patch: Partial<CombinedPaymentStep>) => updateInstallments(
+                    "combinedPaymentSteps",
+                    combinedPaymentSteps.map((current) => current.id === step.id ? { ...current, ...patch } : current),
+                  );
+                  const samplePlan = calculateCombinedPaymentPlan(combinedOptions[0]?.total ?? 0, combinedPaymentSteps);
+                  const sampleStep = samplePlan.find((current) => current.id === step.id);
+
+                  return (
+                    <div key={step.id} className="rounded-md border border-slate-200 bg-slate-50 p-2.5">
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <span className="text-[11px] font-semibold text-[#1a2e4a]">Pagamento {index + 1}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                          aria-label={`Remover pagamento ${index + 1}`}
+                          onClick={() => updateInstallments("combinedPaymentSteps", combinedPaymentSteps.filter((current) => current.id !== step.id))}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-[1.2fr_0.8fr_0.8fr] gap-2">
+                        <div>
+                          <Label className="text-[10px] text-slate-500">Valor (R$)</Label>
+                          <Input type="number" min="0" step="0.01" value={step.amount || ""} onChange={(event) => updateStep({ amount: Number(event.target.value) || 0 })} className="mt-1 h-8 text-xs" placeholder="Ex: 4000" />
+                        </div>
+                        <div>
+                          <Label className="text-[10px] text-slate-500">Parcelas</Label>
+                          <Input type="number" min="1" value={step.installments || ""} onChange={(event) => updateStep({ installments: Math.max(1, Number(event.target.value) || 1) })} className="mt-1 h-8 text-xs" />
+                        </div>
+                        <div>
+                          <Label className="text-[10px] text-slate-500">Forma</Label>
+                          <select value={step.paymentMethod} onChange={(event) => updateStep({ paymentMethod: event.target.value as CombinedPaymentMethod })} className="mt-1 h-8 w-full rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700">
+                            <option value="cartao">Cartão</option>
+                            <option value="pix">PIX</option>
+                            <option value="dinheiro">Dinheiro</option>
+                          </select>
+                        </div>
+                      </div>
+                      {sampleStep && (
+                        <p className="mt-2 text-[10px] text-slate-500">
+                          {sampleStep.installments}x de {formatCurrency(sampleStep.installmentValue)} • saldo após esta etapa: {formatCurrency(sampleStep.remainingBalance)}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

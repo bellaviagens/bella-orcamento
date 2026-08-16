@@ -2,6 +2,7 @@ import { Star, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Hotel, FareTier } from "@shared/budgetTypes";
 import { calculateEffectiveHotelTotal, calculateInstallmentWithDownpayment } from "@shared/paymentCalculations";
+import { calculateCombinedPaymentPlan, type CombinedPaymentStep } from "@shared/combinedPaymentPlan";
 import { normalizeExternalUrl } from "@shared/pdfExternalLink";
 import { trpc } from "@/lib/trpc";
 
@@ -24,6 +25,7 @@ interface HotelCardProps {
   flightDownpaymentAmount?: number;
   flightMachineRate?: number;
   combinedInstallments?: number;
+  combinedPaymentSteps?: CombinedPaymentStep[];
   combinedDownpayment?: boolean;
   combinedDownpaymentAmount?: number;
   showCashOption?: boolean;
@@ -115,7 +117,7 @@ function getBenefitIcon(benefit: string): string {
   return "🧳";
 }
 
-export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, includeHotel = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "", hotelInstallments = 1, hotelDownpayment = false, hotelDownpaymentAmount = 0, flightInstallments = 1, flightDownpayment = false, flightDownpaymentAmount = 0, flightMachineRate, combinedInstallments = 1, combinedDownpayment = false, combinedDownpaymentAmount = 0, showCashOption = false, cashValue = 0, cashPaymentMethods = [], observations = "" }: HotelCardProps) {
+export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = true, includeHotel = true, hotelPaymentMethods = [], flightPaymentMethods = [], combined = false, hotelObservation = "", hotelInstallments = 1, hotelDownpayment = false, hotelDownpaymentAmount = 0, flightInstallments = 1, flightDownpayment = false, flightDownpaymentAmount = 0, flightMachineRate, combinedInstallments = 1, combinedPaymentSteps = [], combinedDownpayment = false, combinedDownpaymentAmount = 0, showCashOption = false, cashValue = 0, cashPaymentMethods = [], observations = "" }: HotelCardProps) {
   const [proxiedPhotoUrl, setProxiedPhotoUrl] = useState<string | null>(hotel.photoUrl || null);
   const hotelExternalUrl = hotel.hotelUrl ? normalizeExternalUrl(hotel.hotelUrl) : "";
   const imageProxyQuery = trpc.imageProxy.useQuery(
@@ -336,6 +338,20 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                                 const flightTotalWithRate = flightMachineRate !== undefined
                                   ? (tier.flightPrice * passengers) * (1 + flightMachineRate / 100)
                                   : tier.flightPrice * passengers;
+                                const paymentPlan = calculateCombinedPaymentPlan(flightTotalWithRate + effectiveTotalPrice, combinedPaymentSteps);
+                                if (paymentPlan.length > 0) {
+                                  const methodLabel = { cartao: "Cartão", pix: "PIX", dinheiro: "Dinheiro" } as const;
+                                  return (
+                                    <div className="space-y-0.5">
+                                      {paymentPlan.map((step, stepIndex) => (
+                                        <div key={step.id}>
+                                          <span>{`Pagamento ${stepIndex + 1} • ${methodLabel[step.paymentMethod]}: ${step.installments}x de ${formatCurrency(step.installmentValue)}`}</span>
+                                          {step.remainingBalance > 0 && <span className="ml-1 font-normal text-slate-500">• saldo: {formatCurrency(step.remainingBalance)}</span>}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  );
+                                }
                                 const combinedEntryAmount = flightDownpayment
                                   ? flightDownpaymentAmount
                                   : combinedDownpayment

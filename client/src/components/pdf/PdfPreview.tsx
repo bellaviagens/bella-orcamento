@@ -383,6 +383,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                 flightDownpaymentAmount={installments?.flightDownpaymentAmount}
                 flightMachineRate={installments?.flightMachineRate}
                 combinedInstallments={combinedInstallments}
+                combinedPaymentSteps={installments?.combinedPaymentSteps}
                 combinedDownpayment={combinedDownpayment}
                 combinedDownpaymentAmount={combinedDownpaymentAmount}
                 showCashOption={installments?.showCashOption}
@@ -416,6 +417,7 @@ export function PdfPreview({ data, includeAirfare = true, includeHotel = true }:
                       flightDownpaymentAmount={installments?.flightDownpaymentAmount}
                       flightMachineRate={installments?.flightMachineRate}
                       combinedInstallments={combinedInstallments}
+                      combinedPaymentSteps={installments?.combinedPaymentSteps}
                       combinedDownpayment={combinedDownpayment}
                       combinedDownpaymentAmount={combinedDownpaymentAmount}
                       showCashOption={installments?.showCashOption}

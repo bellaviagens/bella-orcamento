@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import { calculateCombinedInstallmentValue, calculateCombinedTotal, calculateEffectiveHotelTotal } from "../shared/paymentCalculations";
+import { calculateCombinedPaymentPlan } from "../shared/combinedPaymentPlan";
 import { calculateTourProposalInstallment, calculateTourTotal, getTourTravelerCount } from "../shared/tourPricing";
 import { addFinalItineraryEventToBudget, addFlightToFinalItineraryInBudget, addHotelToFinalItineraryInBudget, duplicateHotelInBudget, duplicateTourInBudget, importQuotationActivitiesIntoBudget, reorderHotelsInBudget, reorderItineraryDaysInBudget, reorderToursInBudget, resetTourProposalInBudget } from "../client/src/contexts/BudgetContext";
 
@@ -343,5 +344,24 @@ describe("parcelamento conjunto", () => {
     expect(basicComHotelA).toBe(5000);
     expect(plusComHotelB).toBe(7500);
     expect(basicComHotelA).not.toBe(plusComHotelB);
+  });
+
+  it("distribui pagamentos combinados sequenciais e informa o saldo restante", () => {
+    const plan = calculateCombinedPaymentPlan(10000, [
+      { id: "card", paymentMethod: "cartao", amount: 4000, installments: 10 },
+      { id: "pix-now", paymentMethod: "pix", amount: 1000, installments: 1 },
+      { id: "pix-later", paymentMethod: "pix", amount: 3000, installments: 3 },
+    ]);
+
+    expect(plan.map((step) => step.installmentValue)).toEqual([400, 1000, 1000]);
+    expect(plan.map((step) => step.remainingBalance)).toEqual([6000, 5000, 2000]);
+  });
+
+  it("não permite que uma etapa ultrapasse o saldo da combinação", () => {
+    const plan = calculateCombinedPaymentPlan(3000, [
+      { id: "pix", paymentMethod: "pix", amount: 5000, installments: 1 },
+    ]);
+
+    expect(plan[0]).toMatchObject({ appliedAmount: 3000, remainingBalance: 0, installmentValue: 3000 });
   });
 });

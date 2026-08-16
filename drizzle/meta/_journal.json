@@ -36,6 +36,13 @@
       "when": 1786891657904,
       "tag": "0004_bent_black_panther",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1786898695506,
+      "tag": "0005_superb_blade",
+      "breakpoints": true
     }
   ]
 }

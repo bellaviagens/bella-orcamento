@@ -1,6 +1,6 @@
 import { and, desc, eq, isNull, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, savedTourProposals, sharedItineraries, users } from "../drizzle/schema";
+import { InsertUser, savedBudgetDrafts, savedTourProposals, sharedItineraries, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -90,6 +90,45 @@ export async function getUserByOpenId(openId: string) {
 }
 
 type TourProposalStatus = "pending" | "sent" | "approved";
+
+export async function saveBudgetDraft(input: { ownerOpenId: string; label: string; snapshot: string; id?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para salvar o rascunho.");
+
+  if (input.id) {
+    const result = await db.update(savedBudgetDrafts)
+      .set({ label: input.label, snapshot: input.snapshot, updatedAt: new Date() })
+      .where(and(eq(savedBudgetDrafts.id, input.id), eq(savedBudgetDrafts.ownerOpenId, input.ownerOpenId)));
+    if ((result[0]?.affectedRows ?? 0) > 0) return input.id;
+  }
+
+  const id = crypto.randomUUID();
+  await db.insert(savedBudgetDrafts).values({ id, ownerOpenId: input.ownerOpenId, label: input.label, snapshot: input.snapshot });
+  return id;
+}
+
+export async function listBudgetDrafts(ownerOpenId: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select({
+    id: savedBudgetDrafts.id,
+    label: savedBudgetDrafts.label,
+    updatedAt: savedBudgetDrafts.updatedAt,
+  }).from(savedBudgetDrafts)
+    .where(eq(savedBudgetDrafts.ownerOpenId, ownerOpenId))
+    .orderBy(desc(savedBudgetDrafts.updatedAt));
+}
+
+export async function getBudgetDraft(ownerOpenId: string, id: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(savedBudgetDrafts)
+    .where(and(eq(savedBudgetDrafts.id, id), eq(savedBudgetDrafts.ownerOpenId, ownerOpenId)))
+    .limit(1);
+  return result[0];
+}
 
 export async function saveTourProposal(input: { ownerOpenId: string; clientName: string; proposalTitle: string; snapshot: string; status?: TourProposalStatus }) {
   const db = await getDb();
