@@ -409,3 +409,8 @@
 - [x] Tornar as formas internas de pagamento visualmente neutras, sem fundos coloridos individuais.
 - [x] Diferenciar Pagamento 1, Pagamento 2 e demais condições com uma única cor sóbria por condição no preview e PDF.
 - [x] Validar a nova hierarquia visual sem alterar cálculos, estrutura ou demais cartões.
+
+- [x] Permitir registrar vários compromissos editáveis no mesmo dia da Proposta de Passeios.
+- [x] Incluir horário, título, descrição e links próprios para voo, passeio, jantar e demais atividades no dia.
+- [x] Permitir ordenar os compromissos de um mesmo dia e exibi-los na proposta/PDF em sequência.
+- [x] Validar a compatibilidade das propostas e rascunhos já salvos, sem alterar o Roteiro Final.

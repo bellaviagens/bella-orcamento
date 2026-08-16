@@ -173,12 +173,28 @@ export interface FinalItinerary {
   events: FinalItineraryEvent[];
 }
 
+export type ItineraryActivityKind = "tour" | "flight" | "meal" | "custom";
+
+export interface ItineraryActivity {
+  id: string;
+  kind: ItineraryActivityKind;
+  title: string;
+  time: string;
+  description: string;
+  linkUrl: string;
+  photoUrl: string;
+  tourId?: string;
+  flightId?: string;
+}
+
 export interface ItineraryDay {
   id: string;
   day: number;
   title: string;
   tourId?: string;
   notes: string;
+  /** Atividades do mesmo dia. Ausente em propostas antigas, que seguem usando os campos legados acima. */
+  activities?: ItineraryActivity[];
 }
 
 export interface QuotationActivity {

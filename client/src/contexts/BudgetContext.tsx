@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import { defaultBudgetData, type BudgetData, type FinalItinerary, type FinalItineraryEvent, type FinalItineraryEventKind, type Flight, type Hotel, type FareTier, type ItineraryDay, type QuotationActivity, type Tour, type TourProposal } from "@shared/budgetTypes";
+import { defaultBudgetData, type BudgetData, type FinalItinerary, type FinalItineraryEvent, type FinalItineraryEventKind, type Flight, type Hotel, type FareTier, type ItineraryActivity, type ItineraryDay, type QuotationActivity, type Tour, type TourProposal } from "@shared/budgetTypes";
 import type { CombinedPaymentCondition, CombinedPaymentStep } from "@shared/combinedPaymentPlan";
 import { reconcileFareBenefits } from "@shared/fareBenefits";
 import { nanoid } from "nanoid";
@@ -22,6 +22,10 @@ interface BudgetContextType {
   reorderTours: (tours: Tour[]) => void;
   addItineraryDay: () => void;
   importItineraryFromQuotation: (activities: QuotationActivity[], quotationUrl: string) => void;
+  addItineraryActivity: (dayId: string, activity?: Partial<ItineraryActivity>) => void;
+  updateItineraryActivity: (dayId: string, activityId: string, updates: Partial<ItineraryActivity>) => void;
+  removeItineraryActivity: (dayId: string, activityId: string) => void;
+  reorderItineraryActivities: (dayId: string, activities: ItineraryActivity[]) => void;
   updateTourProposal: (updates: Partial<TourProposal>) => void;
   resetTourProposal: () => void;
   replaceBudget: (budget: BudgetData) => void;
@@ -149,6 +153,80 @@ export function reorderItineraryDaysInBudget(budget: BudgetData, days: Itinerary
   return {
     ...budget,
     itinerary: days.map((day, index) => ({ ...day, day: index + 1 })),
+  };
+}
+
+export function getItineraryDayActivities(day: ItineraryDay): ItineraryActivity[] {
+  if (day.activities !== undefined) return day.activities;
+
+  return [{
+    id: `${day.id}-legacy-activity`,
+    kind: day.tourId ? "tour" : "custom",
+    title: day.title || "Dia livre",
+    time: "",
+    description: day.notes || "",
+    linkUrl: "",
+    photoUrl: "",
+    tourId: day.tourId,
+  }];
+}
+
+export function addItineraryActivityToBudget(
+  budget: BudgetData,
+  dayId: string,
+  activity: Partial<ItineraryActivity> = {},
+): BudgetData {
+  return {
+    ...budget,
+    itinerary: budget.itinerary.map((day) => {
+      if (day.id !== dayId) return day;
+      const nextActivity: ItineraryActivity = {
+        id: nanoid(),
+        kind: activity.kind || "custom",
+        title: activity.title || "Novo compromisso",
+        time: activity.time || "",
+        description: activity.description || "",
+        linkUrl: activity.linkUrl || "",
+        photoUrl: activity.photoUrl || "",
+        tourId: activity.tourId,
+        flightId: activity.flightId,
+      };
+      return { ...day, activities: [...getItineraryDayActivities(day), nextActivity] };
+    }),
+  };
+}
+
+export function updateItineraryActivityInBudget(
+  budget: BudgetData,
+  dayId: string,
+  activityId: string,
+  updates: Partial<ItineraryActivity>,
+): BudgetData {
+  return {
+    ...budget,
+    itinerary: budget.itinerary.map((day) => (
+      day.id === dayId
+        ? { ...day, activities: getItineraryDayActivities(day).map((activity) => activity.id === activityId ? { ...activity, ...updates } : activity) }
+        : day
+    )),
+  };
+}
+
+export function removeItineraryActivityFromBudget(budget: BudgetData, dayId: string, activityId: string): BudgetData {
+  return {
+    ...budget,
+    itinerary: budget.itinerary.map((day) => (
+      day.id === dayId
+        ? { ...day, activities: getItineraryDayActivities(day).filter((activity) => activity.id !== activityId) }
+        : day
+    )),
+  };
+}
+
+export function reorderItineraryActivitiesInBudget(budget: BudgetData, dayId: string, activities: ItineraryActivity[]): BudgetData {
+  return {
+    ...budget,
+    itinerary: budget.itinerary.map((day) => day.id === dayId ? { ...day, activities } : day),
   };
 }
 
@@ -451,7 +529,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         ...prev,
         itinerary: [
           ...prev.itinerary,
-          { id: nanoid(), day: nextDay, title: "Dia livre", notes: "" },
+          { id: nanoid(), day: nextDay, title: "Dia livre", notes: "", activities: [] },
         ],
       };
     });
@@ -459,6 +537,22 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
 
   const importItineraryFromQuotation = useCallback((activities: QuotationActivity[], quotationUrl: string) => {
     setBudget((prev) => importQuotationActivitiesIntoBudget(prev, activities, quotationUrl));
+  }, []);
+
+  const addItineraryActivity = useCallback((dayId: string, activity: Partial<ItineraryActivity> = {}) => {
+    setBudget((prev) => addItineraryActivityToBudget(prev, dayId, activity));
+  }, []);
+
+  const updateItineraryActivity = useCallback((dayId: string, activityId: string, updates: Partial<ItineraryActivity>) => {
+    setBudget((prev) => updateItineraryActivityInBudget(prev, dayId, activityId, updates));
+  }, []);
+
+  const removeItineraryActivity = useCallback((dayId: string, activityId: string) => {
+    setBudget((prev) => removeItineraryActivityFromBudget(prev, dayId, activityId));
+  }, []);
+
+  const reorderItineraryActivities = useCallback((dayId: string, activities: ItineraryActivity[]) => {
+    setBudget((prev) => reorderItineraryActivitiesInBudget(prev, dayId, activities));
   }, []);
 
   const updateTourProposal = useCallback((updates: Partial<TourProposal>) => {
@@ -613,6 +707,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         reorderTours,
         addItineraryDay,
         importItineraryFromQuotation,
+        addItineraryActivity,
+        updateItineraryActivity,
+        removeItineraryActivity,
+        reorderItineraryActivities,
         updateTourProposal,
         resetTourProposal,
         replaceBudget,

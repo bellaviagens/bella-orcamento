@@ -4,7 +4,7 @@ import type { TrpcContext } from "./_core/context";
 import { calculateCombinedInstallmentValue, calculateCombinedTotal, calculateEffectiveHotelTotal } from "../shared/paymentCalculations";
 import { calculateCombinedPaymentPlan } from "../shared/combinedPaymentPlan";
 import { calculateTourProposalInstallment, calculateTourTotal, getTourTravelerCount } from "../shared/tourPricing";
-import { addFinalItineraryEventToBudget, addFlightToFinalItineraryInBudget, addHotelToFinalItineraryInBudget, duplicateHotelInBudget, duplicateTourInBudget, importQuotationActivitiesIntoBudget, reorderHotelsInBudget, reorderItineraryDaysInBudget, reorderToursInBudget, resetTourProposalInBudget } from "../client/src/contexts/BudgetContext";
+import { addFinalItineraryEventToBudget, addFlightToFinalItineraryInBudget, addHotelToFinalItineraryInBudget, addItineraryActivityToBudget, duplicateHotelInBudget, duplicateTourInBudget, getItineraryDayActivities, importQuotationActivitiesIntoBudget, removeItineraryActivityFromBudget, reorderHotelsInBudget, reorderItineraryActivitiesInBudget, reorderItineraryDaysInBudget, reorderToursInBudget, resetTourProposalInBudget, updateItineraryActivityInBudget } from "../client/src/contexts/BudgetContext";
 
 function createMockContext(): TrpcContext {
   return {
@@ -183,6 +183,39 @@ describe("gestão de passeios e roteiro", () => {
 
     expect(reorderedBudget.itinerary.map((day) => day.id)).toEqual(["day-2", "day-1"]);
     expect(reorderedBudget.itinerary.map((day) => day.day)).toEqual([1, 2]);
+  });
+
+  it("permite organizar vários compromissos editáveis no mesmo dia", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const baseBudget = {
+      ...defaultBudgetData,
+      itinerary: [{ id: "day-1", day: 1, title: "Chegada", notes: "", activities: [] }],
+    };
+    const withFlight = addItineraryActivityToBudget(baseBudget, "day-1", { kind: "flight", title: "Chegada em Santiago", time: "13:30" });
+    const withDinner = addItineraryActivityToBudget(withFlight, "day-1", { kind: "meal", title: "Jantar no centro", time: "20:00" });
+    const firstActivity = getItineraryDayActivities(withDinner.itinerary[0])[0];
+    const secondActivity = getItineraryDayActivities(withDinner.itinerary[0])[1];
+    const edited = updateItineraryActivityInBudget(withDinner, "day-1", secondActivity.id, { description: "Reserva confirmada" });
+    const reordered = reorderItineraryActivitiesInBudget(edited, "day-1", [
+      getItineraryDayActivities(edited.itinerary[0])[1],
+      getItineraryDayActivities(edited.itinerary[0])[0],
+    ]);
+    const removed = removeItineraryActivityFromBudget(reordered, "day-1", firstActivity.id);
+
+    expect(getItineraryDayActivities(withDinner.itinerary[0])).toMatchObject([
+      { title: "Chegada em Santiago", time: "13:30", kind: "flight" },
+      { title: "Jantar no centro", time: "20:00", kind: "meal" },
+    ]);
+    expect(getItineraryDayActivities(edited.itinerary[0])[1].description).toBe("Reserva confirmada");
+    expect(getItineraryDayActivities(reordered.itinerary[0]).map((activity) => activity.title)).toEqual(["Jantar no centro", "Chegada em Santiago"]);
+    expect(getItineraryDayActivities(removed.itinerary[0])).toHaveLength(1);
+    expect(getItineraryDayActivities(removed.itinerary[0])[0].title).toBe("Jantar no centro");
+  });
+
+  it("mantém os dias legados como um compromisso único ao abrir propostas já salvas", () => {
+    const activities = getItineraryDayActivities({ id: "day-legacy", day: 1, title: "Vinícola", notes: "Saída às 9h", tourId: "tour-1" });
+
+    expect(activities).toEqual([expect.objectContaining({ kind: "tour", title: "Vinícola", description: "Saída às 9h", tourId: "tour-1" })]);
   });
 
   it("inicia uma nova proposta sem apagar o roteiro final já montado", async () => {

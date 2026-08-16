@@ -1,4 +1,4 @@
-import { useBudget } from "@/contexts/BudgetContext";
+import { getItineraryDayActivities, useBudget } from "@/contexts/BudgetContext";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { CalendarDays, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, Grip
 import { toast } from "sonner";
 
 export function ItineraryForm() {
-  const { budget, addItineraryDay, importItineraryFromQuotation, replaceBudget, resetTourProposal, updateTour, updateTourProposal, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
+  const { budget, addItineraryDay, addItineraryActivity, importItineraryFromQuotation, removeItineraryActivity, reorderItineraryActivities, replaceBudget, resetTourProposal, updateItineraryActivity, updateTour, updateTourProposal, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
   const itinerary = budget.itinerary;
   const [quotationUrl, setQuotationUrl] = useState("");
   const [draggedDayId, setDraggedDayId] = useState<string | null>(null);
@@ -243,7 +243,9 @@ export function ItineraryForm() {
       </div>
 
       {itinerary.map((day) => {
-        const tour = day.tourId ? budget.tours.find((currentTour) => currentTour.id === day.tourId) : undefined;
+        const activities = getItineraryDayActivities(day);
+        const firstTourActivity = activities.find((activity) => activity.tourId);
+        const tour = firstTourActivity?.tourId ? budget.tours.find((currentTour) => currentTour.id === firstTourActivity.tourId) : undefined;
         const isCollapsed = collapsedDayIds.has(day.id);
         const quickValue = tour?.pricingMode === "perPerson" ? tour.pricePerPerson || 0 : tour?.totalPrice || 0;
         const valueLabel = tour?.pricingMode === "perPerson" ? "Valor adulto" : "Valor total";
@@ -296,18 +298,40 @@ export function ItineraryForm() {
             </div>
           </div>
           {isCollapsed && tour && <div className="mb-3 flex max-w-xs items-end gap-2"><div className="flex-1"><Label className="text-xs">{valueLabel} (R$)</Label><Input type="number" min="0" step="0.01" inputMode="decimal" value={quickValue} onChange={(event) => updateTour(tour.id, { ...tour, [tour.pricingMode === "perPerson" ? "pricePerPerson" : "totalPrice"]: Math.max(0, Number(event.target.value) || 0) })} className="mt-1 h-9 bg-white text-sm font-semibold" /></div>{tour.pricingMode === "perPerson" && <span className="pb-2 text-xs text-slate-500">por adulto</span>}</div>}
-          {!isCollapsed && <div className="grid gap-3 sm:grid-cols-2">
-            <div><Label>Atividade</Label><Select value={day.tourId || "free"} onValueChange={(value) => {
-              if (value === "free") updateItineraryDay(day.id, { tourId: undefined, title: "Dia livre" });
-              else {
-                const tour = budget.tours.find((currentTour) => currentTour.id === value);
-                updateItineraryDay(day.id, { tourId: value, title: tour?.name || day.title });
-              }
-            }}><SelectTrigger className="mt-1"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="free">Dia livre</SelectItem>{budget.tours.map((tour) => <SelectItem key={tour.id} value={tour.id}>{tour.name}</SelectItem>)}</SelectContent></Select></div>
-            <div><Label>Título exibido</Label><Input value={day.title} onChange={(event) => updateItineraryDay(day.id, { title: event.target.value })} placeholder="Ex.: Dia livre" className="mt-1" /></div>
-            <div className="sm:col-span-2"><Label>Observações do dia</Label><Textarea value={day.notes} onChange={(event) => updateItineraryDay(day.id, { notes: event.target.value })} placeholder="Horários, recomendações ou informações adicionais" className="mt-1 min-h-20" /></div>
-          </div>
-          }
+          {!isCollapsed && <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div><Label>Título do dia</Label><Input value={day.title} onChange={(event) => updateItineraryDay(day.id, { title: event.target.value })} placeholder="Ex.: Chegada em Santiago" className="mt-1 bg-white" /></div>
+              <div><Label>Observações gerais do dia</Label><Input value={day.notes} onChange={(event) => updateItineraryDay(day.id, { notes: event.target.value })} placeholder="Ex.: Levar documento e chegar cedo" className="mt-1 bg-white" /></div>
+            </div>
+
+            <div className="rounded-md border border-slate-200 bg-white p-3">
+              <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div><p className="text-sm font-bold text-[#1a2e4a]">Agenda do dia</p><p className="text-xs text-slate-500">Inclua voo, passeio, jantar e outros compromissos na sequência desejada.</p></div>
+                <Button type="button" variant="outline" size="sm" onClick={() => addItineraryActivity(day.id)} className="h-9 bg-white text-xs font-bold"><Plus className="mr-1.5 h-4 w-4" />Adicionar compromisso</Button>
+              </div>
+
+              <div className="space-y-3">
+                {activities.map((activity, activityIndex) => {
+                  const selectedTour = activity.tourId ? budget.tours.find((currentTour) => currentTour.id === activity.tourId) : undefined;
+                  const selectedFlight = activity.flightId ? budget.flights.find((currentFlight) => currentFlight.id === activity.flightId) : undefined;
+                  return <div key={activity.id} className="rounded-md border border-slate-200 bg-slate-50 p-3">
+                    <div className="mb-2 flex items-center justify-between gap-2"><p className="text-xs font-bold uppercase tracking-wide text-[#1a2e4a]">Compromisso {activityIndex + 1}</p><div className="flex items-center gap-1"><Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled={activityIndex === 0} onClick={() => { const next = [...activities]; [next[activityIndex - 1], next[activityIndex]] = [next[activityIndex], next[activityIndex - 1]]; reorderItineraryActivities(day.id, next); }}>Subir</Button><Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled={activityIndex === activities.length - 1} onClick={() => { const next = [...activities]; [next[activityIndex], next[activityIndex + 1]] = [next[activityIndex + 1], next[activityIndex]]; reorderItineraryActivities(day.id, next); }}>Descer</Button><Button type="button" variant="ghost" size="sm" className="h-7 w-7 p-0 text-red-500 hover:text-red-700" onClick={() => removeItineraryActivity(day.id, activity.id)} title="Remover compromisso"><Trash2 className="h-3.5 w-3.5" /></Button></div></div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div><Label>Tipo</Label><Select value={activity.kind} onValueChange={(kind: "tour" | "flight" | "meal" | "custom") => updateItineraryActivity(day.id, activity.id, { kind })}><SelectTrigger className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="flight">Voo / chegada</SelectItem><SelectItem value="tour">Passeio</SelectItem><SelectItem value="meal">Jantar / refeição</SelectItem><SelectItem value="custom">Outro compromisso</SelectItem></SelectContent></Select></div>
+                      <div><Label>Horário</Label><Input type="time" value={activity.time} onChange={(event) => updateItineraryActivity(day.id, activity.id, { time: event.target.value })} className="mt-1 bg-white" /></div>
+                      {activity.kind === "tour" && <div className="sm:col-span-2"><Label>Vincular passeio cadastrado</Label><Select value={activity.tourId || "none"} onValueChange={(tourId) => { const nextTour = tourId === "none" ? undefined : budget.tours.find((currentTour) => currentTour.id === tourId); updateItineraryActivity(day.id, activity.id, { tourId: nextTour?.id, title: nextTour?.name || activity.title, description: nextTour?.description || activity.description, linkUrl: nextTour?.pageUrl || activity.linkUrl, photoUrl: nextTour?.photosUrl || activity.photoUrl }); }}><SelectTrigger className="mt-1 bg-white"><SelectValue placeholder="Escolher passeio" /></SelectTrigger><SelectContent><SelectItem value="none">Preencher manualmente</SelectItem>{budget.tours.map((currentTour) => <SelectItem key={currentTour.id} value={currentTour.id}>{currentTour.name}</SelectItem>)}</SelectContent></Select></div>}
+                      {activity.kind === "flight" && <div className="sm:col-span-2"><Label>Vincular voo cadastrado</Label><Select value={activity.flightId || "none"} onValueChange={(flightId) => { const nextFlight = flightId === "none" ? undefined : budget.flights.find((currentFlight) => currentFlight.id === flightId); const segment = nextFlight?.segments[0]; updateItineraryActivity(day.id, activity.id, { flightId: nextFlight?.id, title: nextFlight ? (nextFlight.type === "ida" ? "Voo de ida" : "Voo de retorno") : activity.title, time: segment?.departureTime || activity.time, description: nextFlight ? [segment?.airline, segment?.flightNumber, segment?.departureCity || segment?.departureAirport, segment?.arrivalCity || segment?.arrivalAirport].filter(Boolean).join(" • ") : activity.description }); }}><SelectTrigger className="mt-1 bg-white"><SelectValue placeholder="Escolher voo" /></SelectTrigger><SelectContent><SelectItem value="none">Preencher manualmente</SelectItem>{budget.flights.map((currentFlight) => <SelectItem key={currentFlight.id} value={currentFlight.id}>{currentFlight.type === "ida" ? "Voo de ida" : "Voo de retorno"}{currentFlight.segments[0]?.airline ? ` — ${currentFlight.segments[0].airline}` : ""}</SelectItem>)}</SelectContent></Select></div>}
+                      <div className="sm:col-span-2"><Label>Título</Label><Input value={activity.title} onChange={(event) => updateItineraryActivity(day.id, activity.id, { title: event.target.value })} placeholder="Ex.: Chegada no hotel, passeio ou jantar" className="mt-1 bg-white" /></div>
+                      <div className="sm:col-span-2"><Label>Detalhes</Label><Textarea value={activity.description} onChange={(event) => updateItineraryActivity(day.id, activity.id, { description: event.target.value })} placeholder="Horário, ponto de encontro, transfer ou demais orientações" className="mt-1 min-h-16 bg-white" /></div>
+                      <div><Label>Link útil</Label><Input type="url" value={activity.linkUrl} onChange={(event) => updateItineraryActivity(day.id, activity.id, { linkUrl: event.target.value })} placeholder="https://..." className="mt-1 bg-white" /></div>
+                      <div><Label>Link de foto</Label><Input type="url" value={activity.photoUrl} onChange={(event) => updateItineraryActivity(day.id, activity.id, { photoUrl: event.target.value })} placeholder="https://..." className="mt-1 bg-white" /></div>
+                    </div>
+                    {(selectedTour || selectedFlight) && <p className="mt-2 text-[11px] text-slate-500">Dados vinculados ao {selectedTour ? "passeio" : "voo"} cadastrado. Você pode complementar os detalhes acima.</p>}
+                  </div>;
+                })}
+              </div>
+            </div>
+          </div>}
         </div>;
       })}
 
