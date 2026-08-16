@@ -121,9 +121,16 @@ export interface FinalItineraryAttachment {
   passengerId?: string;
 }
 
+export interface FinalItineraryBaggageItem {
+  id: string;
+  label: string;
+  packed: boolean;
+}
+
 export interface FinalItineraryPassenger {
   id: string;
   name: string;
+  baggageChecklist?: FinalItineraryBaggageItem[];
 }
 
 export interface FinalItineraryEvent {
@@ -160,6 +167,7 @@ export interface FinalItinerary {
   introMessage: string;
   essentialInfo?: string;
   emergencyContacts?: string;
+  shareToken?: string;
   passengers?: FinalItineraryPassenger[];
   events: FinalItineraryEvent[];
 }

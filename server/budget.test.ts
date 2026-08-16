@@ -43,6 +43,13 @@ describe("appRouter", () => {
     const caller = appRouter.createCaller(createMockContext());
     expect(caller.itineraryAttachments.upload).toBeDefined();
   });
+
+  it("has shared itinerary and weather procedures", () => {
+    const caller = appRouter.createCaller(createMockContext());
+    expect(caller.sharedItineraries.create).toBeDefined();
+    expect(caller.sharedItineraries.get).toBeDefined();
+    expect(caller.weather.get).toBeDefined();
+  });
 });
 
 describe("budgetTypes defaults", () => {
@@ -240,6 +247,27 @@ describe("gestão de passeios e roteiro", () => {
       passengers: [{ id: "passenger-1", name: "Ana Souza" }],
     });
     expect(withAttachment.finalItinerary.events[0].attachments?.[0].passengerId).toBe("passenger-1");
+  });
+
+  it("mantém o checklist de bagagem individual de cada passageiro", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const baggageChecklist = [
+      { id: "bag-1", label: "Passaporte", packed: true },
+      { id: "bag-2", label: "Adaptador de tomada", packed: false },
+    ];
+    const budget = {
+      ...defaultBudgetData,
+      finalItinerary: {
+        ...defaultBudgetData.finalItinerary,
+        shareToken: "a".repeat(32),
+        passengers: [{ id: "passenger-1", name: "Ana Souza", baggageChecklist }],
+      },
+    };
+    const withEvent = addFinalItineraryEventToBudget(budget, { kind: "flight" });
+
+    expect(withEvent.finalItinerary.shareToken).toHaveLength(32);
+    expect(withEvent.finalItinerary.passengers?.[0].baggageChecklist).toEqual(baggageChecklist);
+    expect(withEvent.finalItinerary.passengers?.[0].baggageChecklist?.filter((item) => item.packed)).toHaveLength(1);
   });
 
   it("cria passeios e dias cronológicos ao importar uma cotação sem duplicar a mesma atividade", async () => {

@@ -3,7 +3,7 @@ import { invokeLLM } from "./_core/llm";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
-import { duplicateTourProposal, getTourProposal, listTourProposals, saveTourProposal, updateTourProposalStatus } from "./db";
+import { createSharedItinerary, duplicateTourProposal, getSharedItinerary, getTourProposal, listTourProposals, saveTourProposal, updateTourProposalStatus } from "./db";
 import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
 import { lookup } from "node:dns/promises";
@@ -151,7 +151,87 @@ function normalizeQuotationActivities(activities: QuotationActivity[]): Quotatio
   ));
 }
 
+const weatherInputSchema = z.object({
+  destination: z.string().trim().min(2, "Informe o destino para consultar a previsão.").max(160),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+});
+
+function isIsoCalendarDate(value: string | undefined) {
+  return Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value) && isCalendarDate(value));
+}
+
+function weatherDateRange(startDate?: string, endDate?: string) {
+  if (!isIsoCalendarDate(startDate) || !isIsoCalendarDate(endDate) || startDate! > endDate!) return undefined;
+  return { startDate: startDate!, endDate: endDate! };
+}
+
+async function fetchWeatherForecast(input: z.infer<typeof weatherInputSchema>) {
+  const geocodingUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
+  geocodingUrl.searchParams.set("name", input.destination);
+  geocodingUrl.searchParams.set("count", "1");
+  geocodingUrl.searchParams.set("language", "pt");
+  geocodingUrl.searchParams.set("format", "json");
+
+  const geocodingResponse = await fetch(geocodingUrl, { signal: AbortSignal.timeout(8_000) });
+  if (!geocodingResponse.ok) throw new TRPCError({ code: "BAD_GATEWAY", message: "Não foi possível localizar o destino para consultar o clima." });
+  const geocoding = await geocodingResponse.json() as { results?: Array<{ name: string; country?: string; latitude: number; longitude: number }> };
+  const place = geocoding.results?.[0];
+  if (!place) throw new TRPCError({ code: "NOT_FOUND", message: "Não foi possível localizar o destino informado." });
+
+  const forecastUrl = new URL("https://api.open-meteo.com/v1/forecast");
+  forecastUrl.searchParams.set("latitude", String(place.latitude));
+  forecastUrl.searchParams.set("longitude", String(place.longitude));
+  forecastUrl.searchParams.set("daily", "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max");
+  forecastUrl.searchParams.set("timezone", "auto");
+  forecastUrl.searchParams.set("forecast_days", "16");
+
+  const forecastResponse = await fetch(forecastUrl, { signal: AbortSignal.timeout(8_000) });
+  if (!forecastResponse.ok) throw new TRPCError({ code: "BAD_GATEWAY", message: "Não foi possível consultar a previsão do tempo agora." });
+  const forecast = await forecastResponse.json() as { daily?: { time?: string[]; weather_code?: number[]; temperature_2m_max?: number[]; temperature_2m_min?: number[]; precipitation_probability_max?: number[] } };
+  const daily = forecast.daily;
+  if (!daily?.time?.length) throw new TRPCError({ code: "BAD_GATEWAY", message: "A previsão do tempo não retornou dados para o destino." });
+
+  const desiredRange = weatherDateRange(input.startDate, input.endDate);
+  const days = daily.time.map((date, index) => ({
+    date,
+    weatherCode: daily.weather_code?.[index] ?? 0,
+    maxTemperature: daily.temperature_2m_max?.[index] ?? null,
+    minTemperature: daily.temperature_2m_min?.[index] ?? null,
+    precipitationProbability: daily.precipitation_probability_max?.[index] ?? null,
+  })).filter((day) => !desiredRange || (day.date >= desiredRange.startDate && day.date <= desiredRange.endDate));
+
+  return {
+    destination: [place.name, place.country].filter(Boolean).join(", "),
+    days,
+    rangeRequested: desiredRange,
+  };
+}
+
 export const appRouter = router({
+  sharedItineraries: router({
+    create: protectedProcedure
+      .input(z.object({ snapshot: z.string().min(2).max(4_000_000) }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          JSON.parse(input.snapshot);
+        } catch {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "O roteiro não pôde ser preparado para compartilhamento." });
+        }
+        const token = crypto.randomUUID().replace(/-/g, "");
+        return createSharedItinerary({ ownerOpenId: ctx.user.openId, token, snapshot: input.snapshot });
+      }),
+    get: publicProcedure
+      .input(z.object({ token: z.string().regex(/^[a-zA-Z0-9]{20,64}$/) }))
+      .query(async ({ input }) => {
+        const shared = await getSharedItinerary(input.token);
+        if (!shared) throw new TRPCError({ code: "NOT_FOUND", message: "Este link de roteiro não foi encontrado ou não está mais disponível." });
+        return shared;
+      }),
+  }),
+  weather: router({
+    get: publicProcedure.input(weatherInputSchema).query(({ input }) => fetchWeatherForecast(input)),
+  }),
   tourProposals: router({
     save: protectedProcedure
       .input(z.object({

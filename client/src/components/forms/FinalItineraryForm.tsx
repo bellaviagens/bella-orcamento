@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useBudget } from "@/contexts/BudgetContext";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, CalendarDays, CarFront, ExternalLink, FileText, GripVertical, Hotel, Link2, Phone, Plane, Plus, Trash2, Upload, UserRound, Users, X } from "lucide-react";
-import type { FinalItineraryEventKind } from "@shared/budgetTypes";
+import { Building2, CalendarDays, CarFront, Copy, ExternalLink, FileText, GripVertical, Hotel, Link2, Luggage, Phone, Plane, Plus, QrCode, Share2, Trash2, Upload, UserRound, Users, X } from "lucide-react";
+import type { FinalItineraryBaggageItem, FinalItineraryEventKind } from "@shared/budgetTypes";
+import QRCode from "qrcode";
 
 const EVENT_LABELS: Record<FinalItineraryEventKind, string> = {
   arrival: "Chegada",
@@ -54,8 +55,14 @@ export function FinalItineraryForm() {
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
   const [newPassengerName, setNewPassengerName] = useState("");
   const [attachmentPassengerByEvent, setAttachmentPassengerByEvent] = useState<Record<string, string>>({});
+  const [newBaggageItemByPassenger, setNewBaggageItemByPassenger] = useState<Record<string, string>>({});
+  const [shareUrl, setShareUrl] = useState("");
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [shareError, setShareError] = useState<string | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
   const attachmentInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const uploadAttachment = trpc.itineraryAttachments.upload.useMutation();
+  const createSharedItinerary = trpc.sharedItineraries.create.useMutation();
   const finalItinerary = budget.finalItinerary;
   const events = [...finalItinerary.events].sort((first, second) =>
     first.day - second.day || EVENT_ORDER[first.kind] - EVENT_ORDER[second.kind] || first.time.localeCompare(second.time),
@@ -91,6 +98,60 @@ export function FinalItineraryForm() {
     });
     updateFinalItinerary({ passengers: (finalItinerary.passengers || []).filter((passenger) => passenger.id !== passengerId) });
   };
+
+  const updatePassengerChecklist = (passengerId: string, updater: (items: FinalItineraryBaggageItem[]) => FinalItineraryBaggageItem[]) => {
+    updateFinalItinerary({
+      passengers: (finalItinerary.passengers || []).map((passenger) => passenger.id === passengerId
+        ? { ...passenger, baggageChecklist: updater(passenger.baggageChecklist || []) }
+        : passenger),
+      enabled: true,
+    });
+  };
+
+  const addBaggageItem = (passengerId: string) => {
+    const label = (newBaggageItemByPassenger[passengerId] || "").trim();
+    if (!label) return;
+    updatePassengerChecklist(passengerId, (items) => [...items, { id: crypto.randomUUID(), label, packed: false }]);
+    setNewBaggageItemByPassenger((current) => ({ ...current, [passengerId]: "" }));
+  };
+
+  const createShareLink = async () => {
+    setShareError(null);
+    setShareCopied(false);
+    try {
+      const response = await createSharedItinerary.mutateAsync({ snapshot: JSON.stringify(budget) });
+      updateFinalItinerary({ shareToken: response.token, enabled: true });
+    } catch (error) {
+      setShareError(error instanceof Error ? error.message : "Não foi possível criar o link compartilhável.");
+    }
+  };
+
+  const copyShareLink = async () => {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareCopied(true);
+      window.setTimeout(() => setShareCopied(false), 2200);
+    } catch {
+      setShareError("Não foi possível copiar o link automaticamente. Você pode copiá-lo pelo campo abaixo.");
+    }
+  };
+
+  useEffect(() => {
+    const token = finalItinerary.shareToken;
+    if (!token || typeof window === "undefined") {
+      setShareUrl("");
+      setQrCodeUrl("");
+      return;
+    }
+    const url = `${window.location.origin}/roteiro/${token}`;
+    setShareUrl(url);
+    void QRCode.toDataURL(url, {
+      width: 176,
+      margin: 1,
+      color: { dark: "#1a2e4a", light: "#ffffff" },
+    }).then(setQrCodeUrl).catch(() => setQrCodeUrl(""));
+  }, [finalItinerary.shareToken]);
 
   const handleAttachmentSelection = (eventId: string, file: File | undefined) => {
     if (!file) return;
@@ -155,10 +216,18 @@ export function FinalItineraryForm() {
         </div>
       </div>
 
+      <section className="rounded-lg border border-amber-200 bg-amber-50/70 p-3">
+        <div className="mb-1 flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><Share2 className="h-4 w-4" />Acesso rápido pelo celular</div>
+        <p className="text-xs leading-relaxed text-slate-600">Crie um link público com uma cópia deste roteiro. O cliente poderá abrir a versão compartilhada no celular pelo link ou QR Code. Depois de alterar o roteiro, gere um novo link para enviar a versão atualizada.</p>
+        <div className="mt-3 flex flex-wrap gap-2"><Button type="button" onClick={createShareLink} disabled={createSharedItinerary.isPending} className="bg-[#1a2e4a] text-xs hover:bg-[#264566]"><QrCode className="mr-1.5 h-3.5 w-3.5" />{createSharedItinerary.isPending ? "Criando acesso..." : finalItinerary.shareToken ? "Atualizar link e QR Code" : "Criar link e QR Code"}</Button>{shareUrl && <Button type="button" variant="outline" onClick={copyShareLink} className="bg-white text-xs"><Copy className="mr-1.5 h-3.5 w-3.5" />{shareCopied ? "Link copiado" : "Copiar link"}</Button>}</div>
+        {shareUrl && <div className="mt-3 flex flex-col gap-3 rounded-lg border border-amber-200 bg-white p-3 sm:flex-row sm:items-center"><div className="min-w-0 flex-1"><Label htmlFor="shared-itinerary-url" className="text-[11px]">Link compartilhável</Label><Input id="shared-itinerary-url" value={shareUrl} readOnly onFocus={(event) => event.currentTarget.select()} className="mt-1 h-9 bg-slate-50 text-xs" /><a href={shareUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#1a2e4a] hover:text-amber-700"><ExternalLink className="h-3.5 w-3.5" />Abrir versão compartilhada</a></div>{qrCodeUrl && <img src={qrCodeUrl} alt="QR Code do roteiro compartilhável" className="h-28 w-28 self-center rounded-md border border-slate-200 bg-white p-1" />}</div>}
+        {shareError && <p className="mt-2 text-xs font-medium text-red-600">{shareError}</p>}
+      </section>
+
       <section className="rounded-lg border border-[#1a2e4a]/15 bg-white p-3">
         <div className="mb-3 flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><Users className="h-4 w-4" />Passageiros para organização dos documentos</div>
         <div className="flex gap-2"><Input value={newPassengerName} onChange={(event) => setNewPassengerName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); addPassenger(); } }} placeholder="Nome do passageiro" className="bg-white" /><Button type="button" variant="outline" onClick={addPassenger} className="shrink-0 bg-white text-xs"><Plus className="mr-1 h-3.5 w-3.5" />Adicionar</Button></div>
-        {(finalItinerary.passengers || []).length > 0 ? <div className="mt-3 flex flex-wrap gap-2">{finalItinerary.passengers?.map((passenger) => <span key={passenger.id} className="inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[#1a2e4a]"><UserRound className="h-3.5 w-3.5" />{passenger.name}<button type="button" onClick={() => removePassenger(passenger.id)} className="ml-0.5 text-slate-400 hover:text-red-600" title={`Remover ${passenger.name}`}><X className="h-3.5 w-3.5" /></button></span>)}</div> : <p className="mt-2 text-xs text-slate-500">Cadastre os passageiros para vincular cartões, reservas e comprovantes a cada pessoa.</p>}
+        {(finalItinerary.passengers || []).length > 0 ? <div className="mt-3 space-y-3">{finalItinerary.passengers?.map((passenger) => <section key={passenger.id} className="rounded-lg border border-blue-100 bg-blue-50/50 p-3"><div className="flex items-center justify-between gap-2"><p className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1a2e4a]"><UserRound className="h-3.5 w-3.5" />{passenger.name}</p><button type="button" onClick={() => removePassenger(passenger.id)} className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-red-600" title={`Remover ${passenger.name}`}><X className="h-3.5 w-3.5" />Remover</button></div><div className="mt-3 rounded-md border border-white bg-white p-2.5"><p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-[#1a2e4a]"><Luggage className="h-3.5 w-3.5" />Checklist de bagagem</p><div className="mt-2 flex gap-2"><Input value={newBaggageItemByPassenger[passenger.id] || ""} onChange={(event) => setNewBaggageItemByPassenger((current) => ({ ...current, [passenger.id]: event.target.value }))} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); addBaggageItem(passenger.id); } }} placeholder="Ex.: Adaptador de tomada" className="h-8 bg-white text-xs" /><Button type="button" variant="outline" size="sm" onClick={() => addBaggageItem(passenger.id)} className="h-8 shrink-0 bg-white text-xs"><Plus className="mr-1 h-3.5 w-3.5" />Item</Button></div>{(passenger.baggageChecklist || []).length > 0 ? <div className="mt-2 space-y-1.5">{passenger.baggageChecklist?.map((item) => <div key={item.id} className="flex items-center gap-2 rounded border border-slate-100 px-2 py-1.5"><input type="checkbox" checked={item.packed} onChange={() => updatePassengerChecklist(passenger.id, (items) => items.map((current) => current.id === item.id ? { ...current, packed: !current.packed } : current))} className="h-3.5 w-3.5 accent-[#1a2e4a]" aria-label={`Marcar ${item.label} como organizado`} /><span className={`min-w-0 flex-1 text-xs ${item.packed ? "text-slate-400 line-through" : "text-slate-700"}`}>{item.label}</span><button type="button" onClick={() => updatePassengerChecklist(passenger.id, (items) => items.filter((current) => current.id !== item.id))} className="text-slate-400 hover:text-red-600" title={`Remover ${item.label}`}><Trash2 className="h-3.5 w-3.5" /></button></div>)}</div> : <p className="mt-2 text-xs text-slate-500">Adicione os itens que este passageiro precisa organizar.</p>}</div></section>)}</div> : <p className="mt-2 text-xs text-slate-500">Cadastre os passageiros para vincular cartões, reservas e comprovantes a cada pessoa.</p>}
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-3">

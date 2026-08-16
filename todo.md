@@ -362,3 +362,8 @@
 - [x] Permitir cadastrar passageiros e organizar anexos de voo e hospedagem por passageiro
 - [x] Adicionar alertas visuais na linha do tempo para compromissos próximos
 - [x] Validar tipos, alertas, capa, anexos por passageiro, PDF e testes dos novos recursos
+
+- [x] Criar link compartilhável e QR Code para abrir o Roteiro Final pelo celular
+- [x] Criar checklist de bagagem personalizado e marcável para cada passageiro
+- [x] Integrar previsão do tempo na capa usando destino e período da viagem
+- [x] Validar compartilhamento, checklist, previsão, PDF, tipos e testes dos novos recursos

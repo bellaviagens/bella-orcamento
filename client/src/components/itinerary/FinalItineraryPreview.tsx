@@ -1,5 +1,7 @@
 import type { BudgetData, FinalItineraryAttachment, FinalItineraryEvent, FinalItineraryEventKind, FinalItineraryPassenger } from "@shared/budgetTypes";
-import { AlertTriangle, CalendarDays, CarFront, Clock3, ExternalLink, FileText, Hotel, Images, MapPin, Phone, Plane, ShieldAlert, Sparkles, UserRound } from "lucide-react";
+import { useMemo } from "react";
+import { AlertTriangle, CalendarDays, CarFront, Cloud, CloudLightning, CloudRain, CloudSun, Clock3, ExternalLink, FileText, Hotel, Images, Loader2, MapPin, Phone, Plane, ShieldAlert, Sparkles, Sun, ThermometerSun, UserRound } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 const EVENT_ICONS: Record<FinalItineraryEventKind, typeof CalendarDays> = {
   arrival: MapPin,
@@ -83,8 +85,48 @@ function groupAttachmentsByPassenger(attachments: FinalItineraryAttachment[], pa
   return Array.from(groups.values());
 }
 
+function toIsoDate(day: string, month: string, year: string) {
+  const date = new Date(Number(year), Number(month) - 1, Number(day));
+  if (date.getFullYear() !== Number(year) || date.getMonth() !== Number(month) - 1 || date.getDate() !== Number(day)) return undefined;
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+}
+
+function getPeriodRange(period: string | undefined) {
+  if (!period) return undefined;
+  const brazilianDates = Array.from(period.matchAll(/(\d{1,2})\/(\d{1,2})\/(\d{4})/g)).map((match) => toIsoDate(match[1], match[2], match[3])).filter(Boolean) as string[];
+  if (brazilianDates.length >= 2) return { startDate: brazilianDates[0], endDate: brazilianDates[1] };
+  const isoDates = period.match(/\d{4}-\d{2}-\d{2}/g) || [];
+  if (isoDates.length >= 2) return { startDate: isoDates[0], endDate: isoDates[1] };
+  return undefined;
+}
+
+function getEventRange(events: FinalItineraryEvent[]) {
+  const dates = events.flatMap((event) => [event.flightDate, event.hotelCheckIn, event.hotelCheckOut]).filter((value): value is string => Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value))).sort();
+  return dates.length >= 2 ? { startDate: dates[0], endDate: dates[dates.length - 1] } : undefined;
+}
+
+function weatherStyle(code: number) {
+  if (code === 0) return { label: "Céu aberto", Icon: Sun, color: "text-amber-500" };
+  if ([1, 2].includes(code)) return { label: "Parcialmente nublado", Icon: CloudSun, color: "text-amber-500" };
+  if (code === 3 || [45, 48].includes(code)) return { label: code === 3 ? "Nublado" : "Neblina", Icon: Cloud, color: "text-slate-500" };
+  if ([95, 96, 99].includes(code)) return { label: "Trovoadas", Icon: CloudLightning, color: "text-indigo-500" };
+  return { label: "Chuva", Icon: CloudRain, color: "text-blue-500" };
+}
+
+function WeatherWidget({ destination, period, events }: { destination: string; period?: string; events: FinalItineraryEvent[] }) {
+  const periodRange = useMemo(() => getPeriodRange(period) || getEventRange(events), [period, events]);
+  const weather = trpc.weather.get.useQuery({ destination, startDate: periodRange?.startDate, endDate: periodRange?.endDate }, { enabled: destination.trim().length >= 2, retry: 1, staleTime: 30 * 60 * 1000 });
+  const days = weather.data?.days || [];
+
+  return <section data-pdf-keep-together="true" className="mt-5 rounded-xl border border-sky-100 bg-sky-50/80 p-3">
+    <div className="flex items-center justify-between gap-2"><div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1a2e4a]"><ThermometerSun className="h-3.5 w-3.5" />Previsão do tempo</div>{weather.data?.destination && <span className="max-w-48 truncate text-[10px] font-semibold text-slate-500">{weather.data.destination}</span>}</div>
+    {weather.isLoading ? <div className="mt-3 flex items-center gap-2 text-xs text-slate-500"><Loader2 className="h-3.5 w-3.5 animate-spin" />Consultando as condições para a viagem...</div> : weather.error ? <p className="mt-2 text-xs leading-relaxed text-slate-500">A previsão não está disponível neste momento. Consulte novamente mais perto da viagem.</p> : days.length > 0 ? <div className="mt-3 grid gap-2 sm:grid-cols-3">{days.slice(0, 6).map((day) => { const style = weatherStyle(day.weatherCode); const Icon = style.Icon; return <div key={day.date} className="rounded-lg border border-white bg-white/90 p-2"><div className="flex items-center justify-between gap-1"><p className="text-[10px] font-bold text-[#1a2e4a]">{formatDate(day.date)}</p><Icon className={`h-4 w-4 ${style.color}`} /></div><p className="mt-1 truncate text-[10px] font-medium text-slate-500">{style.label}</p><p className="mt-1 text-xs font-bold text-[#1a2e4a]">{day.maxTemperature ?? "–"}° <span className="font-medium text-slate-400">/ {day.minTemperature ?? "–"}°</span></p>{day.precipitationProbability !== null && <p className="mt-1 text-[10px] text-slate-500">Chuva: {day.precipitationProbability}%</p>}</div>; })}</div> : <p className="mt-2 text-xs leading-relaxed text-slate-500">A previsão costuma ficar disponível para os próximos 16 dias. Consulte novamente quando a viagem estiver mais próxima.</p>}
+  </section>;
+}
+
 export function FinalItineraryPreview({ data }: { data: BudgetData }) {
   const finalItinerary = data.finalItinerary;
+  const destination = data.tripInfo.destination || "";
   const events = [...finalItinerary.events].sort((first, second) => first.day - second.day || sortableTime(first.time).localeCompare(sortableTime(second.time)) || EVENT_ORDER[first.kind] - EVENT_ORDER[second.kind]);
   const eventsByDay = events.reduce<Map<number, typeof events>>((groups, event) => {
     groups.set(event.day, [...(groups.get(event.day) || []), event]);
@@ -107,6 +149,7 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
           {finalItinerary.essentialInfo && <section className="rounded-xl border border-blue-100 bg-white/90 p-3"><div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1a2e4a]"><ShieldAlert className="h-3.5 w-3.5" />Informações essenciais</div><p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-slate-600">{finalItinerary.essentialInfo}</p></section>}
           {finalItinerary.emergencyContacts && <section className="rounded-xl border border-amber-200 bg-white/90 p-3"><div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1a2e4a]"><Phone className="h-3.5 w-3.5" />Contatos de emergência</div><p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-slate-600">{finalItinerary.emergencyContacts}</p></section>}
         </div>}
+        {destination && <WeatherWidget destination={destination} period={data.tripInfo.period} events={events} />}
       </header>
 
       {events.length === 0 ? <div className="py-16 text-center text-sm text-slate-500">Inclua chegada, transfers, hospedagem, voos e passeios na aba <strong>Roteiro Final</strong> para gerar o documento pós-aprovação.</div> : <div data-page-break="true" className="mt-8 border-t-2 border-amber-400 pt-6"><div className="mb-6 flex items-center gap-2"><Clock3 className="h-5 w-5 text-[#1a2e4a]" /><h3 className="text-sm font-bold uppercase tracking-[0.16em] text-[#1a2e4a]">Linha do tempo diária</h3></div><div className="space-y-7">{Array.from(eventsByDay.entries()).map(([day, dayEvents]) => {

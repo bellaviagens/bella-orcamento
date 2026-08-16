@@ -1,6 +1,6 @@
 import { and, desc, eq, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, savedTourProposals, users } from "../drizzle/schema";
+import { InsertUser, savedTourProposals, sharedItineraries, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -182,4 +182,24 @@ export async function updateTourProposalStatus(ownerOpenId: string, id: string, 
     .set({ status, updatedAt: new Date() })
     .where(and(eq(savedTourProposals.id, id), eq(savedTourProposals.ownerOpenId, ownerOpenId)));
   return result[0]?.affectedRows ?? 0;
+}
+
+export async function createSharedItinerary(input: { ownerOpenId: string; token: string; snapshot: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para compartilhar o roteiro.");
+
+  const id = crypto.randomUUID();
+  await db.insert(sharedItineraries).values({ ...input, id });
+  return { id, token: input.token };
+}
+
+export async function getSharedItinerary(token: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select({
+    snapshot: sharedItineraries.snapshot,
+    updatedAt: sharedItineraries.updatedAt,
+  }).from(sharedItineraries).where(eq(sharedItineraries.token, token)).limit(1);
+  return result[0];
 }
