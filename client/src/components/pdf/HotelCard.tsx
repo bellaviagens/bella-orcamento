@@ -41,10 +41,14 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-const PAYMENT_STEP_COLORS = ["#0284c7", "#d97706", "#059669", "#7c3aed"];
+const PAYMENT_CONDITION_COLORS = ["#1a2e4a", "#a16207", "#475569", "#4d7c0f"];
 
 function getPaymentConditionLabel(condition: CombinedPaymentCondition, index: number): string {
   return condition.label?.trim() || `Pagamento ${index + 1}`;
+}
+
+function getPaymentConditionColor(condition: CombinedPaymentCondition, index: number): string {
+  return condition.color || PAYMENT_CONDITION_COLORS[index % PAYMENT_CONDITION_COLORS.length];
 }
 
 // ===== MAPEAMENTO ESTÁTICO E FIXO DE ÍCONES =====
@@ -351,24 +355,22 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                                     <div className="space-y-0.5">
                                       {paymentPlan.map((condition, conditionIndex) => {
                                         const conditionLabel = getPaymentConditionLabel(condition, conditionIndex);
+                                        const conditionColor = getPaymentConditionColor(condition, conditionIndex);
                                         return (
-                                          <div key={condition.id}>
-                                            <div className="font-semibold">{conditionLabel}</div>
-                                            {condition.steps.map((step, stepIndex) => {
-                                              const stepColor = step.color || PAYMENT_STEP_COLORS[stepIndex % PAYMENT_STEP_COLORS.length];
+                                          <div key={condition.id} className="mt-0.5 pl-1" style={{ borderLeft: `3px solid ${conditionColor}` }}>
+                                            <div className="font-semibold" style={{ color: conditionColor }}>{conditionLabel}</div>
+                                            {condition.steps.map((step) => {
                                               return (
                                                 <div
                                                   key={step.id}
-                                                  className="ml-1 mt-0.5 rounded-sm px-1 py-0.5 font-normal"
-                                                  style={{ borderLeft: `3px solid ${stepColor}`, backgroundColor: `${stepColor}14` }}
+                                                  className="ml-1 mt-0.5 font-normal"
                                                 >
-                                                  <span style={{ color: stepColor }}>●</span>
-                                                  <span className="ml-1">{`${methodLabel[step.paymentMethod]}: ${step.installments}x de ${formatCurrency(step.installmentValue)}`}</span>
+                                                  <span>{`${methodLabel[step.paymentMethod]}: ${step.installments}x de ${formatCurrency(step.installmentValue)}`}</span>
                                                   {(step.cardRate ?? 0) > 0 && <span className="ml-1 text-slate-500">• taxa: {step.cardRate!.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%</span>}
                                                 </div>
                                               );
                                             })}
-                                            <div>Total de {conditionLabel}: {formatCurrency(condition.total)}</div>
+                                            <div className="font-semibold" style={{ color: "#1a2e4a" }}>Total de {conditionLabel}: {formatCurrency(condition.total)}</div>
                                           </div>
                                         );
                                       })}

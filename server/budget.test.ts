@@ -351,8 +351,9 @@ describe("parcelamento conjunto", () => {
       {
         id: "condition-1",
         label: "Cartão e PIX",
+        color: "#1a2e4a",
         steps: [
-          { id: "card", paymentMethod: "cartao", amount: 4000, installments: 10, color: "#ef4444" },
+          { id: "card", paymentMethod: "cartao", amount: 4000, installments: 10 },
           { id: "pix-now", paymentMethod: "pix", amount: 1000, installments: 1 },
           { id: "pix-later", paymentMethod: "pix", amount: 3000, installments: 3 },
         ],
@@ -365,7 +366,7 @@ describe("parcelamento conjunto", () => {
 
     expect(plan[0].steps.map((step) => step.installmentValue)).toEqual([400, 1000, 1000]);
     expect(plan[0].label).toBe("Cartão e PIX");
-    expect(plan[0].steps[0].color).toBe("#ef4444");
+    expect(plan[0].color).toBe("#1a2e4a");
     expect(plan[0].total).toBe(8000);
     expect(plan[1].total).toBe(11000);
   });

@@ -7,7 +7,7 @@ export interface CombinedPaymentStep {
   installments: number;
   paymentMethod: CombinedPaymentMethod;
   cardRate?: number;
-  /** Cor escolhida para identificar esta forma no formulário e no PDF. */
+  /** Mantida para compatibilidade com rascunhos anteriores. */
   color?: string;
 }
 
@@ -17,6 +17,8 @@ export interface CombinedPaymentCondition {
   steps: CombinedPaymentStep[];
   /** Título opcional exibido ao cliente no lugar de "Pagamento N". */
   label?: string;
+  /** Cor discreta usada para diferenciar a condição de pagamento no formulário e no PDF. */
+  color?: string;
 }
 
 export interface CalculatedCombinedPaymentStep extends CombinedPaymentStep {

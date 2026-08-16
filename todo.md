@@ -405,3 +405,7 @@
 - [x] Permitir renomear cada condição de Pagamento para identificação no formulário, preview e PDF
 - [x] Permitir escolher manualmente a cor de cada forma de pagamento e refletir a escolha no preview e PDF
 - [x] Validar rótulos simplificados, renomeação, cores personalizadas, PDF e regressões
+
+- [x] Tornar as formas internas de pagamento visualmente neutras, sem fundos coloridos individuais.
+- [x] Diferenciar Pagamento 1, Pagamento 2 e demais condições com uma única cor sóbria por condição no preview e PDF.
+- [x] Validar a nova hierarquia visual sem alterar cálculos, estrutura ou demais cartões.

@@ -15,10 +15,14 @@ function formatCurrency(value: number): string {
   }).format(value);
 }
 
-const PAYMENT_STEP_COLORS = ["#0284c7", "#d97706", "#059669", "#7c3aed"];
+const PAYMENT_CONDITION_COLORS = ["#1a2e4a", "#a16207", "#475569", "#4d7c0f"];
 
 function getPaymentConditionLabel(condition: CombinedPaymentCondition, index: number): string {
   return condition.label?.trim() || `Pagamento ${index + 1}`;
+}
+
+function getPaymentConditionColor(condition: CombinedPaymentCondition, index: number): string {
+  return condition.color || PAYMENT_CONDITION_COLORS[index % PAYMENT_CONDITION_COLORS.length];
 }
 
 export function InstallmentsForm() {
@@ -455,7 +459,8 @@ export function InstallmentsForm() {
                   {
                     id: `combined-condition-${Date.now()}-${combinedPaymentConditions.length}`,
                     label: `Pagamento ${combinedPaymentConditions.length + 1}`,
-                    steps: [{ id: `combined-step-${Date.now()}-0`, amount: 0, installments: 1, paymentMethod: "cartao", color: PAYMENT_STEP_COLORS[0] }],
+                    color: PAYMENT_CONDITION_COLORS[combinedPaymentConditions.length % PAYMENT_CONDITION_COLORS.length],
+                    steps: [{ id: `combined-step-${Date.now()}-0`, amount: 0, installments: 1, paymentMethod: "cartao" }],
                   },
                 ])}
               >
@@ -476,7 +481,7 @@ export function InstallmentsForm() {
                     combinedPaymentConditions.map((current) => current.id === condition.id
                       ? {
                           ...current,
-                          steps: [...current.steps, { id: `combined-step-${Date.now()}-${current.steps.length}`, amount: 0, installments: 1, paymentMethod: "cartao", color: PAYMENT_STEP_COLORS[current.steps.length % PAYMENT_STEP_COLORS.length] }],
+                          steps: [...current.steps, { id: `combined-step-${Date.now()}-${current.steps.length}`, amount: 0, installments: 1, paymentMethod: "cartao" }],
                         }
                       : current),
                   );
@@ -498,6 +503,7 @@ export function InstallmentsForm() {
                     const duplicate: CombinedPaymentCondition = {
                       id: duplicateId,
                       label: condition.label ? `${condition.label} (cópia)` : undefined,
+                      color: PAYMENT_CONDITION_COLORS[(index + 1) % PAYMENT_CONDITION_COLORS.length],
                       steps: condition.steps.map((step, stepIndex) => ({
                         ...step,
                         id: `combined-step-${Date.now()}-${index}-${stepIndex}`,
@@ -511,7 +517,11 @@ export function InstallmentsForm() {
                   };
 
                   return (
-                    <div key={condition.id} className="rounded-md border border-slate-200 bg-slate-50 p-2.5">
+                    <div
+                      key={condition.id}
+                      className="rounded-md border border-slate-200 bg-slate-50 p-2.5"
+                      style={{ borderLeft: `3px solid ${getPaymentConditionColor(condition, index)}` }}
+                    >
                       <div className="mb-2 flex items-center justify-between gap-2">
                         <div className="min-w-0 flex-1">
                           <Label htmlFor={`combined-payment-label-${condition.id}`} className="text-[10px] text-slate-500">Nome do Pagamento</Label>
@@ -527,6 +537,20 @@ export function InstallmentsForm() {
                             aria-label={`Nome do pagamento ${index + 1}`}
                           />
                         </div>
+                        <label className="flex shrink-0 items-center gap-1 text-[10px] font-medium text-slate-500">
+                          Cor
+                          <input
+                            type="color"
+                            value={getPaymentConditionColor(condition, index)}
+                            onChange={(event) => updateConditions(
+                              combinedPaymentConditions.map((current) => current.id === condition.id
+                                ? { ...current, color: event.target.value }
+                                : current),
+                            )}
+                            className="h-6 w-8 cursor-pointer rounded border border-slate-300 bg-white p-0.5"
+                            aria-label={`Cor do pagamento ${index + 1}`}
+                          />
+                        </label>
                         <div className="flex items-center gap-1">
                           <Button
                             type="button"
@@ -568,25 +592,12 @@ export function InstallmentsForm() {
                       )}
                       {!isCollapsed && <div className="space-y-2">
                         {condition.steps.map((step, stepIndex) => {
-                          const stepColor = step.color || PAYMENT_STEP_COLORS[stepIndex % PAYMENT_STEP_COLORS.length];
                           return (
                           <div
                             key={step.id}
                             className="rounded border border-slate-200 bg-white p-2"
-                            style={{ borderLeft: `4px solid ${stepColor}`, backgroundColor: `${stepColor}0d` }}
                           >
-                            <div className="mb-1 flex items-center justify-between gap-2">
-                              <span className="text-[10px] font-semibold text-slate-600">Opção de pagamento</span>
-                              <label className="flex items-center gap-1 text-[10px] font-medium text-slate-500">
-                                Cor
-                                <input
-                                  type="color"
-                                  value={stepColor}
-                                  onChange={(event) => updateStep(step.id, { color: event.target.value })}
-                                  className="h-5 w-7 cursor-pointer rounded border border-slate-300 bg-white p-0.5"
-                                  aria-label={`Cor da opção de pagamento ${stepIndex + 1}`}
-                                />
-                              </label>
+                            <div className="mb-1 flex items-center justify-end gap-2">
                               <Button
                                 type="button"
                                 variant="ghost"
