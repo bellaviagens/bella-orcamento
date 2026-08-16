@@ -39,7 +39,7 @@ interface BudgetContextType {
   updateFareTier: (id: string, tier: Partial<FareTier>) => void;
   removeFareTier: (id: string) => void;
   updateBaggage: (index: number, field: string, value: string | number) => void;
-  updateInstallments: (field: "flight" | "hotel" | "combined" | "hotelDownpayment" | "hotelDownpaymentAmount" | "flightDownpayment" | "flightDownpaymentAmount" | "combinedDownpayment" | "combinedDownpaymentAmount" | "observations" | "flightCashPrice" | "flightCashPaymentMethods" | "flightMachineRate" | "flightInstallmentsWithRate" | "showCashOption", value: number | boolean | string | string[] | undefined) => void;
+  updateInstallments: (field: "flight" | "hotel" | "combined" | "combinedInstallments" | "hotelDownpayment" | "hotelDownpaymentAmount" | "flightDownpayment" | "flightDownpaymentAmount" | "combinedDownpayment" | "combinedDownpaymentAmount" | "observations" | "flightCashPrice" | "flightCashPaymentMethods" | "flightMachineRate" | "flightInstallmentsWithRate" | "showCashOption", value: number | boolean | string | string[] | undefined) => void;
   updatePaymentMethods: (methods: string[]) => void;
   updateHotelPaymentMethods: (methods: string[]) => void;
   updatePageBreaks: (field: "flights" | "hotels" | "baggage" | "payment", value: boolean) => void;
@@ -548,7 +548,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const updateInstallments = useCallback((field: "flight" | "hotel" | "combined" | "hotelDownpayment" | "hotelDownpaymentAmount" | "flightDownpayment" | "flightDownpaymentAmount" | "combinedDownpayment" | "combinedDownpaymentAmount" | "observations" | "flightCashPrice" | "flightCashPaymentMethods" | "flightMachineRate" | "flightInstallmentsWithRate" | "showCashOption", value: number | boolean | string | string[] | undefined) => {
+  const updateInstallments = useCallback((field: "flight" | "hotel" | "combined" | "combinedInstallments" | "hotelDownpayment" | "hotelDownpaymentAmount" | "flightDownpayment" | "flightDownpaymentAmount" | "combinedDownpayment" | "combinedDownpaymentAmount" | "observations" | "flightCashPrice" | "flightCashPaymentMethods" | "flightMachineRate" | "flightInstallmentsWithRate" | "showCashOption", value: number | boolean | string | string[] | undefined) => {
     setBudget((prev) => ({
       ...prev,
       installments: {

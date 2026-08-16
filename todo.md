@@ -373,3 +373,9 @@
 - [x] Permitir definir data de expiração para o link compartilhado do Roteiro Final
 - [x] Permitir revogar manualmente o acesso de um link compartilhado
 - [x] Validar tipos, testes, linhas de observações e acesso expirado ou revogado
+
+- [x] Permitir configurar parcelas específicas para a opção Hotel + Aéreo juntos
+- [x] Remover a validade do orçamento da tarja final do PDF
+- [x] Manter a tarja institucional no rodapé da última página do PDF
+- [x] Criar espaço superior suficiente para evitar cortes de título e hotel no início de páginas novas
+- [x] Validar cálculos combinados, paginação, PDF, tipos e testes dos ajustes

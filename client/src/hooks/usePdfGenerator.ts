@@ -70,7 +70,7 @@ export function usePdfGenerator() {
       const pdfWidthMm = 210;
       const pdfPageHeightMm = 297;
       const isItineraryPdf = elementId === "itinerary-document" || elementId === "final-itinerary-document";
-      const continuedPageTopMarginMm = isItineraryPdf ? 8 : 0;
+      const continuedPageTopMarginMm = 8;
       const pageContentHeightMm = pdfPageHeightMm - continuedPageTopMarginMm;
       // pixels per mm based on canvas width
       const pxPerMm = canvas.width / pdfWidthMm;
@@ -155,14 +155,24 @@ export function usePdfGenerator() {
         format: "a4",
       });
 
+      // No orçamento, o último segmento termina com a tarja institucional e o
+      // rodapé. Ao alinhar somente esse segmento pela base da página, a tarja
+      // fica no rodapé da última folha sem alterar os PDFs independentes do roteiro.
+      const pageYOffsetsMm = segmentData.map((segment, index) => {
+        if (index === 0 || isItineraryPdf) return index === 0 ? 0 : continuedPageTopMarginMm;
+        const isLastPage = index === segmentData.length - 1;
+        return isLastPage
+          ? Math.max(continuedPageTopMarginMm, pdfPageHeightMm - segment.heightMm)
+          : continuedPageTopMarginMm;
+      });
+
       // Add each segment as a page with A4 height
       for (let i = 0; i < segmentData.length; i++) {
         const seg = segmentData[i];
         if (i > 0) {
           pdf.addPage("a4");
         }
-        const yOffsetMm = i > 0 ? continuedPageTopMarginMm : 0;
-        pdf.addImage(seg.imgData, "PNG", seg.xOffsetMm, yOffsetMm, seg.widthMm, seg.heightMm, undefined, "FAST");
+        pdf.addImage(seg.imgData, "PNG", seg.xOffsetMm, pageYOffsetsMm[i], seg.widthMm, seg.heightMm, undefined, "FAST");
       }
 
       // Add clickable links for elements with data-pdf-link
@@ -190,7 +200,7 @@ export function usePdfGenerator() {
         if (pageNum < totalPages) {
           const segment = segmentData[pageNum];
           const xMm = (bounds.left / canvas.width) * imgWidth * segment.scale + segment.xOffsetMm;
-          const yOnPage = ((yInCanvas - yOffset) / canvas.width) * imgWidth * segment.scale + (pageNum > 0 ? continuedPageTopMarginMm : 0);
+          const yOnPage = ((yInCanvas - yOffset) / canvas.width) * imgWidth * segment.scale + pageYOffsetsMm[pageNum];
           const wMm = (bounds.width / canvas.width) * imgWidth * segment.scale;
           const hMm = (bounds.height / canvas.width) * imgWidth * segment.scale;
           pdf.setPage(pageNum + 1);

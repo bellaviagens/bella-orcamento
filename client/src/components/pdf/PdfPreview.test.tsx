@@ -30,6 +30,31 @@ describe("PdfPreview — parcelamento conjunto", () => {
     expect(markup).toContain("10x de R$ 500,00");
   });
 
+  it("prioriza a quantidade de parcelas própria para Hotel + Aéreo", () => {
+    const data = {
+      ...defaultBudgetData,
+      fareComparison: {
+        tiers: [{ id: "fare-combined", name: "Básica", flightPrice: 1000, benefits: [] }],
+      },
+      hotels: [{ ...defaultBudgetData.hotels[0], id: "hotel-combined", totalPrice: 3000, prices: {} }],
+      installments: { ...defaultBudgetData.installments, combined: true, flight: 10, combinedInstallments: 6 },
+    };
+
+    const markup = renderToStaticMarkup(<PdfPreview data={data} />);
+
+    expect(markup).toContain("6x de R$ 833,33");
+    expect(markup).not.toContain("10x de R$ 500,00");
+  });
+
+  it("mantém a tarja institucional no bloco final e não exibe prazo de validade", () => {
+    const markup = renderToStaticMarkup(<PdfPreview data={defaultBudgetData} />);
+
+    expect(markup).toContain('data-pdf-last-page-footer="true"');
+    expect(markup).toContain('data-pdf-keep-together="true"');
+    expect(markup).not.toContain("Orçamento válido por 7 dias");
+    expect(markup).not.toContain("prazo de validade informado");
+  });
+
   it("exibe a observação de parcelamento mesmo quando há hospedagem", () => {
     const data = {
       ...defaultBudgetData,

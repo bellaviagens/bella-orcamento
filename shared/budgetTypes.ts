@@ -205,6 +205,7 @@ export interface BudgetData {
     flight?: number; // Parcelamento do aéreo
     hotel?: number; // Parcelamento do hotel
     combined?: boolean; // Se true, soma aéreo + hotel e divide pelas parcelas
+    combinedInstallments?: number; // Parcelamento próprio quando aéreo + hotel são somados
     paymentMethods?: string[]; // Formas de pagamento do aéreo: "dinheiro", "cartao", "pix"
     hotelPaymentMethods?: string[]; // Formas de pagamento do hotel: "dinheiro", "cartao", "pix"
     hotelDownpayment?: boolean; // Se true, tem entrada no hotel

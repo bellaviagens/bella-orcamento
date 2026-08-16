@@ -24,7 +24,7 @@ export function InstallmentsForm() {
     ? installments.flightInstallmentsWithRate
     : (installments?.flight || 1);
   const hotelInstallments = installments?.hotel || 1;
-  const combinedInstallments = flightInstallments;
+  const combinedInstallments = installments?.combinedInstallments ?? flightInstallments;
   const combinedDownpaymentAmount = installments?.combinedDownpaymentAmount ?? 0;
   const combinedOptions = budget.fareComparison.tiers.flatMap((tier) =>
     budget.hotels.map((hotel) => ({
@@ -373,6 +373,19 @@ export function InstallmentsForm() {
         <p className="text-[10px] text-slate-400 mt-2 ml-6">
           Se marcado, soma o valor do aéreo + hotel e divide pelo número de parcelas selecionado.
         </p>
+        {installments?.combined && (
+          <div className="mt-3 ml-6 max-w-52">
+            <Label className="text-xs text-slate-600">Número de Parcelas (Hotel + Aéreo)</Label>
+            <Input
+              type="number"
+              min="1"
+              value={installments?.combinedInstallments ?? flightInstallments}
+              onChange={(e) => updateInstallments("combinedInstallments", e.target.value ? parseInt(e.target.value) : undefined)}
+              placeholder="Ex: 10"
+              className="h-8 text-sm mt-1"
+            />
+          </div>
+        )}
         {installments?.combined && combinedOptions.map((option) => (
           <p key={option.id} className="text-[10px] text-[#1a2e4a] font-semibold mt-2 ml-6">
             {combinedOptions.length > 1 ? `${option.label}: ` : ""}
