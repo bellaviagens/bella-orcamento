@@ -1,11 +1,12 @@
 import { useBudget } from "@/contexts/BudgetContext";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { calculateCombinedTotal, calculateEffectiveHotelTotal } from "@shared/paymentCalculations";
 import { calculateCombinedPaymentPlan, normalizeCombinedPaymentConditions, type CombinedPaymentCondition, type CombinedPaymentMethod, type CombinedPaymentStep } from "@shared/combinedPaymentPlan";
-import { Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Copy, Plus, Trash2 } from "lucide-react";
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("pt-BR", {
@@ -17,6 +18,7 @@ function formatCurrency(value: number): string {
 export function InstallmentsForm() {
   const { budget, updateInstallments, updatePaymentMethods, updateHotelPaymentMethods, updatePageBreaks } = useBudget();
   const { installments, pageBreaks } = budget;
+  const [collapsedPaymentConditions, setCollapsedPaymentConditions] = useState<string[]>([]);
 
   // Calculate totals for preview
   const passengerCount = parseInt(budget.tripInfo.passengers) || 1;
@@ -478,27 +480,81 @@ export function InstallmentsForm() {
                   );
                   const samplePlan = calculateCombinedPaymentPlan(combinedOptions[0]?.total ?? 0, combinedPaymentConditions);
                   const sampleCondition = samplePlan.find((current) => current.id === condition.id);
+                  const isCollapsed = collapsedPaymentConditions.includes(condition.id);
+                  const toggleCollapsed = () => setCollapsedPaymentConditions((current) => (
+                    current.includes(condition.id)
+                      ? current.filter((id) => id !== condition.id)
+                      : [...current, condition.id]
+                  ));
+                  const duplicateCondition = () => {
+                    const duplicateId = `combined-condition-${Date.now()}-${index}`;
+                    const duplicate: CombinedPaymentCondition = {
+                      id: duplicateId,
+                      steps: condition.steps.map((step, stepIndex) => ({
+                        ...step,
+                        id: `combined-step-${Date.now()}-${index}-${stepIndex}`,
+                      })),
+                    };
+                    updateConditions([
+                      ...combinedPaymentConditions.slice(0, index + 1),
+                      duplicate,
+                      ...combinedPaymentConditions.slice(index + 1),
+                    ]);
+                  };
 
                   return (
                     <div key={condition.id} className="rounded-md border border-slate-200 bg-slate-50 p-2.5">
                       <div className="mb-2 flex items-center justify-between gap-2">
                         <span className="text-[11px] font-semibold text-[#1a2e4a]">Pagamento {index + 1}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-slate-400 hover:bg-red-50 hover:text-red-600"
-                          aria-label={`Remover pagamento ${index + 1}`}
-                          onClick={() => updateConditions(combinedPaymentConditions.filter((current) => current.id !== condition.id))}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-1.5 text-[10px] text-slate-600 hover:bg-slate-200"
+                            aria-label={`${isCollapsed ? "Expandir" : "Recolher"} pagamento ${index + 1}`}
+                            onClick={toggleCollapsed}
+                          >
+                            {isCollapsed ? <ChevronDown className="mr-1 h-3 w-3" /> : <ChevronUp className="mr-1 h-3 w-3" />}
+                            {isCollapsed ? "Expandir" : "Recolher"}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-1.5 text-[10px] text-slate-600 hover:bg-slate-200"
+                            aria-label={`Duplicar pagamento ${index + 1}`}
+                            onClick={duplicateCondition}
+                          >
+                            <Copy className="mr-1 h-3 w-3" /> Duplicar
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                            aria-label={`Remover pagamento ${index + 1}`}
+                            onClick={() => updateConditions(combinedPaymentConditions.filter((current) => current.id !== condition.id))}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="space-y-2">
+                      {isCollapsed && sampleCondition && (
+                        <p className="-mt-1 mb-2 text-[10px] font-semibold text-[#1a2e4a]">
+                          Total do Pagamento {index + 1}: {formatCurrency(sampleCondition.total)}
+                        </p>
+                      )}
+                      {!isCollapsed && <div className="space-y-2">
                         {condition.steps.map((step, stepIndex) => (
-                          <div key={step.id} className="rounded border border-slate-200 bg-white p-2">
+                          <div
+                            key={step.id}
+                            className={`rounded border border-slate-200 border-l-4 bg-white p-2 ${["border-l-sky-500", "border-l-amber-500", "border-l-emerald-500", "border-l-violet-500"][stepIndex % 4]}`}
+                          >
                             <div className="mb-1 flex items-center justify-between gap-2">
-                              <span className="text-[10px] font-medium text-slate-600">Forma {stepIndex + 1}</span>
+                              <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${["bg-sky-100 text-sky-700", "bg-amber-100 text-amber-700", "bg-emerald-100 text-emerald-700", "bg-violet-100 text-violet-700"][stepIndex % 4]}`}>
+                                • Forma {stepIndex + 1}
+                              </span>
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -536,12 +592,12 @@ export function InstallmentsForm() {
                             )}
                           </div>
                         ))}
-                      </div>
-                      <Button type="button" variant="outline" size="sm" className="mt-2 h-7 border-slate-300 bg-white text-[10px] text-[#1a2e4a]" onClick={addStep}>
+                      </div>}
+                      {!isCollapsed && <Button type="button" variant="outline" size="sm" className="mt-2 h-7 border-slate-300 bg-white text-[10px] text-[#1a2e4a]" onClick={addStep}>
                         <Plus className="mr-1 h-3 w-3" /> Adicionar forma
-                      </Button>
+                      </Button>}
                       {sampleCondition && (
-                        <p className="mt-2 text-[10px] font-semibold text-[#1a2e4a]">
+                        <p className={`${isCollapsed ? "hidden" : "mt-2"} text-[10px] font-semibold text-[#1a2e4a]`}>
                           Total do Pagamento {index + 1}: {formatCurrency(sampleCondition.total)}
                         </p>
                       )}

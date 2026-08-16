@@ -395,3 +395,8 @@
 - [x] Somar as formas internas e exibir o Total do Pagamento em cada condição, com taxa opcional somente em cartão
 - [x] Exibir no preview e PDF cada condição com suas formas internas e seu total, sem alterar as demais regras
 - [x] Validar somatórios internos, taxas, preview/PDF, tipos e regressões do orçamento
+
+- [x] Garantir margem superior adequada no início da segunda e demais páginas do PDF de orçamento
+- [x] Adicionar controles para recolher/expandir e duplicar cada condição de Pagamento
+- [x] Diferenciar visualmente cada Forma de pagamento no formulário, preview e PDF para identificar condições distintas
+- [x] Validar PDF multipágina, controles de pagamento, tipos e regressões

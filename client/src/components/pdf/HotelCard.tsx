@@ -346,9 +346,10 @@ export function HotelCard({ hotel, index, tiers, passengers, includeAirfare = tr
                                       {paymentPlan.map((condition, conditionIndex) => (
                                         <div key={condition.id}>
                                           <div className="font-semibold">Pagamento {conditionIndex + 1}</div>
-                                          {condition.steps.map((step) => (
+                                          {condition.steps.map((step, stepIndex) => (
                                             <div key={step.id} className="ml-1 font-normal">
-                                              <span>{`${methodLabel[step.paymentMethod]}: ${step.installments}x de ${formatCurrency(step.installmentValue)}`}</span>
+                                              <span style={{ color: ["#0284c7", "#d97706", "#059669", "#7c3aed"][stepIndex % 4] }}>●</span>
+                                              <span className="ml-1">{`Forma ${stepIndex + 1} · ${methodLabel[step.paymentMethod]}: ${step.installments}x de ${formatCurrency(step.installmentValue)}`}</span>
                                               {(step.cardRate ?? 0) > 0 && <span className="ml-1 text-slate-500">• taxa: {step.cardRate!.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%</span>}
                                             </div>
                                           ))}

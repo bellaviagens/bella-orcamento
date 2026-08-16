@@ -155,15 +155,12 @@ export function usePdfGenerator() {
         format: "a4",
       });
 
-      // No orçamento, o último segmento termina com a tarja institucional e o
-      // rodapé. Ao alinhar somente esse segmento pela base da página, a tarja
-      // fica no rodapé da última folha sem alterar os PDFs independentes do roteiro.
+      // Cada trecho continuado começa sempre abaixo da margem superior. Assim,
+      // a segunda página e as seguintes não ficam com conteúdo deslocado para
+      // baixo ou iniciado fora da área útil do PDF.
       const pageYOffsetsMm = segmentData.map((segment, index) => {
         if (index === 0 || isItineraryPdf) return index === 0 ? 0 : continuedPageTopMarginMm;
-        const isLastPage = index === segmentData.length - 1;
-        return isLastPage
-          ? Math.max(continuedPageTopMarginMm, pdfPageHeightMm - segment.heightMm)
-          : continuedPageTopMarginMm;
+        return continuedPageTopMarginMm;
       });
 
       // Add each segment as a page with A4 height
