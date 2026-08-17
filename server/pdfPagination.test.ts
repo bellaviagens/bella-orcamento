@@ -26,6 +26,18 @@ describe("buildPdfSegments", () => {
     ]);
   });
 
+  it("mantém dois passeios completos na mesma página quando ambos cabem", () => {
+    expect(buildPdfSegments(2100, 1000, [
+      { top: 100, bottom: 460 },
+      { top: 480, bottom: 940 },
+      { top: 960, bottom: 1320 },
+    ], [])).toEqual([
+      { start: 0, end: 960 },
+      { start: 960, end: 1960 },
+      { start: 1960, end: 2100 },
+    ]);
+  });
+
   it("mantém um bloco maior que a página no mesmo segmento para escala de exportação", () => {
     expect(buildPdfSegments(2200, 1000, [{ top: 0, bottom: 1250 }], [])).toEqual([
       { start: 0, end: 1250 },

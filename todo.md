@@ -515,3 +515,7 @@
 - [x] Aplicar uma margem superior uniforme nas páginas internas da Proposta, como na página do Dia 2.
 - [x] Reservar margem de segurança no rodapé para que nenhum bloco seja cortado ao exportar a Proposta.
 - [x] Validar paginação multipágina, tipagem, testes, build e publicação sem alterar outros módulos.
+
+- [x] Adicionar numeração discreta no rodapé de todas as páginas da Proposta de Passeios.
+- [x] Padronizar o aproveitamento das páginas, mantendo cada passeio inteiro e agrupando dois passeios somente quando ambos couberem.
+- [x] Validar o PDF enviado, a paginação multipágina, testes, tipagem, build e publicação sem alterar os demais módulos.

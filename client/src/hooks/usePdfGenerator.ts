@@ -115,21 +115,38 @@ export function usePdfGenerator() {
         protectedPositions.push({ top: bounds.top, bottom: bounds.bottom });
       });
 
-      // Na Proposta de Passeios, o primeiro dia é mantido junto do cabeçalho
-      // institucional quando a composição cabe em uma página. Isso evita que a
-      // proteção de quebra deixe a primeira folha com apenas a abertura.
+      // Na Proposta de Passeios, cada compromisso é protegido individualmente.
+      // O cabeçalho de cada dia é incorporado somente ao primeiro compromisso:
+      // isso permite aproveitar o restante da página com o próximo passeio, sem
+      // separar título, agenda e conteúdo do primeiro bloco do dia.
       if (elementId === "itinerary-document") {
         const proposalHeader = clone.querySelector<HTMLElement>("[data-pdf-proposal-header='true']");
-        const firstDay = clone.querySelector<HTMLElement>("[data-proposal-day='true']");
-        if (proposalHeader && firstDay) {
-          const headerBounds = toCanvasBounds(proposalHeader);
-          const firstDayBounds = toCanvasBounds(firstDay);
-          const firstDayBlock = protectedPositions.find(
-            (block) => Math.abs(block.top - firstDayBounds.top) <= 2 && Math.abs(block.bottom - firstDayBounds.bottom) <= 2,
+        const proposalDays = clone.querySelectorAll<HTMLElement>("[data-proposal-day='true']");
+        let firstActivityBlock: { top: number; bottom: number } | undefined;
+
+        proposalDays.forEach((day) => {
+          const firstActivity = day.querySelector<HTMLElement>("[data-proposal-activity='true']");
+          if (!firstActivity) return;
+
+          const dayBounds = toCanvasBounds(day);
+          const activityBounds = toCanvasBounds(firstActivity);
+          const activityBlock = protectedPositions.find(
+            (block) => Math.abs(block.top - activityBounds.top) <= 2 && Math.abs(block.bottom - activityBounds.bottom) <= 2,
           );
-          const combinedHeight = firstDayBounds.bottom - headerBounds.top;
-          if (firstDayBlock && combinedHeight <= pageHeightPx * 1.08) {
-            firstDayBlock.top = headerBounds.top;
+          if (!activityBlock) return;
+
+          activityBlock.top = dayBounds.top;
+          firstActivityBlock ??= activityBlock;
+        });
+
+        // A capa só acompanha o primeiro compromisso quando o conjunto inteiro
+        // realmente cabe na área útil, evitando uma página inicial parcialmente
+        // preenchida seguida por um corte no começo do Dia 1.
+        if (proposalHeader && firstActivityBlock) {
+          const headerBounds = toCanvasBounds(proposalHeader);
+          const combinedHeight = firstActivityBlock.bottom - headerBounds.top;
+          if (combinedHeight <= pageHeightPx) {
+            firstActivityBlock.top = headerBounds.top;
           }
         }
       }
@@ -232,6 +249,17 @@ export function usePdfGenerator() {
           addExternalPdfLink(pdf.link.bind(pdf), xMm, yOnPage, wMm, hMm, link);
         }
       });
+
+      // A numeração é aplicada após as imagens e os links para ficar idêntica
+      // em todas as páginas da Proposta, dentro da margem inferior reservada.
+      if (isTourProposal) {
+        for (let pageIndex = 0; pageIndex < totalPages; pageIndex += 1) {
+          pdf.setPage(pageIndex + 1);
+          pdf.setFontSize(8);
+          pdf.setTextColor(100, 116, 139);
+          pdf.text(`Página ${pageIndex + 1} de ${totalPages}`, pdfWidthMm / 2, pdfPageHeightMm - 3.5, { align: "center" });
+        }
+      }
 
       // As medições e a área clicável usam o clone. Ele só pode ser removido
       // depois de todos os cálculos de posição terem sido concluídos.

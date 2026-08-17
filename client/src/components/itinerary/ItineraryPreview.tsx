@@ -119,7 +119,7 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
 
       {days.length === 0 ? <div className="px-3 py-16 text-center text-sm text-slate-500">Adicione os passeios e as datas na aba <strong>Roteiro</strong> para montar esta proposta.</div> : <div className="space-y-4 px-3 py-4">{days.map((day) => {
         const activities = getItineraryDayActivities(day);
-        return <section key={day.id} data-pdf-keep-together="true" data-proposal-day="true">
+        return <section key={day.id} data-proposal-day="true">
           <div className="mb-2 flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day.day}</span><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-600">Dia {day.day}{day.date ? ` • ${formatDateWithWeekday(day.date)}` : ""}</p><h3 className="text-sm font-bold text-[#1a2e4a]">{day.title || "Dia livre"}</h3></div></div>
           <div className="ml-2 space-y-2.5 border-l-2 border-amber-200 pl-2">
             {activities.length >= 3 && <div data-pdf-keep-together="true" className="flex items-center gap-3 pb-1 pt-0.5"><span className="h-px flex-1 bg-gradient-to-r from-amber-300 to-amber-100" /><span className="shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-amber-700">Agenda do dia • {activities.length} compromissos</span><span className="h-px flex-1 bg-gradient-to-l from-amber-300 to-amber-100" /></div>}
@@ -136,7 +136,7 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
               const informationUrl = tour?.pageUrl || activity.linkUrl;
 
               const showActivitySeparator = activities.length >= 3 && activityIndex > 0;
-              return <div key={activity.id} data-pdf-keep-together="true" className={showActivitySeparator ? "pt-1" : undefined}>
+              return <div key={activity.id} data-pdf-keep-together="true" data-proposal-activity="true" className={showActivitySeparator ? "pt-1" : undefined}>
                 {showActivitySeparator && <div className="flex items-center gap-2.5 pb-2 pt-0.5"><span className="h-px flex-1 bg-slate-200" /><span className="shrink-0 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">Próximo compromisso</span><span className="h-px flex-1 bg-slate-200" /></div>}
                 <article className="relative rounded-xl border border-slate-200 bg-slate-50 p-3">
                 <span className="absolute -left-[27px] top-4 h-3 w-3 rounded-full border-2 border-white bg-[#1a2e4a]" />
