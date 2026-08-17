@@ -503,3 +503,7 @@
 - [x] Permitir escolher o tamanho da fonte usado no resumo da capa da Proposta.
 - [x] Permitir selecionar manualmente os dias que aparecem no resumo da capa quando houver mais de seis dias.
 - [x] Validar paginação, controles de resumo, PDF e preview sem alterar os demais módulos.
+
+- [x] Aumentar o contraste visual entre os dias no resumo da capa da Proposta.
+- [x] Remover o recuo, borda e linha extras antes do conteúdo das páginas internas da Proposta.
+- [x] Validar o PDF enviado, paginação, destaque de dias e publicação da correção.

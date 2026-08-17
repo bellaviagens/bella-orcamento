@@ -35,6 +35,14 @@ export function usePdfGenerator() {
       clone.style.width = "794px";
       clone.style.maxWidth = "794px";
       clone.style.minWidth = "794px";
+      // A sombra existe somente para destacar a prévia no navegador. Ao dividir
+      // a Proposta em páginas, ela pode aparecer como uma faixa antes do conteúdo.
+      if (elementId === "itinerary-document") {
+        clone.style.boxShadow = "none";
+        clone.style.border = "none";
+        clone.style.outline = "none";
+        clone.style.overflow = "visible";
+      }
       // Ensure height > width so jsPDF keeps portrait orientation (A4 ratio: 794 x 1123px at 96dpi)
       clone.style.minHeight = "1123px";
       captureContainer.appendChild(clone);

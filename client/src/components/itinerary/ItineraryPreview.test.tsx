@@ -122,6 +122,9 @@ describe("ItineraryPreview — agenda de dia extenso", () => {
     expect(coverMarkup).toContain("lucide-plane-takeoff");
     expect(coverMarkup).toContain("lucide-utensils");
     expect(coverMarkup).toContain("lucide-sparkles");
+    expect(coverMarkup).toContain("border-l-4");
+    expect(coverMarkup).toContain("bg-[#f3f7fb]");
+    expect(coverMarkup).toContain("bg-[#fff9eb]");
   });
 
   it("permite selecionar os dias e o tamanho de fonte exibidos no resumo de capa", () => {
