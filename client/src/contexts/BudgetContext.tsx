@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import { defaultBudgetData, type BudgetData, type FinalItinerary, type FinalItineraryEvent, type FinalItineraryEventKind, type Flight, type Hotel, type FareTier, type ItineraryActivity, type ItineraryDay, type QuotationActivity, type Tour, type TourProposal } from "@shared/budgetTypes";
+import { defaultBudgetData, type BudgetData, type FinalItinerary, type FinalItineraryEvent, type FinalItineraryEventKind, type Flight, type GastronomyOption, type Hotel, type FareTier, type ItineraryActivity, type ItineraryDay, type QuotationActivity, type Tour, type TourProposal } from "@shared/budgetTypes";
 import type { CombinedPaymentCondition, CombinedPaymentStep } from "@shared/combinedPaymentPlan";
 import { reconcileFareBenefits } from "@shared/fareBenefits";
 import { nanoid } from "nanoid";
@@ -20,6 +20,10 @@ interface BudgetContextType {
   removeTour: (id: string) => void;
   duplicateTour: (id: string) => void;
   reorderTours: (tours: Tour[]) => void;
+  saveGastronomyOption: (option: GastronomyOption) => void;
+  removeGastronomyOption: (id: string) => void;
+  addGastronomyToDay: (dayId: string, optionId: string) => void;
+  addGastronomyToUsefulTips: (optionId: string) => void;
   addItineraryDay: () => void;
   importItineraryFromQuotation: (activities: QuotationActivity[], quotationUrl: string) => void;
   addItineraryActivity: (dayId: string, activity?: Partial<ItineraryActivity>) => void;
@@ -201,6 +205,38 @@ export function addItineraryActivityToBudget(
   };
 }
 
+export function addGastronomyToDayInBudget(budget: BudgetData, dayId: string, optionId: string): BudgetData {
+  const option = (budget.gastronomyOptions || []).find((item) => item.id === optionId);
+  if (!option) return budget;
+
+  return addItineraryActivityToBudget(budget, dayId, {
+    kind: "meal",
+    title: option.name,
+    description: option.description || [option.location, option.address].filter(Boolean).join(" • "),
+    linkUrl: option.website || option.mapsUrl,
+    importantNotes: option.address ? `Local: ${option.address}` : "",
+  });
+}
+
+export function addGastronomyToUsefulTipsInBudget(budget: BudgetData, optionId: string): BudgetData {
+  const option = (budget.gastronomyOptions || []).find((item) => item.id === optionId);
+  if (!option) return budget;
+  const url = option.website || option.mapsUrl;
+  const title = `Gastronomia — ${option.name}`;
+  if ((budget.finalItinerary.usefulLinks || []).some((item) => item.url === url && item.title === title)) return budget;
+
+  return {
+    ...budget,
+    finalItinerary: {
+      ...budget.finalItinerary,
+      usefulLinks: [
+        ...(budget.finalItinerary.usefulLinks || []),
+        { id: nanoid(), title, description: [option.location, option.address, option.description].filter(Boolean).join(" • "), url },
+      ],
+    },
+  };
+}
+
 export function updateItineraryActivityInBudget(
   budget: BudgetData,
   dayId: string,
@@ -369,6 +405,7 @@ export function resetTourProposalInBudget(budget: BudgetData): BudgetData {
   return {
     ...budget,
     tours: [],
+    gastronomyOptions: [],
     itinerary: [],
     tourProposal: {
       title: "Proposta de passeios",
@@ -578,6 +615,26 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     setBudget((prev) => reorderToursInBudget(prev, tours));
   }, []);
 
+  const saveGastronomyOption = useCallback((option: GastronomyOption) => {
+    setBudget((prev) => {
+      const current = prev.gastronomyOptions || [];
+      const exists = current.some((item) => item.id === option.id);
+      return { ...prev, gastronomyOptions: exists ? current.map((item) => item.id === option.id ? option : item) : [...current, option] };
+    });
+  }, []);
+
+  const removeGastronomyOption = useCallback((id: string) => {
+    setBudget((prev) => ({ ...prev, gastronomyOptions: (prev.gastronomyOptions || []).filter((option) => option.id !== id) }));
+  }, []);
+
+  const addGastronomyToDay = useCallback((dayId: string, optionId: string) => {
+    setBudget((prev) => addGastronomyToDayInBudget(prev, dayId, optionId));
+  }, []);
+
+  const addGastronomyToUsefulTips = useCallback((optionId: string) => {
+    setBudget((prev) => addGastronomyToUsefulTipsInBudget(prev, optionId));
+  }, []);
+
   const addItineraryDay = useCallback(() => {
     setBudget((prev) => {
       const nextDay = Math.max(0, ...prev.itinerary.map((day) => day.day)) + 1;
@@ -765,6 +822,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         removeTour,
         duplicateTour,
         reorderTours,
+        saveGastronomyOption,
+        removeGastronomyOption,
+        addGastronomyToDay,
+        addGastronomyToUsefulTips,
         addItineraryDay,
         importItineraryFromQuotation,
         addItineraryActivity,

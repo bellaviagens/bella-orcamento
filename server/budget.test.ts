@@ -4,7 +4,7 @@ import type { TrpcContext } from "./_core/context";
 import { calculateCombinedInstallmentValue, calculateCombinedTotal, calculateEffectiveHotelTotal } from "../shared/paymentCalculations";
 import { calculateCombinedPaymentPlan } from "../shared/combinedPaymentPlan";
 import { calculateTourProposalInstallment, calculateTourTotal, getTourTravelerCount } from "../shared/tourPricing";
-import { addFinalItineraryEventToBudget, addFlightToFinalItineraryInBudget, addHotelToFinalItineraryInBudget, addItineraryActivityToBudget, duplicateHotelInBudget, duplicateTourInBudget, getItineraryDayActivities, importQuotationActivitiesIntoBudget, moveItineraryActivityBetweenDaysInBudget, removeItineraryActivityFromBudget, reorderHotelsInBudget, reorderItineraryActivitiesInBudget, reorderItineraryDaysInBudget, reorderToursInBudget, resetTourProposalInBudget, updateItineraryActivityInBudget } from "../client/src/contexts/BudgetContext";
+import { addFinalItineraryEventToBudget, addFlightToFinalItineraryInBudget, addGastronomyToDayInBudget, addGastronomyToUsefulTipsInBudget, addHotelToFinalItineraryInBudget, addItineraryActivityToBudget, duplicateHotelInBudget, duplicateTourInBudget, getItineraryDayActivities, importQuotationActivitiesIntoBudget, moveItineraryActivityBetweenDaysInBudget, removeItineraryActivityFromBudget, reorderHotelsInBudget, reorderItineraryActivitiesInBudget, reorderItineraryDaysInBudget, reorderToursInBudget, resetTourProposalInBudget, updateItineraryActivityInBudget } from "../client/src/contexts/BudgetContext";
 
 function createMockContext(): TrpcContext {
   return {
@@ -35,6 +35,11 @@ describe("appRouter", () => {
     expect(caller.importQuotationUrl).toBeDefined();
   });
 
+  it("has gastronomy search procedure", () => {
+    const caller = appRouter.createCaller(createMockContext());
+    expect(caller.gastronomy.search).toBeDefined();
+  });
+
   it("has auth.me procedure", () => {
     const caller = appRouter.createCaller(createMockContext());
     expect(caller.auth.me).toBeDefined();
@@ -61,6 +66,7 @@ describe("budgetTypes defaults", () => {
     expect(defaultBudgetData.fareComparison.tiers.length).toBeGreaterThan(0);
     expect(defaultBudgetData.baggage).toHaveLength(3);
     expect(defaultBudgetData.tours).toEqual([]);
+    expect(defaultBudgetData.gastronomyOptions).toEqual([]);
     expect(defaultBudgetData.itinerary).toEqual([]);
     expect(defaultBudgetData.tourProposal).toMatchObject({ title: "Proposta de passeios", introMessage: "", paymentDetails: "" });
     expect(defaultBudgetData.tripInfo.introText).toContain("Prezadíssimos");
@@ -210,6 +216,41 @@ describe("gestão de passeios e roteiro", () => {
     expect(getItineraryDayActivities(reordered.itinerary[0]).map((activity) => activity.title)).toEqual(["Jantar no centro", "Chegada em Santiago"]);
     expect(getItineraryDayActivities(removed.itinerary[0])).toHaveLength(1);
     expect(getItineraryDayActivities(removed.itinerary[0])[0].title).toBe("Jantar no centro");
+  });
+
+  it("inclui uma opção gastronômica validada no dia escolhido ou nas Dicas e Links Úteis", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const option = {
+      id: "restaurant-1",
+      name: "Restaurante Exemplo",
+      location: "Santiago, Chile",
+      address: "Rua das Flores, 123",
+      description: "Rua das Flores, 123 • Avaliação disponível: 4,7/5",
+      mapsUrl: "https://maps.example/restaurant-1",
+    };
+    const baseBudget = {
+      ...defaultBudgetData,
+      gastronomyOptions: [option],
+      itinerary: [{ id: "day-1", day: 1, title: "Dia livre", notes: "", activities: [] }],
+    };
+
+    const withMeal = addGastronomyToDayInBudget(baseBudget, "day-1", option.id);
+    const withTip = addGastronomyToUsefulTipsInBudget(baseBudget, option.id);
+
+    expect(getItineraryDayActivities(withMeal.itinerary[0])[0]).toMatchObject({ kind: "meal", title: option.name, linkUrl: option.mapsUrl, importantNotes: `Local: ${option.address}` });
+    expect(withTip.finalItinerary.usefulLinks).toEqual([
+      expect.objectContaining({ title: `Gastronomia — ${option.name}`, url: option.mapsUrl }),
+    ]);
+  });
+
+  it("limpa opções gastronômicas ao iniciar uma nova proposta", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const reset = resetTourProposalInBudget({
+      ...defaultBudgetData,
+      gastronomyOptions: [{ id: "restaurant-1", name: "Restaurante Exemplo", location: "Santiago", address: "Centro", description: "", mapsUrl: "https://maps.example/restaurant-1" }],
+    });
+
+    expect(reset.gastronomyOptions).toEqual([]);
   });
 
   it("move um compromisso completo para outro dia e o acrescenta ao fim da agenda de destino", async () => {

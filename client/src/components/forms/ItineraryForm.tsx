@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarDays, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, GripVertical, Link2, Loader2, Plus, Save, Search, Trash2 } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, GripVertical, Link2, Loader2, Plus, Save, Search, Trash2, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
 export function ItineraryForm() {
-  const { budget, addItineraryDay, addItineraryActivity, importItineraryFromQuotation, moveItineraryActivity, removeItineraryActivity, reorderItineraryActivities, replaceBudget, resetTourProposal, updateItineraryActivity, updateTour, updateTourProposal, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
+  const { budget, addGastronomyToDay, addGastronomyToUsefulTips, addItineraryDay, addItineraryActivity, importItineraryFromQuotation, moveItineraryActivity, removeGastronomyOption, removeItineraryActivity, reorderItineraryActivities, replaceBudget, resetTourProposal, saveGastronomyOption, updateItineraryActivity, updateTour, updateTourProposal, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
   const itinerary = budget.itinerary;
   const [quotationUrl, setQuotationUrl] = useState("");
   const [draggedDayId, setDraggedDayId] = useState<string | null>(null);
@@ -31,10 +31,38 @@ export function ItineraryForm() {
   );
   const savedProposalsQuery = trpc.tourProposals.list.useQuery(savedProposalQueryInput);
   const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
+  const [gastronomyName, setGastronomyName] = useState("");
+  const [gastronomyLocation, setGastronomyLocation] = useState("");
+  const [gastronomyTargetDays, setGastronomyTargetDays] = useState<Record<string, string>>({});
+  const gastronomySearchInput = useMemo(
+    () => ({ name: gastronomyName.trim() || "—", location: gastronomyLocation.trim() || "—" }),
+    [gastronomyLocation, gastronomyName],
+  );
+  const gastronomySearchQuery = trpc.gastronomy.search.useQuery(gastronomySearchInput, { enabled: false, retry: false });
   const selectedProposalQuery = trpc.tourProposals.get.useQuery(
     { id: selectedProposalId || "00000000-0000-0000-0000-000000000000" },
     { enabled: Boolean(selectedProposalId) },
   );
+
+  const handleGastronomySearch = async () => {
+    if (gastronomyName.trim().length < 2 || gastronomyLocation.trim().length < 2) {
+      toast.error("Informe o nome do local e a cidade ou região para pesquisar.");
+      return;
+    }
+
+    try {
+      const response = await gastronomySearchQuery.refetch();
+      if (!response.data?.results.length) toast.message("Nenhum local foi encontrado. Confira o nome e a região.");
+    } catch (error) {
+      console.error("Gastronomy search error:", error);
+      toast.error(error instanceof Error ? error.message : "Não foi possível pesquisar este local agora.");
+    }
+  };
+
+  const saveSearchedGastronomy = (result: NonNullable<typeof gastronomySearchQuery.data>["results"][number]) => {
+    saveGastronomyOption({ ...result, website: undefined });
+    toast.success(`${result.name} foi salvo como opção gastronômica.`);
+  };
 
   const handleSaveProposal = async () => {
     const clientName = budget.tourProposal.clientName?.trim();
@@ -242,6 +270,35 @@ export function ItineraryForm() {
         <p className="mt-2 text-xs text-slate-500">Os passeios identificados serão cadastrados e organizados cronologicamente pelos dias indicados na cotação.</p>
       </div>
 
+      <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3">
+        <div className="mb-2 flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><UtensilsCrossed className="h-4 w-4" /> Opções gastronômicas</div>
+        <p className="mb-3 text-xs leading-relaxed text-slate-600">Informe o nome e a região do restaurante. A busca retorna dados de localização para você validar antes de usar no roteiro.</p>
+        <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+          <Input value={gastronomyName} onChange={(event) => setGastronomyName(event.target.value)} placeholder="Nome do restaurante ou local" className="bg-white" />
+          <Input value={gastronomyLocation} onChange={(event) => setGastronomyLocation(event.target.value)} placeholder="Cidade ou região" className="bg-white" />
+          <Button type="button" onClick={handleGastronomySearch} disabled={gastronomySearchQuery.isFetching} className="h-10 font-bold">
+            {gastronomySearchQuery.isFetching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+            Pesquisar
+          </Button>
+        </div>
+
+        {gastronomySearchQuery.data?.results.length ? <div className="mt-3 space-y-2">
+          <p className="text-xs font-semibold text-[#1a2e4a]">Resultados encontrados — valide antes de salvar:</p>
+          {gastronomySearchQuery.data.results.map((result) => <div key={result.id} className="flex flex-col gap-2 rounded-md border border-amber-100 bg-white p-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0"><p className="text-sm font-bold text-[#1a2e4a]">{result.name}</p><p className="text-xs text-slate-600">{result.description || result.address}</p></div>
+            <Button type="button" variant="outline" size="sm" onClick={() => saveSearchedGastronomy(result)} className="shrink-0 bg-white text-xs font-bold">Validar e salvar</Button>
+          </div>)}
+        </div> : null}
+
+        {(budget.gastronomyOptions || []).length ? <div className="mt-3 border-t border-amber-200 pt-3">
+          <p className="mb-2 text-xs font-semibold text-[#1a2e4a]">Opções validadas</p>
+          <div className="space-y-2">{(budget.gastronomyOptions || []).map((option) => <div key={option.id} className="rounded-md border border-amber-100 bg-white p-2.5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><p className="text-sm font-bold text-[#1a2e4a]">{option.name}</p><p className="text-xs text-slate-600">{option.description || option.address}</p></div><div className="flex items-center gap-1"><Button type="button" variant="outline" size="sm" asChild className="h-8 bg-white px-2 text-xs"><a href={option.mapsUrl} target="_blank" rel="noreferrer">Ver local</a></Button><Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-500 hover:text-red-700" onClick={() => removeGastronomyOption(option.id)} title="Remover opção"><Trash2 className="h-3.5 w-3.5" /></Button></div></div>
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row"><Select value={gastronomyTargetDays[option.id] || "none"} onValueChange={(dayId) => setGastronomyTargetDays((current) => ({ ...current, [option.id]: dayId }))}><SelectTrigger className="h-8 flex-1 bg-slate-50 text-xs"><SelectValue placeholder="Escolher dia para incluir" /></SelectTrigger><SelectContent><SelectItem value="none">Escolher dia para incluir</SelectItem>{itinerary.map((day) => <SelectItem key={day.id} value={day.id}>Dia {day.day} — {day.title || "Dia livre"}</SelectItem>)}</SelectContent></Select><Button type="button" variant="outline" size="sm" disabled={!gastronomyTargetDays[option.id] || gastronomyTargetDays[option.id] === "none"} onClick={() => { addGastronomyToDay(gastronomyTargetDays[option.id], option.id); toast.success(`${option.name} foi incluído na agenda do dia.`); }} className="h-8 bg-white text-xs font-semibold">Incluir no dia</Button><Button type="button" variant="outline" size="sm" onClick={() => { addGastronomyToUsefulTips(option.id); toast.success(`${option.name} foi incluído nas Dicas e Links Úteis.`); }} className="h-8 bg-white text-xs font-semibold">Enviar para dicas</Button></div>
+          </div>)}</div>
+        </div> : null}
+      </div>
+
       {itinerary.map((day) => {
         const activities = getItineraryDayActivities(day);
         const firstTourActivity = activities.find((activity) => activity.tourId);
@@ -301,7 +358,7 @@ export function ItineraryForm() {
           {!isCollapsed && <div className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <div><Label>Título do dia</Label><Input value={day.title} onChange={(event) => updateItineraryDay(day.id, { title: event.target.value })} placeholder="Ex.: Chegada em Santiago" className="mt-1 bg-white" /></div>
-              <div><Label>Observações gerais do dia</Label><Input value={day.notes} onChange={(event) => updateItineraryDay(day.id, { notes: event.target.value })} placeholder="Ex.: Levar documento e chegar cedo" className="mt-1 bg-white" /></div>
+              <div><Label>Observações gerais do dia</Label><Textarea value={day.notes} onChange={(event) => updateItineraryDay(day.id, { notes: event.target.value })} placeholder="Ex.: Levar documento e chegar cedo" className="mt-1 min-h-20 bg-white" /></div>
             </div>
 
             <div className="rounded-md border border-slate-200 bg-white p-3">

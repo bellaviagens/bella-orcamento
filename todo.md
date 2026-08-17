@@ -450,3 +450,9 @@
 - [x] Reduzir o espaço vazio da primeira página da Proposta de Passeios sem alterar o conteúdo do roteiro.
 - [x] Ampliar a área útil e reduzir a centralização excessiva dos conteúdos no PDF da Proposta de Passeios.
 - [x] Validar a paginação e o PDF da proposta com os novos ajustes visuais.
+
+- [x] Preservar cada linha das observações importantes no preview e no PDF da Proposta de Passeios.
+- [x] Criar campos de nome e local para cadastrar opções gastronômicas.
+- [x] Adicionar consulta assistida de informações gastronômicas para validação antes da inclusão.
+- [x] Permitir adicionar uma opção gastronômica a um dia específico do roteiro ou somente às Dicas e Links Úteis.
+- [x] Validar o fluxo de gastronomia e a apresentação das observações no PDF.

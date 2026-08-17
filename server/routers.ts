@@ -6,6 +6,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { buildImportDocumentContent } from "./importDocument";
 import { createSharedItinerary, deleteBudgetDraft, duplicateTourProposal, getBudgetDraft, getSharedItinerary, getTourProposal, listBudgetDrafts, listTourProposals, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveTourProposal, updateTourProposalStatus } from "./db";
 import { storagePut } from "./storage";
+import { makeRequest, type PlacesSearchResult } from "./_core/map";
 import { TRPCError } from "@trpc/server";
 import { lookup } from "node:dns/promises";
 import { z } from "zod";
@@ -244,6 +245,29 @@ export const appRouter = router({
   }),
   weather: router({
     get: publicProcedure.input(weatherInputSchema).query(({ input }) => fetchWeatherForecast(input)),
+  }),
+  gastronomy: router({
+    search: protectedProcedure
+      .input(z.object({ name: z.string().trim().min(2, "Informe o nome do local.").max(160), location: z.string().trim().min(2, "Informe a cidade ou região.").max(160) }))
+      .query(async ({ input }) => {
+        try {
+          const query = `${input.name} ${input.location} restaurante gastronomia`;
+          const response = await makeRequest<PlacesSearchResult>("/maps/api/place/textsearch/json", { query, type: "restaurant", language: "pt-BR" });
+          const results = (response.results || []).slice(0, 5).map((place) => ({
+            id: place.place_id,
+            name: place.name,
+            location: input.location,
+            address: place.formatted_address || "",
+            description: [place.formatted_address, typeof place.rating === "number" ? `Avaliação disponível: ${place.rating.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/5` : ""].filter(Boolean).join(" • "),
+            rating: place.rating,
+            mapsUrl: `https://www.google.com/maps/search/?api=1&query_place_id=${encodeURIComponent(place.place_id)}`,
+          }));
+          return { results };
+        } catch (error) {
+          console.error("Gastronomy search error:", error);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Não foi possível pesquisar este local agora. Confira o nome e a região ou tente novamente." });
+        }
+      }),
   }),
   tourProposals: router({
     save: protectedProcedure

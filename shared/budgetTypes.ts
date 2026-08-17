@@ -110,6 +110,18 @@ export interface TourProposal {
   installments?: number;
 }
 
+/** Opção gastronômica pesquisada e validada pela consultora para uso no roteiro. */
+export interface GastronomyOption {
+  id: string;
+  name: string;
+  location: string;
+  address: string;
+  description: string;
+  website?: string;
+  mapsUrl: string;
+  rating?: number;
+}
+
 export type FinalItineraryEventKind = "arrival" | "transfer" | "hotel" | "flight" | "return" | "tour" | "custom";
 
 export interface FinalItineraryAttachment {
@@ -226,6 +238,8 @@ export interface BudgetData {
   baggage: BaggageItem[];
   hotels: Hotel[];
   tours: Tour[];
+  /** Catálogo opcional de restaurantes e experiências gastronômicas da viagem. */
+  gastronomyOptions?: GastronomyOption[];
   itinerary: ItineraryDay[];
   tourProposal: TourProposal;
   finalItinerary: FinalItinerary;
@@ -360,6 +374,7 @@ export const defaultBudgetData: BudgetData = {
     },
   ],
   tours: [],
+  gastronomyOptions: [],
   itinerary: [],
   tourProposal: {
     title: "Proposta de passeios",
