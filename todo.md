@@ -511,3 +511,7 @@
 - [x] Uniformizar todos os cartões do resumo da capa no estilo azul institucional do Dia 1.
 - [x] Corrigir a segmentação da Proposta para evitar página interna vazia/cortada e aproveitar a largura útil.
 - [x] Validar com PDF multipágina, tipagem, testes, build e publicação sem alterar os demais módulos.
+
+- [x] Aplicar uma margem superior uniforme nas páginas internas da Proposta, como na página do Dia 2.
+- [x] Reservar margem de segurança no rodapé para que nenhum bloco seja cortado ao exportar a Proposta.
+- [x] Validar paginação multipágina, tipagem, testes, build e publicação sem alterar outros módulos.

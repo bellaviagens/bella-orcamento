@@ -78,10 +78,14 @@ export function usePdfGenerator() {
       // A4 dimensions: 210mm wide, 297mm tall
       const pdfWidthMm = 210;
       const pdfPageHeightMm = 297;
-      // O Roteiro Final já possui margem interna no próprio documento. Nas páginas
-      // continuadas, uma margem adicional criava uma faixa vazia antes do conteúdo.
-      const continuedPageTopMarginMm = elementId === "final-itinerary-document" || elementId === "itinerary-document" ? 0 : 8;
-      const pageContentHeightMm = pdfPageHeightMm - continuedPageTopMarginMm;
+      // A Proposta precisa da mesma área de respiro em todas as páginas para que
+      // o primeiro e o último pixel do segmento não fiquem no limite físico do PDF.
+      // O Roteiro Final conserva sua área interna própria e o orçamento mantém a
+      // margem superior já aprovada.
+      const isTourProposal = elementId === "itinerary-document";
+      const continuedPageTopMarginMm = isTourProposal ? 7 : elementId === "final-itinerary-document" ? 0 : 8;
+      const continuedPageBottomMarginMm = isTourProposal ? 7 : 0;
+      const pageContentHeightMm = pdfPageHeightMm - continuedPageTopMarginMm - continuedPageBottomMarginMm;
       // pixels per mm based on canvas width
       const pxPerMm = canvas.width / pdfWidthMm;
       const pageHeightPx = pageContentHeightMm * pxPerMm;
@@ -184,7 +188,8 @@ export function usePdfGenerator() {
         format: "a4",
       });
 
-      const pageYOffsetsMm = segmentData.map((_, index) => index === 0 ? 0 : continuedPageTopMarginMm);
+      // A Proposta usa o mesmo recuo superior desde a capa até a última página.
+      const pageYOffsetsMm = segmentData.map((_, index) => isTourProposal ? continuedPageTopMarginMm : index === 0 ? 0 : continuedPageTopMarginMm);
 
       // Add each segment as a page with A4 height
       for (let i = 0; i < segmentData.length; i++) {
