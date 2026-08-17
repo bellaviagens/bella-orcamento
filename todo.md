@@ -494,3 +494,7 @@
 - [x] Permitir upload de imagem ou ícone personalizado para cada atividade do Roteiro Final.
 - [x] Exibir a imagem ou ícone personalizado nos resumos cronológicos, com fallback visual por tipo.
 - [x] Validar reordenação, prévia de mensagens, upload de mídia e PDF/preview do roteiro.
+
+- [x] Exibir mais dias no resumo da capa da Proposta de Passeios quando houver espaço disponível.
+- [x] Permitir quebra natural de linha nas descrições do resumo, sem truncar ou cortar palavras.
+- [x] Validar visualmente e publicar o ajuste pontual da capa da Proposta.

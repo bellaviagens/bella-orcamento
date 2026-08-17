@@ -74,7 +74,7 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
       title: activity.title || "Novo compromisso",
     })),
   })).filter((day) => day.activities.length > 0);
-  const visibleCoverSummaryDays = coverSummaryDays.slice(0, 4);
+  const visibleCoverSummaryDays = coverSummaryDays.slice(0, 6);
 
   return (
     <div id="itinerary-document" className="w-full max-w-[794px] overflow-hidden bg-white text-[#1a2e4a] shadow-xl" style={{ fontFamily: "Poppins, sans-serif" }}>
@@ -101,7 +101,7 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
             <p className="text-[10px] font-bold uppercase tracking-wide text-amber-700">Dia {day.day}{day.date ? ` • ${formatDateWithWeekday(day.date)}` : ""}</p>
             <div className="mt-1.5 space-y-1.5">{day.activities.map((activity) => <div key={activity.id} className="flex min-w-0 items-start gap-2 border-t border-slate-100 pt-1.5 first:border-t-0 first:pt-0">
               <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-blue-50 text-[#1a2e4a]"><CoverSummaryIcon kind={activity.kind} hasFlight={activity.hasFlight} /></span>
-              <div className="min-w-0 flex-1"><p className="text-[11px] font-bold text-[#1a2e4a]">{activity.time ? `${activity.time} • ` : ""}{activity.type}</p><p className="truncate text-[11px] text-slate-600">{activity.title}</p></div>
+              <div className="min-w-0 flex-1"><p className="text-[11px] font-bold text-[#1a2e4a]">{activity.time ? `${activity.time} • ` : ""}{activity.type}</p><p className="break-words text-[11px] leading-snug text-slate-600">{activity.title}</p></div>
             </div>)}</div>
           </section>)}</div>
           {coverSummaryDays.length > visibleCoverSummaryDays.length && <p className="mt-2 text-[11px] font-medium text-slate-500">+ {coverSummaryDays.length - visibleCoverSummaryDays.length} dia(s) detalhado(s) nas próximas páginas.</p>}
