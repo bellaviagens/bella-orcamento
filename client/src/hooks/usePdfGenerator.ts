@@ -43,8 +43,9 @@ export function usePdfGenerator() {
         clone.style.outline = "none";
         clone.style.overflow = "visible";
       }
-      // Ensure height > width so jsPDF keeps portrait orientation (A4 ratio: 794 x 1123px at 96dpi)
-      clone.style.minHeight = "1123px";
+      // A Proposta possui conteúdo próprio e não deve ganhar área branca artificial
+      // no fim da captura; os demais documentos preservam a altura A4 mínima.
+      clone.style.minHeight = elementId === "itinerary-document" ? "0" : "1123px";
       captureContainer.appendChild(clone);
 
       // Os ícones SVG das bagagens podem não ser rasterizados pelo mecanismo de

@@ -98,17 +98,17 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
             {data.tripInfo.destination && <p className="mt-0.5 text-sm text-white/80">{data.tripInfo.destination}</p>}
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-4 bg-slate-100 px-5 py-3 text-sm">
+        <div className="grid grid-cols-3 gap-4 bg-slate-100 px-4 py-3 text-sm">
           <div><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Destino</p><p className="font-semibold text-[#1a2e4a]">{data.tripInfo.destination || "Destino da viagem"}</p></div>
           <div><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Período</p><p className="font-semibold text-[#1a2e4a]">{data.tripInfo.period || "A confirmar"}</p></div>
           <div><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Viajantes</p><p className="font-semibold text-[#1a2e4a]">{data.tripInfo.passengers || "A confirmar"}</p></div>
         </div>
-        {proposal.introMessage && <div className="border-b border-slate-200 px-5 py-3"><p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">{proposal.introMessage}</p></div>}
-        {visibleCoverSummaryDays.length > 0 && <div className="border-b border-slate-200 px-5 py-3" data-pdf-keep-together="true" data-cover-summary-font={proposal.coverSummaryFontSize || "medium"}>
+        {proposal.introMessage && <div className="border-b border-slate-200 px-3 py-3"><p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">{proposal.introMessage}</p></div>}
+        {visibleCoverSummaryDays.length > 0 && <div className="border-b border-slate-200 px-3 py-3" data-pdf-keep-together="true" data-cover-summary-font={proposal.coverSummaryFontSize || "medium"}>
           <div className="mb-2 flex items-center gap-2"><CalendarDays className="h-4 w-4 text-amber-600" /><p className="text-xs font-bold uppercase tracking-[0.12em] text-[#1a2e4a]">Resumo da proposta</p></div>
-          <div className="grid gap-2 sm:grid-cols-2">{visibleCoverSummaryDays.map((day, dayIndex) => <section key={day.id} data-pdf-keep-together="true" className={`overflow-hidden rounded-md border border-l-4 shadow-sm ${dayIndex % 2 === 0 ? "border-[#1a2e4a] bg-[#f3f7fb]" : "border-amber-300 bg-[#fff9eb]"}`}>
-            <div className={`border-b px-2.5 py-1.5 ${dayIndex % 2 === 0 ? "border-[#1a2e4a] bg-[#1a2e4a] text-white" : "border-amber-200 bg-amber-50 text-amber-800"}`}><p className="text-[10px] font-bold uppercase tracking-wide">Dia {day.day}{day.date ? ` • ${formatDateWithWeekday(day.date)}` : ""}</p></div>
-            <div className="space-y-1.5 px-2.5 py-2">{day.activities.map((activity) => <div key={activity.id} className={`flex min-w-0 items-start gap-2 border-t pt-1.5 first:border-t-0 first:pt-0 ${dayIndex % 2 === 0 ? "border-slate-200" : "border-amber-100"}`}>
+          <div className="grid gap-2 sm:grid-cols-2">{visibleCoverSummaryDays.map((day) => <section key={day.id} data-pdf-keep-together="true" className="overflow-hidden rounded-md border border-l-4 border-[#1a2e4a] bg-[#f3f7fb] shadow-sm">
+            <div className="border-b border-[#1a2e4a] bg-[#1a2e4a] px-2.5 py-1.5 text-white"><p className="text-[10px] font-bold uppercase tracking-wide">Dia {day.day}{day.date ? ` • ${formatDateWithWeekday(day.date)}` : ""}</p></div>
+            <div className="space-y-1.5 px-2.5 py-2">{day.activities.map((activity) => <div key={activity.id} className="flex min-w-0 items-start gap-2 border-t border-slate-200 pt-1.5 first:border-t-0 first:pt-0">
               <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-blue-50 text-[#1a2e4a]"><CoverSummaryIcon kind={activity.kind} hasFlight={activity.hasFlight} /></span>
               <div className="min-w-0 flex-1"><p className={`${summaryFontClasses.type} font-bold text-[#1a2e4a]`}>{activity.time ? `${activity.time} • ` : ""}{activity.type}</p><p className={`break-words ${summaryFontClasses.body} leading-snug text-slate-600`}>{activity.title}</p></div>
             </div>)}</div>
@@ -117,11 +117,11 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
         </div>}
       </header>
 
-      {days.length === 0 ? <div className="px-5 py-16 text-center text-sm text-slate-500">Adicione os passeios e as datas na aba <strong>Roteiro</strong> para montar esta proposta.</div> : <div className="space-y-4 px-5 py-4">{days.map((day) => {
+      {days.length === 0 ? <div className="px-3 py-16 text-center text-sm text-slate-500">Adicione os passeios e as datas na aba <strong>Roteiro</strong> para montar esta proposta.</div> : <div className="space-y-4 px-3 py-4">{days.map((day) => {
         const activities = getItineraryDayActivities(day);
         return <section key={day.id} data-pdf-keep-together="true" data-proposal-day="true">
           <div className="mb-2 flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day.day}</span><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-600">Dia {day.day}{day.date ? ` • ${formatDateWithWeekday(day.date)}` : ""}</p><h3 className="text-sm font-bold text-[#1a2e4a]">{day.title || "Dia livre"}</h3></div></div>
-          <div className="ml-4 space-y-2.5 border-l-2 border-amber-200 pl-4">
+          <div className="ml-2 space-y-2.5 border-l-2 border-amber-200 pl-2">
             {activities.length >= 3 && <div data-pdf-keep-together="true" className="flex items-center gap-3 pb-1 pt-0.5"><span className="h-px flex-1 bg-gradient-to-r from-amber-300 to-amber-100" /><span className="shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-amber-700">Agenda do dia • {activities.length} compromissos</span><span className="h-px flex-1 bg-gradient-to-l from-amber-300 to-amber-100" /></div>}
             {activities.map((activity, activityIndex) => {
               const tour = activity.tourId ? data.tours.find((currentTour) => currentTour.id === activity.tourId) : undefined;
@@ -159,11 +159,11 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
               </div>;
             })}
           </div>
-          {day.notes && <div className="ml-4 mt-3 rounded-md bg-slate-100 px-3 py-2 text-sm leading-relaxed text-slate-600"><span className="font-semibold text-[#1a2e4a]">Observações do dia: </span><span className="whitespace-pre-line">{day.notes}</span></div>}
+          {day.notes && <div className="ml-2 mt-3 rounded-md bg-slate-100 px-3 py-2 text-sm leading-relaxed text-slate-600"><span className="font-semibold text-[#1a2e4a]">Observações do dia: </span><span className="whitespace-pre-line">{day.notes}</span></div>}
         </section>;
       })}</div>}
 
-      {days.length > 0 && <section data-pdf-keep-together="true" className="mx-5 mb-5 rounded-xl border-2 border-[#1a2e4a] bg-[#1a2e4a] p-4 text-white"><p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-300">Investimento da proposta</p><div className="mt-1 flex flex-wrap items-end justify-between gap-3"><div><h3 className="text-lg font-bold">Total dos passeios</h3><p className="mt-1 text-xs text-slate-200">{data.tours.length} passeio(s) na proposta</p></div><strong className="text-2xl">{formatCurrency(totalTours)}</strong></div><div className="mt-3 grid gap-3 border-t border-white/20 pt-3 sm:grid-cols-2"><div><p className="text-xs font-bold uppercase tracking-wide text-amber-300">Parcelamento</p><p className="mt-1 text-sm font-bold text-white">{installment.count === 1 ? `À vista: ${formatCurrency(totalTours)}` : `${installment.count}x de ${formatCurrency(installment.value)}`}</p></div>{proposal.paymentDetails && <div><p className="text-xs font-bold uppercase tracking-wide text-amber-300">Forma de pagamento</p><p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-white">{proposal.paymentDetails}</p></div>}</div></section>}
+      {days.length > 0 && <section data-pdf-keep-together="true" className="mx-3 mb-5 rounded-xl border-2 border-[#1a2e4a] bg-[#1a2e4a] p-4 text-white"><p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-300">Investimento da proposta</p><div className="mt-1 flex flex-wrap items-end justify-between gap-3"><div><h3 className="text-lg font-bold">Total dos passeios</h3><p className="mt-1 text-xs text-slate-200">{data.tours.length} passeio(s) na proposta</p></div><strong className="text-2xl">{formatCurrency(totalTours)}</strong></div><div className="mt-3 grid gap-3 border-t border-white/20 pt-3 sm:grid-cols-2"><div><p className="text-xs font-bold uppercase tracking-wide text-amber-300">Parcelamento</p><p className="mt-1 text-sm font-bold text-white">{installment.count === 1 ? `À vista: ${formatCurrency(totalTours)}` : `${installment.count}x de ${formatCurrency(installment.value)}`}</p></div>{proposal.paymentDetails && <div><p className="text-xs font-bold uppercase tracking-wide text-amber-300">Forma de pagamento</p><p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-white">{proposal.paymentDetails}</p></div>}</div></section>}
     </div>
   );
 }

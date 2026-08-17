@@ -507,3 +507,7 @@
 - [x] Aumentar o contraste visual entre os dias no resumo da capa da Proposta.
 - [x] Remover o recuo, borda e linha extras antes do conteúdo das páginas internas da Proposta.
 - [x] Validar o PDF enviado, paginação, destaque de dias e publicação da correção.
+
+- [x] Uniformizar todos os cartões do resumo da capa no estilo azul institucional do Dia 1.
+- [x] Corrigir a segmentação da Proposta para evitar página interna vazia/cortada e aproveitar a largura útil.
+- [x] Validar com PDF multipágina, tipagem, testes, build e publicação sem alterar os demais módulos.
