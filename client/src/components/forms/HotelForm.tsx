@@ -285,6 +285,12 @@ export function HotelForm() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.type !== "application/pdf" && !file.type.startsWith("image/")) {
+      toast.error("Selecione uma imagem ou um arquivo PDF.");
+      e.target.value = "";
+      return;
+    }
+
     setParsing(true);
     try {
       const reader = new FileReader();
@@ -304,7 +310,7 @@ export function HotelForm() {
           }
         } catch (err) {
           console.error("Parse error:", err);
-          toast.error("Não foi possível analisar o screenshot. Tente novamente ou preencha manualmente.");
+          toast.error("Não foi possível analisar o arquivo. Tente outra imagem ou PDF, ou preencha manualmente.");
         }
         setParsing(false);
       };
@@ -418,12 +424,12 @@ export function HotelForm() {
         </div>
       ))}
 
-      {/* Screenshot upload */}
+      {/* Importação de imagem ou PDF */}
       <div className="rounded-lg border-2 border-dashed border-slate-300 p-4 text-center">
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,application/pdf"
           onChange={handleScreenshotUpload}
           className="hidden"
         />
@@ -436,17 +442,17 @@ export function HotelForm() {
           {parsing ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Analisando screenshot...
+              Analisando arquivo...
             </>
           ) : (
             <>
               <Upload className="h-4 w-4 mr-2" />
-              Importar hotel de screenshot
+              Importar hotel por imagem ou PDF
             </>
           )}
         </Button>
         <p className="text-xs text-slate-400 mt-2">
-          Envie um print da tela do hotel e a IA preenche automaticamente
+          Envie uma imagem ou PDF do hotel e a IA preenche automaticamente
         </p>
       </div>
 

@@ -438,3 +438,9 @@
 - [x] Criar um separador visual elegante para organizar dias com muitos passeios na Proposta de Passeios.
 - [x] Aplicar o mesmo separador no preview e no PDF sem comprometer as regras de paginação.
 - [x] Validar a legibilidade dos dias extensos e preservar as cores e estrutura existentes.
+
+- [x] Permitir enviar arquivos PDF para leitura assistida na aba Voos.
+- [x] Permitir enviar arquivos PDF para leitura assistida na aba Hotéis.
+- [x] Extrair informações de PDFs no mesmo fluxo já usado para imagens, preservando a leitura atual.
+- [x] Atualizar os controles e mensagens de upload para indicar suporte a imagem ou PDF.
+- [x] Cobrir a leitura de PDFs com testes e validar os fluxos de Voos e Hotéis.

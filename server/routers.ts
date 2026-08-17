@@ -3,6 +3,7 @@ import { invokeLLM } from "./_core/llm";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { buildImportDocumentContent } from "./importDocument";
 import { createSharedItinerary, deleteBudgetDraft, duplicateTourProposal, getBudgetDraft, getSharedItinerary, getTourProposal, listBudgetDrafts, listTourProposals, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveTourProposal, updateTourProposalStatus } from "./db";
 import { storagePut } from "./storage";
 import { TRPCError } from "@trpc/server";
@@ -425,19 +426,16 @@ export const appRouter = router({
           {
             role: "system",
             content:
-              "You are a travel agent assistant. Extract flight information from screenshots of flight booking pages. A single screenshot may contain outbound (ida) and return (volta) itinerary cards. Return one separate flight object for each direction that is visible. Do not merge outbound and return into connecting-flight segments. Only treat legs within one itinerary card as connecting segments. Always respond in Portuguese.",
+              "You are a travel agent assistant. Extract flight information from screenshots or PDF documents of flight booking pages. A single document may contain outbound (ida) and return (volta) itinerary cards. Return one separate flight object for each direction that is visible. Do not merge outbound and return into connecting-flight segments. Only treat legs within one itinerary card as connecting segments. Always respond in Portuguese.",
           },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: "Extract every flight direction visible in this screenshot. If the screen shows both outbound and return, return two objects in flights: first type ida and second type volta. Use the section headings and route direction to identify them. For a screenshot with only one direction, return exactly one object with its detected type. For flights with connections (escalas), extract each leg of that same direction as a segment. Include airline, flight number (empty string if not shown), airports (codes), cities, departure/arrival times, dates, and duration for each segment. Also provide total duration and operating airline for each direction.",
+                text: "Extract every flight direction visible in this image or PDF. If the document shows both outbound and return, return two objects in flights: first type ida and second type volta. Use the section headings and route direction to identify them. For a document with only one direction, return exactly one object with its detected type. For flights with connections (escalas), extract each leg of that same direction as a segment. Include airline, flight number (empty string if not shown), airports (codes), cities, departure/arrival times, dates, and duration for each segment. Also provide total duration and operating airline for each direction.",
               },
-              {
-                type: "image_url",
-                image_url: { url: input.imageBase64, detail: "high" },
-              },
+              buildImportDocumentContent(input.imageBase64),
             ],
           },
         ],
@@ -461,7 +459,7 @@ export const appRouter = router({
           return parsed;
         } catch (e) {
           console.error("Flight parse error:", e);
-          throw new Error("Não foi possível extrair os dados do voo do screenshot. Verifique se a imagem contém informações de voo.");
+          throw new Error("Não foi possível extrair os dados do voo do arquivo. Verifique se a imagem ou PDF contém informações de voo.");
         }
       }
       throw new Error("Resposta inválida do servidor de IA.");
@@ -489,19 +487,16 @@ export const appRouter = router({
           {
             role: "system",
             content:
-              "You are a travel agent assistant. Extract hotel information from screenshots of hotel booking pages (Booking.com, Decolar, etc). Return structured JSON with all hotel details. Always respond in Portuguese.",
+              "You are a travel agent assistant. Extract hotel information from screenshots or PDF documents of hotel booking pages (Booking.com, Decolar, etc). Return structured JSON with all hotel details. Always respond in Portuguese.",
           },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: "Extract all hotel information from this screenshot. Include hotel name, star rating (1-5), address, a brief description, guest rating (0-10) with a label (e.g. 'Excelente', 'Muito Bom'), and list of amenities visible in the screenshot.",
+                text: "Extract all hotel information from this image or PDF. Include hotel name, star rating (1-5), address, a brief description, guest rating (0-10) with a label (e.g. 'Excelente', 'Muito Bom'), and list of amenities visible in the document.",
               },
-              {
-                type: "image_url",
-                image_url: { url: input.imageBase64, detail: "high" },
-              },
+              buildImportDocumentContent(input.imageBase64),
             ],
           },
         ],
@@ -525,7 +520,7 @@ export const appRouter = router({
           return parsed;
         } catch (e) {
           console.error("Hotel parse error:", e);
-          throw new Error("Não foi possível extrair os dados do hotel do screenshot. Verifique se a imagem contém informações de hotel.");
+          throw new Error("Não foi possível extrair os dados do hotel do arquivo. Verifique se a imagem ou PDF contém informações de hotel.");
         }
       }
       throw new Error("Resposta inválida do servidor de IA.");

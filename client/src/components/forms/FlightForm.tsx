@@ -148,6 +148,12 @@ export function FlightForm() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.type !== "application/pdf" && !file.type.startsWith("image/")) {
+      toast.error("Selecione uma imagem ou um arquivo PDF.");
+      e.target.value = "";
+      return;
+    }
+
     setParsing(true);
     try {
       const reader = new FileReader();
@@ -189,7 +195,7 @@ export function FlightForm() {
           }
         } catch (err) {
           console.error("Parse error:", err);
-          toast.error("Não foi possível analisar o screenshot. Tente novamente ou preencha manualmente.");
+          toast.error("Não foi possível analisar o arquivo. Tente outra imagem ou PDF, ou preencha manualmente.");
         }
         setParsing(false);
         e.target.value = "";
@@ -277,10 +283,10 @@ export function FlightForm() {
       })}
       </div>
 
-      {/* Screenshot upload */}
+      {/* Importação de imagem ou PDF */}
       <div className="rounded-lg border-2 border-dashed border-slate-300 p-4 text-center">
         <div className="mb-3 text-left">
-          <Label className="text-xs">Preencher no screenshot</Label>
+          <Label className="text-xs">Preencher por imagem ou PDF</Label>
           <Select value={screenshotTarget} onValueChange={(value) => setScreenshotTarget(value as FlightScreenshotTarget)}>
             <SelectTrigger className="mt-1 h-9 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -293,7 +299,7 @@ export function FlightForm() {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,application/pdf"
           onChange={handleScreenshotUpload}
           className="hidden"
         />
@@ -306,17 +312,17 @@ export function FlightForm() {
           {parsing ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Analisando screenshot...
+              Analisando arquivo...
             </>
           ) : (
             <>
               <Upload className="h-5 w-5 mr-2" />
-              Importar voo de screenshot
+              Importar voo por imagem ou PDF
             </>
           )}
         </Button>
         <p className="text-xs text-slate-400 mt-2">
-          Leia ida e volta automaticamente ou escolha somente ida/volta para reutilizar o mesmo print.
+          Envie uma imagem ou PDF. Leia ida e volta automaticamente ou escolha somente ida/volta para reutilizar o mesmo arquivo.
         </p>
       </div>
 
