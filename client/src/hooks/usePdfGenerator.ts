@@ -100,6 +100,25 @@ export function usePdfGenerator() {
         const bounds = toCanvasBounds(card);
         protectedPositions.push({ top: bounds.top, bottom: bounds.bottom });
       });
+
+      // Na Proposta de Passeios, o primeiro dia é mantido junto do cabeçalho
+      // institucional quando a composição cabe em uma página. Isso evita que a
+      // proteção de quebra deixe a primeira folha com apenas a abertura.
+      if (elementId === "itinerary-document") {
+        const proposalHeader = clone.querySelector<HTMLElement>("[data-pdf-proposal-header='true']");
+        const firstDay = clone.querySelector<HTMLElement>("[data-proposal-day='true']");
+        if (proposalHeader && firstDay) {
+          const headerBounds = toCanvasBounds(proposalHeader);
+          const firstDayBounds = toCanvasBounds(firstDay);
+          const firstDayBlock = protectedPositions.find(
+            (block) => Math.abs(block.top - firstDayBounds.top) <= 2 && Math.abs(block.bottom - firstDayBounds.bottom) <= 2,
+          );
+          const combinedHeight = firstDayBounds.bottom - headerBounds.top;
+          if (firstDayBlock && combinedHeight <= pageHeightPx * 1.08) {
+            firstDayBlock.top = headerBounds.top;
+          }
+        }
+      }
       protectedPositions.sort((a, b) => a.top - b.top);
       console.log("✓ Protected card positions:", protectedPositions.length, protectedPositions);
 

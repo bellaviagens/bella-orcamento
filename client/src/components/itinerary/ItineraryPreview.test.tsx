@@ -28,4 +28,31 @@ describe("ItineraryPreview — agenda de dia extenso", () => {
     expect(markup).toContain("3 compromissos");
     expect(markup.match(/Próximo compromisso/g)).toHaveLength(2);
   });
+
+  it("usa tarja institucional e identifica detalhes de voo sem tratá-los como passeio", () => {
+    const data = {
+      tripInfo: { passengers: "2", destination: "Santiago", period: "10/09 a 17/09" },
+      tours: [],
+      itinerary: [{
+        id: "day-flight",
+        day: 1,
+        title: "Chegada",
+        activities: [{
+          id: "flight-activity",
+          kind: "flight",
+          title: "Voo de ida",
+          time: "10:05",
+          description: "LATAM Airlines • Florianópolis • Santiago do Chile",
+        }],
+      }],
+      tourProposal: { title: "Proposta de passeios", introMessage: "", paymentDetails: "" },
+    } as unknown as BudgetData;
+
+    const markup = renderToStaticMarkup(<ItineraryPreview data={data} />);
+
+    expect(markup).toContain("Bella Viagens e Milhas");
+    expect(markup).toContain("Acumule. Viaje. Viva.");
+    expect(markup).toContain("Detalhes do voo");
+    expect(markup).not.toContain("Detalhes do passeio");
+  });
 });

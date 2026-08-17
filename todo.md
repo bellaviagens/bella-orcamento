@@ -444,3 +444,9 @@
 - [x] Extrair informações de PDFs no mesmo fluxo já usado para imagens, preservando a leitura atual.
 - [x] Atualizar os controles e mensagens de upload para indicar suporte a imagem ou PDF.
 - [x] Cobrir a leitura de PDFs com testes e validar os fluxos de Voos e Hotéis.
+
+- [x] Exibir detalhes de voo com nomenclatura própria, sem usar o rótulo de passeio.
+- [x] Inserir a tarja institucional da Bella Viagens na abertura do PDF da Proposta de Passeios.
+- [x] Reduzir o espaço vazio da primeira página da Proposta de Passeios sem alterar o conteúdo do roteiro.
+- [x] Ampliar a área útil e reduzir a centralização excessiva dos conteúdos no PDF da Proposta de Passeios.
+- [x] Validar a paginação e o PDF da proposta com os novos ajustes visuais.
