@@ -71,7 +71,7 @@ export function usePdfGenerator() {
       const pdfPageHeightMm = 297;
       // O Roteiro Final já possui margem interna no próprio documento. Nas páginas
       // continuadas, uma margem adicional criava uma faixa vazia antes do conteúdo.
-      const continuedPageTopMarginMm = elementId === "final-itinerary-document" ? 0 : 8;
+      const continuedPageTopMarginMm = elementId === "final-itinerary-document" || elementId === "itinerary-document" ? 0 : 8;
       const pageContentHeightMm = pdfPageHeightMm - continuedPageTopMarginMm;
       // pixels per mm based on canvas width
       const pxPerMm = canvas.width / pdfWidthMm;

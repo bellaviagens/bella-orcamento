@@ -498,3 +498,8 @@
 - [x] Exibir mais dias no resumo da capa da Proposta de Passeios quando houver espaço disponível.
 - [x] Permitir quebra natural de linha nas descrições do resumo, sem truncar ou cortar palavras.
 - [x] Validar visualmente e publicar o ajuste pontual da capa da Proposta.
+
+- [x] Uniformizar a margem útil e remover o espaço/linha ociosa no início das páginas internas da Proposta de Passeios.
+- [x] Permitir escolher o tamanho da fonte usado no resumo da capa da Proposta.
+- [x] Permitir selecionar manualmente os dias que aparecem no resumo da capa quando houver mais de seis dias.
+- [x] Validar paginação, controles de resumo, PDF e preview sem alterar os demais módulos.

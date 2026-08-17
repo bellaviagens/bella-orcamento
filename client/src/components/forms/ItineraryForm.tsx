@@ -207,9 +207,28 @@ export function ItineraryForm() {
           <div><Label htmlFor="proposal-client">Cliente</Label><Input id="proposal-client" value={budget.tourProposal.clientName || ""} onChange={(event) => updateTourProposal({ clientName: event.target.value })} placeholder="Ex.: Suelen Vieira" className="mt-1 bg-white" /></div>
           <div><Label htmlFor="proposal-title">Título da proposta</Label><Input id="proposal-title" value={budget.tourProposal.title} onChange={(event) => updateTourProposal({ title: event.target.value })} placeholder="Ex.: Passeios em Santiago" className="mt-1 bg-white" /></div>
           <div className="sm:col-span-2"><Label htmlFor="proposal-intro">Mensagem inicial</Label><Textarea id="proposal-intro" value={budget.tourProposal.introMessage} onChange={(event) => updateTourProposal({ introMessage: event.target.value })} placeholder="Ex.: Olá, Suelen! Preparamos estas opções de passeios para a sua viagem..." className="mt-1 min-h-16 bg-white" /></div>
-          <div><Label htmlFor="proposal-installments">Parcelamento</Label><Select value={String(budget.tourProposal.installments || 1)} onValueChange={(value) => updateTourProposal({ installments: Number(value) })}><SelectTrigger id="proposal-installments" className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="1">À vista</SelectItem><SelectItem value="2">2x</SelectItem><SelectItem value="3">3x</SelectItem><SelectItem value="4">4x</SelectItem><SelectItem value="5">5x</SelectItem><SelectItem value="6">6x</SelectItem><SelectItem value="8">8x</SelectItem><SelectItem value="10">10x</SelectItem><SelectItem value="12">12x</SelectItem></SelectContent></Select></div>
-          <div><Label htmlFor="proposal-payment">Forma de pagamento</Label><Textarea id="proposal-payment" value={budget.tourProposal.paymentDetails} onChange={(event) => updateTourProposal({ paymentDetails: event.target.value })} placeholder="Ex.: PIX, cartão ou condições combinadas" className="mt-1 min-h-16 bg-white" /></div>
-          <div className="sm:col-span-2 rounded-md border border-slate-200 bg-white p-2.5">
+	          <div><Label htmlFor="proposal-installments">Parcelamento</Label><Select value={String(budget.tourProposal.installments || 1)} onValueChange={(value) => updateTourProposal({ installments: Number(value) })}><SelectTrigger id="proposal-installments" className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="1">À vista</SelectItem><SelectItem value="2">2x</SelectItem><SelectItem value="3">3x</SelectItem><SelectItem value="4">4x</SelectItem><SelectItem value="5">5x</SelectItem><SelectItem value="6">6x</SelectItem><SelectItem value="8">8x</SelectItem><SelectItem value="10">10x</SelectItem><SelectItem value="12">12x</SelectItem></SelectContent></Select></div>
+	          <div><Label htmlFor="proposal-payment">Forma de pagamento</Label><Textarea id="proposal-payment" value={budget.tourProposal.paymentDetails} onChange={(event) => updateTourProposal({ paymentDetails: event.target.value })} placeholder="Ex.: PIX, cartão ou condições combinadas" className="mt-1 min-h-16 bg-white" /></div>
+	          <div><Label htmlFor="proposal-summary-font">Fonte do resumo da capa</Label><Select value={budget.tourProposal.coverSummaryFontSize || "medium"} onValueChange={(value) => updateTourProposal({ coverSummaryFontSize: value as "small" | "medium" | "large" })}><SelectTrigger id="proposal-summary-font" className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="small">Compacta</SelectItem><SelectItem value="medium">Padrão</SelectItem><SelectItem value="large">Maior</SelectItem></SelectContent></Select></div>
+	          {itinerary.length > 6 && (() => {
+	            const defaultDayIds = itinerary.slice(0, 6).map((day) => day.id);
+	            const selectedDayIds = budget.tourProposal.coverSummaryDayIds || defaultDayIds;
+	            return <div className="sm:col-span-2 rounded-md border border-slate-200 bg-white p-3">
+	              <p className="text-xs font-bold text-[#1a2e4a]">Dias exibidos no resumo da capa</p>
+	              <p className="mt-0.5 text-[11px] text-slate-500">Escolha até seis dias. Os seis primeiros ficam selecionados por padrão.</p>
+	              <div className="mt-2 grid gap-2 sm:grid-cols-3">
+	                {itinerary.map((day) => {
+	                  const selected = selectedDayIds.includes(day.id);
+	                  const selectionLimitReached = !selected && selectedDayIds.length >= 6;
+	                  return <label key={day.id} className={`flex cursor-pointer items-center gap-2 rounded border px-2.5 py-2 text-xs font-semibold ${selected ? "border-amber-300 bg-amber-50 text-[#1a2e4a]" : "border-slate-200 text-slate-600"} ${selectionLimitReached ? "cursor-not-allowed opacity-50" : ""}`}>
+	                    <input type="checkbox" checked={selected} disabled={selectionLimitReached} onChange={() => updateTourProposal({ coverSummaryDayIds: selected ? selectedDayIds.filter((id) => id !== day.id) : [...selectedDayIds, day.id] })} className="h-3.5 w-3.5 accent-[#1a2e4a]" />
+	                    Dia {day.day}{day.date ? ` • ${day.date}` : ""}
+	                  </label>;
+	                })}
+	              </div>
+	            </div>;
+	          })()}
+	          <div className="sm:col-span-2 rounded-md border border-slate-200 bg-white p-2.5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <Button type="button" onClick={handleSaveProposal} disabled={saveProposalMutation.isPending} className="h-10 font-bold"><Save className="mr-2 h-4 w-4" />{saveProposalMutation.isPending ? "Salvando..." : "Salvar proposta"}</Button>
             <Select onValueChange={handleLoadProposal} disabled={savedProposalsQuery.isLoading || selectedProposalQuery.isFetching}>

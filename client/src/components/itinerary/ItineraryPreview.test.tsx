@@ -123,4 +123,29 @@ describe("ItineraryPreview — agenda de dia extenso", () => {
     expect(coverMarkup).toContain("lucide-utensils");
     expect(coverMarkup).toContain("lucide-sparkles");
   });
+
+  it("permite selecionar os dias e o tamanho de fonte exibidos no resumo de capa", () => {
+    const data = {
+      tripInfo: { passengers: "2", destination: "Santiago" },
+      tours: [],
+      itinerary: [
+        { id: "day-hidden", day: 1, date: "2026-08-26", activities: [{ id: "activity-hidden", kind: "tour", title: "Não aparece na capa", time: "10:00" }] },
+        { id: "day-visible", day: 2, date: "2026-08-27", activities: [{ id: "activity-visible", kind: "tour", title: "Aparece no resumo", time: "11:00" }] },
+      ],
+      tourProposal: {
+        title: "Proposta de passeios",
+        introMessage: "",
+        paymentDetails: "",
+        coverSummaryDayIds: ["day-visible"],
+        coverSummaryFontSize: "large",
+      },
+    } as unknown as BudgetData;
+
+    const markup = renderToStaticMarkup(<ItineraryPreview data={data} />);
+    const coverMarkup = markup.slice(markup.indexOf("Resumo da proposta"), markup.indexOf('data-proposal-day'));
+
+    expect(coverMarkup).toContain("Aparece no resumo");
+    expect(coverMarkup).not.toContain("Não aparece na capa");
+    expect(markup).toContain('data-cover-summary-font="large"');
+  });
 });

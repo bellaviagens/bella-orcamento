@@ -59,7 +59,7 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
   const days = [...data.itinerary].sort((left, right) => left.day - right.day);
   const defaultTravelerCount = Math.max(1, Number.parseInt(data.tripInfo.passengers, 10) || 1);
   const totalTours = data.tours.reduce((total, tour) => total + calculateTourTotal(tour, defaultTravelerCount), 0);
-  const proposal = data.tourProposal || { title: "Proposta de passeios", introMessage: "", paymentDetails: "" };
+  const proposal = data.tourProposal || { title: "Proposta de passeios", introMessage: "", paymentDetails: "", coverSummaryFontSize: "medium" as const };
   const installment = calculateTourProposalInstallment(totalTours, proposal.installments);
   const coverSummaryDays = days.map((day) => ({
     id: day.id,
@@ -74,7 +74,16 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
       title: activity.title || "Novo compromisso",
     })),
   })).filter((day) => day.activities.length > 0);
-  const visibleCoverSummaryDays = coverSummaryDays.slice(0, 6);
+  const selectedCoverDayIds = proposal.coverSummaryDayIds;
+  const visibleCoverSummaryDays = (selectedCoverDayIds?.length
+    ? coverSummaryDays.filter((day) => selectedCoverDayIds.includes(day.id))
+    : coverSummaryDays
+  ).slice(0, 6);
+  const summaryFontClasses = proposal.coverSummaryFontSize === "small"
+    ? { type: "text-[10px]", body: "text-[10px]" }
+    : proposal.coverSummaryFontSize === "large"
+      ? { type: "text-xs", body: "text-xs" }
+      : { type: "text-[11px]", body: "text-[11px]" };
 
   return (
     <div id="itinerary-document" className="w-full max-w-[794px] overflow-hidden bg-white text-[#1a2e4a] shadow-xl" style={{ fontFamily: "Poppins, sans-serif" }}>
@@ -95,13 +104,13 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
           <div><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Viajantes</p><p className="font-semibold text-[#1a2e4a]">{data.tripInfo.passengers || "A confirmar"}</p></div>
         </div>
         {proposal.introMessage && <div className="border-b border-slate-200 px-5 py-3"><p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">{proposal.introMessage}</p></div>}
-        {visibleCoverSummaryDays.length > 0 && <div className="border-b border-slate-200 px-5 py-3" data-pdf-keep-together="true">
+        {visibleCoverSummaryDays.length > 0 && <div className="border-b border-slate-200 px-5 py-3" data-pdf-keep-together="true" data-cover-summary-font={proposal.coverSummaryFontSize || "medium"}>
           <div className="mb-2 flex items-center gap-2"><CalendarDays className="h-4 w-4 text-amber-600" /><p className="text-xs font-bold uppercase tracking-[0.12em] text-[#1a2e4a]">Resumo da proposta</p></div>
           <div className="grid gap-2 sm:grid-cols-2">{visibleCoverSummaryDays.map((day) => <section key={day.id} data-pdf-keep-together="true" className="rounded-md border border-slate-200 bg-white px-2.5 py-2">
             <p className="text-[10px] font-bold uppercase tracking-wide text-amber-700">Dia {day.day}{day.date ? ` • ${formatDateWithWeekday(day.date)}` : ""}</p>
             <div className="mt-1.5 space-y-1.5">{day.activities.map((activity) => <div key={activity.id} className="flex min-w-0 items-start gap-2 border-t border-slate-100 pt-1.5 first:border-t-0 first:pt-0">
               <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-blue-50 text-[#1a2e4a]"><CoverSummaryIcon kind={activity.kind} hasFlight={activity.hasFlight} /></span>
-              <div className="min-w-0 flex-1"><p className="text-[11px] font-bold text-[#1a2e4a]">{activity.time ? `${activity.time} • ` : ""}{activity.type}</p><p className="break-words text-[11px] leading-snug text-slate-600">{activity.title}</p></div>
+              <div className="min-w-0 flex-1"><p className={`${summaryFontClasses.type} font-bold text-[#1a2e4a]`}>{activity.time ? `${activity.time} • ` : ""}{activity.type}</p><p className={`break-words ${summaryFontClasses.body} leading-snug text-slate-600`}>{activity.title}</p></div>
             </div>)}</div>
           </section>)}</div>
           {coverSummaryDays.length > visibleCoverSummaryDays.length && <p className="mt-2 text-[11px] font-medium text-slate-500">+ {coverSummaryDays.length - visibleCoverSummaryDays.length} dia(s) detalhado(s) nas próximas páginas.</p>}

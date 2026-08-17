@@ -108,6 +108,10 @@ export interface TourProposal {
   paymentDetails: string;
   clientName?: string;
   installments?: number;
+  /** Densidade tipográfica escolhida para os cartões do resumo na capa. */
+  coverSummaryFontSize?: "small" | "medium" | "large";
+  /** Dias escolhidos manualmente para o resumo da capa; ausente mantém os seis primeiros dias. */
+  coverSummaryDayIds?: string[];
 }
 
 /** Opção gastronômica pesquisada e validada pela consultora para uso no roteiro. */
@@ -405,6 +409,7 @@ export const defaultBudgetData: BudgetData = {
     title: "Proposta de passeios",
     introMessage: "",
     paymentDetails: "",
+    coverSummaryFontSize: "medium",
   },
   finalItinerary: {
     enabled: false,
