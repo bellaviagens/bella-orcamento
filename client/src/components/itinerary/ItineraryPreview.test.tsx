@@ -96,8 +96,25 @@ describe("ItineraryPreview — agenda de dia extenso", () => {
     const markup = renderToStaticMarkup(<ItineraryPreview data={data} />);
 
     expect(markup).toContain("sm:grid-cols-[138px_minmax(0,1fr)]");
-    expect(markup).toContain("h-28 w-full");
+    expect(markup).toContain("flex h-28 w-full items-center justify-center");
+    expect(markup).toContain("flex min-w-0 flex-col items-center gap-1.5 text-center");
     expect(markup).toContain('data-pdf-day-label="Dia 1"');
+  });
+
+  it("posiciona os acessos do restaurante abaixo da foto, mantendo endereço e site separados", () => {
+    const data = {
+      tripInfo: { passengers: "2", destination: "Santiago" },
+      tours: [],
+      itinerary: [{ id: "day-meal", day: 1, title: "Gastronomia", activities: [{ id: "meal-1", kind: "meal", title: "Restaurante Exemplo", photoUrl: "https://example.com/foto.jpg", addressUrl: "https://maps.example/restaurante", linkUrl: "https://restaurante.example" }] }],
+      tourProposal: { title: "Proposta de passeios", introMessage: "", paymentDetails: "" },
+    } as unknown as BudgetData;
+
+    const markup = renderToStaticMarkup(<ItineraryPreview data={data} />);
+
+    expect(markup).toContain("Ver endereço");
+    expect(markup).toContain("Site / fotos");
+    expect(markup).toContain('data-pdf-link="https://maps.example/restaurante"');
+    expect(markup).toContain('data-pdf-link="https://restaurante.example"');
   });
 
   it("mantém todas as atividades e gastronomia no respectivo dia do resumo, com ícones por tipo", () => {

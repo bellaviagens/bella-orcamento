@@ -223,6 +223,8 @@ export interface ItineraryActivity {
   time: string;
   description: string;
   linkUrl: string;
+  /** Link separado para o endereço/mapa, usado nas opções gastronômicas. */
+  addressUrl?: string;
   photoUrl: string;
   ticketUrl?: string;
   importantNotes?: string;

@@ -194,6 +194,7 @@ export function addItineraryActivityToBudget(
         time: activity.time || "",
         description: activity.description || "",
         linkUrl: activity.linkUrl || "",
+        addressUrl: activity.addressUrl || "",
         photoUrl: activity.photoUrl || "",
         ticketUrl: activity.ticketUrl || "",
         importantNotes: activity.importantNotes || "",
@@ -213,7 +214,8 @@ export function addGastronomyToDayInBudget(budget: BudgetData, dayId: string, op
     kind: "meal",
     title: option.name,
     description: option.description || [option.location, option.address].filter(Boolean).join(" • "),
-    linkUrl: option.website || option.mapsUrl,
+    linkUrl: option.website || "",
+    addressUrl: option.mapsUrl,
     importantNotes: option.address ? `Local: ${option.address}` : "",
   });
 }

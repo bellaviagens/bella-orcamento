@@ -220,6 +220,10 @@
 - [x] Exibir a forma de pagamento aérea à vista ao lado da parcelada dentro de cada card quando incluída no PDF
 - [x] Usar o valor e as formas de pagamento configurados para a opção à vista
 - [x] Validar a convivência entre pagamento à vista e parcelado sem alterar o restante
+
+- [x] Centralizar a foto dos cartões da Proposta de Passeios sem alterar o restante do layout
+- [x] Posicionar os links de informações e fotos logo abaixo da respectiva imagem
+- [x] Preservar e exibir separadamente os links de endereço e site/fotos nas opções gastronômicas
 - [x] Aplicar o valor à vista configurado no card com fallback ao valor da tarifa quando estiver vazio
 - [x] Cobrir por teste o valor à vista diferente do parcelado com taxa de maquininha
 
@@ -527,3 +531,7 @@
 - [x] Manter o voo e todos os passeios do Dia 1 na mesma página quando o bloco completo couber na área útil.
 - [x] Preservar a regra de continuação apenas para dias que realmente não couberem completos.
 - [x] Validar o PDF enviado, a paginação multipágina, testes, tipagem, build e publicação sem alterar os demais módulos.
+
+- [x] Centralizar a foto do passeio e mover os links de Mais informações e Fotos para logo abaixo dela.
+- [x] Manter o link de endereço do restaurante e adicionar link separado para fotos/site do local nas opções gastronômicas.
+- [x] Validar testes, tipagem, build e visualização sem alterar os demais módulos.

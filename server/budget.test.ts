@@ -230,6 +230,7 @@ describe("gestão de passeios e roteiro", () => {
       address: "Rua das Flores, 123",
       description: "Rua das Flores, 123 • Avaliação disponível: 4,7/5",
       mapsUrl: "https://maps.example/restaurant-1",
+      website: "https://restaurant.example",
     };
     const baseBudget = {
       ...defaultBudgetData,
@@ -240,9 +241,9 @@ describe("gestão de passeios e roteiro", () => {
     const withMeal = addGastronomyToDayInBudget(baseBudget, "day-1", option.id);
     const withTip = addGastronomyToUsefulTipsInBudget(baseBudget, option.id);
 
-    expect(getItineraryDayActivities(withMeal.itinerary[0])[0]).toMatchObject({ kind: "meal", title: option.name, linkUrl: option.mapsUrl, importantNotes: `Local: ${option.address}` });
+    expect(getItineraryDayActivities(withMeal.itinerary[0])[0]).toMatchObject({ kind: "meal", title: option.name, linkUrl: option.website, addressUrl: option.mapsUrl, importantNotes: `Local: ${option.address}` });
     expect(withTip.finalItinerary.usefulLinks).toEqual([
-      expect.objectContaining({ title: `Gastronomia — ${option.name}`, url: option.mapsUrl }),
+      expect.objectContaining({ title: `Gastronomia — ${option.name}`, url: option.website }),
     ]);
   });
 

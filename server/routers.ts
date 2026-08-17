@@ -253,14 +253,29 @@ export const appRouter = router({
         try {
           const query = `${input.name} ${input.location} restaurante gastronomia`;
           const response = await makeRequest<PlacesSearchResult>("/maps/api/place/textsearch/json", { query, type: "restaurant", language: "pt-BR" });
-          const results = (response.results || []).slice(0, 5).map((place) => ({
-            id: place.place_id,
-            name: place.name,
-            location: input.location,
-            address: place.formatted_address || "",
-            description: [place.formatted_address, typeof place.rating === "number" ? `Avaliação disponível: ${place.rating.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/5` : ""].filter(Boolean).join(" • "),
-            rating: place.rating,
-            mapsUrl: `https://www.google.com/maps/search/?api=1&query_place_id=${encodeURIComponent(place.place_id)}`,
+          const results = await Promise.all((response.results || []).slice(0, 5).map(async (place) => {
+            let website: string | undefined;
+            try {
+              const details = await makeRequest<{ result?: { website?: string } }>("/maps/api/place/details/json", {
+                place_id: place.place_id,
+                fields: "website",
+                language: "pt-BR",
+              });
+              website = details.result?.website;
+            } catch (detailsError) {
+              console.warn("Gastronomy place details unavailable:", detailsError);
+            }
+
+            return {
+              id: place.place_id,
+              name: place.name,
+              location: input.location,
+              address: place.formatted_address || "",
+              description: [place.formatted_address, typeof place.rating === "number" ? `Avaliação disponível: ${place.rating.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/5` : ""].filter(Boolean).join(" • "),
+              rating: place.rating,
+              mapsUrl: `https://www.google.com/maps/search/?api=1&query_place_id=${encodeURIComponent(place.place_id)}`,
+              website,
+            };
           }));
           return { results };
         } catch (error) {
