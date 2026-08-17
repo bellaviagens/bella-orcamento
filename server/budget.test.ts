@@ -60,7 +60,7 @@ describe("appRouter", () => {
 
 describe("budgetTypes defaults", () => {
   it("defaultBudgetData has correct structure", async () => {
-    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const { DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE, defaultBudgetData } = await import("../shared/budgetTypes");
     expect(defaultBudgetData.flights.length).toBeGreaterThan(0);
     expect(defaultBudgetData.hotels.length).toBeGreaterThan(0);
     expect(defaultBudgetData.fareComparison.tiers.length).toBeGreaterThan(0);
@@ -69,6 +69,7 @@ describe("budgetTypes defaults", () => {
     expect(defaultBudgetData.gastronomyOptions).toEqual([]);
     expect(defaultBudgetData.itinerary).toEqual([]);
     expect(defaultBudgetData.tourProposal).toMatchObject({ title: "Proposta de passeios", introMessage: "", paymentDetails: "" });
+    expect(defaultBudgetData.finalItinerary.introMessage).toBe(DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE);
     expect(defaultBudgetData.tripInfo.introText).toContain("Prezadíssimos");
   });
 

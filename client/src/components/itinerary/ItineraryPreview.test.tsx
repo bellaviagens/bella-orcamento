@@ -55,4 +55,33 @@ describe("ItineraryPreview — agenda de dia extenso", () => {
     expect(markup).toContain("Detalhes do voo");
     expect(markup).not.toContain("Detalhes do passeio");
   });
+
+  it("mostra resumo de capa e horário de chegada do voo, sem exibir duração importada em dias", () => {
+    const data = {
+      tripInfo: { passengers: "2", destination: "Santiago", period: "10/09 a 17/09" },
+      flights: [{
+        id: "flight-outbound",
+        type: "ida",
+        segments: [{ departureAirport: "GRU", departureTime: "09:00", arrivalAirport: "SCL", arrivalCity: "Santiago", arrivalTime: "13:30" }],
+      }],
+      tours: [{ id: "tour-1", name: "City tour", duration: "2 dias", description: "", totalPrice: 0, pricingMode: "perPerson", pricePerPerson: 0, travelerCount: 2, notes: "", pageUrl: "", photosUrl: "" }],
+      itinerary: [{
+        id: "day-flight",
+        day: 1,
+        date: "2026-09-10",
+        title: "Chegada",
+        activities: [
+          { id: "flight-activity", kind: "flight", flightId: "flight-outbound", title: "Voo de ida", time: "09:00" },
+          { id: "tour-activity", kind: "tour", tourId: "tour-1", title: "City tour", time: "15:00" },
+        ],
+      }],
+      tourProposal: { title: "Proposta de passeios", introMessage: "", paymentDetails: "" },
+    } as unknown as BudgetData;
+
+    const markup = renderToStaticMarkup(<ItineraryPreview data={data} />);
+
+    expect(markup).toContain("Resumo da proposta");
+    expect(markup).toContain("Chegada ao destino: 13:30 — Santiago");
+    expect(markup).not.toContain("Duração: 2 dias");
+  });
 });

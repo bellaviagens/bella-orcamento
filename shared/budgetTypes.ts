@@ -281,6 +281,8 @@ export interface BudgetData {
   };
 }
 
+export const DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE = "Olá! Seja bem-vindo(a) ao seu roteiro de viagem. Reunimos abaixo horários, documentos e contatos importantes para que você aproveite cada momento com tranquilidade.";
+
 export const defaultBudgetData: BudgetData = {
   tripInfo: {
     destination: "Santiago, Chile",
@@ -389,7 +391,7 @@ export const defaultBudgetData: BudgetData = {
   finalItinerary: {
     enabled: false,
     title: "Roteiro final da viagem",
-    introMessage: "",
+    introMessage: DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE,
     coverImageUrl: "",
     coverMode: "detailed",
     essentialInfo: "",

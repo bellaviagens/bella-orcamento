@@ -53,6 +53,15 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
   const totalTours = data.tours.reduce((total, tour) => total + calculateTourTotal(tour, defaultTravelerCount), 0);
   const proposal = data.tourProposal || { title: "Proposta de passeios", introMessage: "", paymentDetails: "" };
   const installment = calculateTourProposalInstallment(totalTours, proposal.installments);
+  const coverSummaryItems = days.flatMap((day) => getItineraryDayActivities(day).map((activity) => ({
+    id: activity.id,
+    day: day.day,
+    date: day.date,
+    time: activity.time,
+    type: activity.kind === "flight" || activity.flightId ? "Voo" : activity.kind === "meal" ? "Gastronomia" : activity.kind === "tour" ? "Passeio" : "Compromisso",
+    title: activity.title || "Novo compromisso",
+  })));
+  const visibleCoverSummaryItems = coverSummaryItems.slice(0, 6);
 
   return (
     <div id="itinerary-document" className="w-full max-w-[794px] overflow-hidden bg-white text-[#1a2e4a] shadow-xl" style={{ fontFamily: "Poppins, sans-serif" }}>
@@ -73,6 +82,15 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
           <div><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Viajantes</p><p className="font-semibold text-[#1a2e4a]">{data.tripInfo.passengers || "A confirmar"}</p></div>
         </div>
         {proposal.introMessage && <div className="border-b border-slate-200 px-5 py-3"><p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">{proposal.introMessage}</p></div>}
+        {visibleCoverSummaryItems.length > 0 && <div className="border-b border-slate-200 px-5 py-3" data-pdf-keep-together="true">
+          <div className="mb-2 flex items-center gap-2"><CalendarDays className="h-4 w-4 text-amber-600" /><p className="text-xs font-bold uppercase tracking-[0.12em] text-[#1a2e4a]">Resumo da proposta</p></div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{visibleCoverSummaryItems.map((item) => <div key={item.id} className="rounded-md border border-slate-200 bg-white px-2.5 py-2">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-amber-700">Dia {item.day}{item.date ? ` • ${formatDateWithWeekday(item.date)}` : ""}</p>
+            <p className="mt-0.5 truncate text-xs font-semibold text-[#1a2e4a]">{item.time ? `${item.time} • ` : ""}{item.type}</p>
+            <p className="mt-0.5 truncate text-xs text-slate-600">{item.title}</p>
+          </div>)}</div>
+          {coverSummaryItems.length > visibleCoverSummaryItems.length && <p className="mt-2 text-[11px] font-medium text-slate-500">+ {coverSummaryItems.length - visibleCoverSummaryItems.length} compromisso(s) detalhado(s) nas próximas páginas.</p>}
+        </div>}
       </header>
 
       {days.length === 0 ? <div className="px-5 py-16 text-center text-sm text-slate-500">Adicione os passeios e as datas na aba <strong>Roteiro</strong> para montar esta proposta.</div> : <div className="space-y-4 px-5 py-4">{days.map((day) => {
@@ -83,6 +101,8 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
             {activities.length >= 3 && <div data-pdf-keep-together="true" className="flex items-center gap-3 pb-1 pt-0.5"><span className="h-px flex-1 bg-gradient-to-r from-amber-300 to-amber-100" /><span className="shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-amber-700">Agenda do dia • {activities.length} compromissos</span><span className="h-px flex-1 bg-gradient-to-l from-amber-300 to-amber-100" /></div>}
             {activities.map((activity, activityIndex) => {
               const tour = activity.tourId ? data.tours.find((currentTour) => currentTour.id === activity.tourId) : undefined;
+              const flight = activity.flightId ? data.flights.find((currentFlight) => currentFlight.id === activity.flightId) : undefined;
+              const arrivalSegment = flight?.segments[flight.segments.length - 1];
               const isFlightActivity = activity.kind === "flight" || Boolean(activity.flightId);
               const descriptionBlocks = organizeDescription(tour?.description || activity.description || "", isFlightActivity ? "Detalhes do voo" : "Detalhes do passeio");
               const total = tour ? calculateTourTotal(tour, defaultTravelerCount) : 0;
@@ -99,7 +119,7 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
                 <div className="flex gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1a2e4a] text-white">{isFlightActivity ? <PlaneTakeoff className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}</div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-start justify-between gap-2"><div><div className="flex flex-wrap items-center gap-2"><h4 className="text-base font-bold">{activity.title || "Novo compromisso"}</h4>{activity.time && <span className="rounded bg-white px-2 py-1 text-xs font-bold text-[#1a2e4a] shadow-sm">{activity.time}</span>}</div>{tour?.location && <p className="mt-1 flex items-center gap-1 text-xs text-slate-500"><MapPin className="h-3 w-3" />{tour.location}</p>}{tour?.duration && <p className="mt-1 text-xs text-slate-500">Duração: {tour.duration}</p>}</div>{total > 0 && <span className="rounded bg-white px-2 py-1 text-xs font-bold text-[#1a2e4a] shadow-sm">{formatCurrency(total)}</span>}</div>
+                    <div className="flex flex-wrap items-start justify-between gap-2"><div><div className="flex flex-wrap items-center gap-2"><h4 className="text-base font-bold">{activity.title || "Novo compromisso"}</h4>{activity.time && <span className="rounded bg-white px-2 py-1 text-xs font-bold text-[#1a2e4a] shadow-sm">{activity.time}</span>}</div>{isFlightActivity && arrivalSegment?.arrivalTime && <p className="mt-1.5 text-xs font-semibold text-[#1a2e4a]">Chegada ao destino: {arrivalSegment.arrivalTime}{arrivalSegment.arrivalCity || arrivalSegment.arrivalAirport ? ` — ${arrivalSegment.arrivalCity || arrivalSegment.arrivalAirport}` : ""}</p>}{tour?.location && <p className="mt-1 flex items-center gap-1 text-xs text-slate-500"><MapPin className="h-3 w-3" />{tour.location}</p>}{tour?.duration && !/\b\d+\s*dias?\b/i.test(tour.duration) && <p className="mt-1 text-xs text-slate-500">Duração: {tour.duration}</p>}</div>{total > 0 && <span className="rounded bg-white px-2 py-1 text-xs font-bold text-[#1a2e4a] shadow-sm">{formatCurrency(total)}</span>}</div>
 
                     {photoUrl && <a href={photoUrl} target="_blank" rel="noreferrer" className="mt-2.5 block" aria-label={`Abrir foto de ${activity.title}`}><img src={photoUrl} alt={`Foto de ${activity.title}`} crossOrigin="anonymous" onError={(event) => event.currentTarget.parentElement?.remove()} className="h-32 w-full rounded-lg border border-slate-200 object-cover" /></a>}
 

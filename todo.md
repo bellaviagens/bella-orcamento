@@ -473,3 +473,11 @@
 - [x] Impedir que o início de uma linha do tempo diária seja separado de seus compromissos no PDF.
 - [x] Destacar no evento de voo o vínculo de cartão de embarque por passageiro e manter o salvamento completo em rascunho.
 - [x] Validar a paginação e a apresentação final do roteiro após os refinamentos.
+
+- [x] Tornar a exclusão de restaurantes validados claramente acessível no painel de Opções gastronômicas.
+- [x] Corrigir a exibição de duração de passeio para não apresentar dias calculados de forma incorreta.
+- [x] Exibir horários de chegada nos eventos de voo de ida e retorno da proposta e do roteiro.
+- [x] Adicionar um resumo informativo à capa da Proposta de Passeios e ocupar melhor a área disponível.
+- [x] Criar mensagem padrão de boas-vindas editável para novos Roteiros Finais.
+- [x] Permitir compartilhar o Roteiro Final por WhatsApp e e-mail com os passageiros.
+- [x] Cobrir e validar os novos fluxos de gastronomia, proposta, voos, boas-vindas, compartilhamento e PDF.
