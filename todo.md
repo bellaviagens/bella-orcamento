@@ -414,3 +414,7 @@
 - [x] Incluir horário, título, descrição e links próprios para voo, passeio, jantar e demais atividades no dia.
 - [x] Permitir ordenar os compromissos de um mesmo dia e exibi-los na proposta/PDF em sequência.
 - [x] Validar a compatibilidade das propostas e rascunhos já salvos, sem alterar o Roteiro Final.
+
+- [x] Tornar mais evidente a ordenação manual dos compromissos no mesmo dia da Proposta de Passeios.
+- [x] Garantir que a sequência definida manualmente seja respeitada na prévia e no PDF, independentemente da ordem de importação.
+- [x] Validar a reordenação de passeios sem alterar os demais módulos do Roteiro.
