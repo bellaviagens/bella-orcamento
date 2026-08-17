@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { CalendarDays, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, GripVertical, Link2, Loader2, Plus, Save, Search, Trash2, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
+import { createEmptyGastronomySearchDraft } from "./itineraryFormState";
 
 export function ItineraryForm() {
   const { budget, addGastronomyToDay, addGastronomyToUsefulTips, addItineraryDay, addItineraryActivity, importItineraryFromQuotation, moveItineraryActivity, removeGastronomyOption, removeItineraryActivity, reorderItineraryActivities, replaceBudget, resetTourProposal, saveGastronomyOption, updateItineraryActivity, updateTour, updateTourProposal, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
@@ -186,6 +187,10 @@ export function ItineraryForm() {
     setCollapsedDayIds(new Set());
     knownDayIdsRef.current = new Set();
     setQuotationUrl("");
+    const emptyGastronomySearch = createEmptyGastronomySearchDraft();
+    setGastronomyName(emptyGastronomySearch.name);
+    setGastronomyLocation(emptyGastronomySearch.location);
+    setGastronomyTargetDays(emptyGastronomySearch.targetDays);
     toast.success("Nova proposta iniciada. O Roteiro Final e as propostas salvas foram preservados.");
   };
 

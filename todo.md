@@ -539,3 +539,6 @@
 - [x] Obter uma foto representativa retornada pela busca de cada restaurante validado.
 - [x] Exibir a foto do restaurante no cartão gastronômico da Proposta e no PDF correspondente.
 - [x] Validar busca, tipagem, testes, build e visualização sem alterar os demais módulos.
+
+- [x] Limpar os campos e resultados temporários da pesquisa gastronômica ao clicar em Nova Proposta.
+- [x] Validar o reset da nova proposta sem alterar os demais módulos.
