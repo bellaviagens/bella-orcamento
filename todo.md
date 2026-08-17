@@ -434,3 +434,7 @@
 - [x] Impedir que um dia ou seus compromissos sejam cortados entre páginas no PDF da Proposta de Passeios.
 - [x] Manter título, data e conteúdo do dia agrupados quando houver espaço suficiente na página seguinte.
 - [x] Validar a exportação em PDF com uma proposta de vários dias sem alterar conteúdos, cálculos ou demais módulos.
+
+- [x] Criar um separador visual elegante para organizar dias com muitos passeios na Proposta de Passeios.
+- [x] Aplicar o mesmo separador no preview e no PDF sem comprometer as regras de paginação.
+- [x] Validar a legibilidade dos dias extensos e preservar as cores e estrutura existentes.

@@ -68,7 +68,8 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
         return <section key={day.id} data-pdf-keep-together="true">
           <div className="mb-3 flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day.day}</span><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-600">Dia {day.day}{day.date ? ` • ${formatDateWithWeekday(day.date)}` : ""}</p><h3 className="text-sm font-bold text-[#1a2e4a]">{day.title || "Dia livre"}</h3></div></div>
           <div className="ml-4 space-y-3 border-l-2 border-amber-200 pl-4">
-            {activities.map((activity) => {
+            {activities.length >= 3 && <div data-pdf-keep-together="true" className="flex items-center gap-3 pb-1 pt-0.5"><span className="h-px flex-1 bg-gradient-to-r from-amber-300 to-amber-100" /><span className="shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-amber-700">Agenda do dia • {activities.length} compromissos</span><span className="h-px flex-1 bg-gradient-to-l from-amber-300 to-amber-100" /></div>}
+            {activities.map((activity, activityIndex) => {
               const tour = activity.tourId ? data.tours.find((currentTour) => currentTour.id === activity.tourId) : undefined;
               const descriptionBlocks = organizeDescription(tour?.description || activity.description || "");
               const total = tour ? calculateTourTotal(tour, defaultTravelerCount) : 0;
@@ -77,7 +78,10 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
               const photoUrl = tour?.photosUrl || activity.photoUrl;
               const informationUrl = tour?.pageUrl || activity.linkUrl;
 
-              return <article key={activity.id} data-pdf-keep-together="true" className="relative rounded-xl border border-slate-200 bg-slate-50 p-4">
+              const showActivitySeparator = activities.length >= 3 && activityIndex > 0;
+              return <div key={activity.id} data-pdf-keep-together="true" className={showActivitySeparator ? "pt-1" : undefined}>
+                {showActivitySeparator && <div className="flex items-center gap-2.5 pb-2 pt-0.5"><span className="h-px flex-1 bg-slate-200" /><span className="shrink-0 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">Próximo compromisso</span><span className="h-px flex-1 bg-slate-200" /></div>}
+                <article className="relative rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <span className="absolute -left-[27px] top-5 h-3 w-3 rounded-full border-2 border-white bg-[#1a2e4a]" />
                 <div className="flex gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1a2e4a] text-white"><Sparkles className="h-4 w-4" /></div>
@@ -94,7 +98,8 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
                     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs font-semibold text-[#1a2e4a]">{informationUrl && <a data-pdf-link={informationUrl} href={informationUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-amber-600"><ExternalLink className="h-3 w-3" />Mais informações</a>}{activity.ticketUrl && <a data-pdf-link={activity.ticketUrl} href={activity.ticketUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-amber-700 hover:text-amber-900"><ExternalLink className="h-3 w-3" />Comprar ingresso</a>}{photoUrl && <a data-pdf-link={photoUrl} href={photoUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-amber-600"><Images className="h-3 w-3" />Fotos</a>}</div>
                   </div>
                 </div>
-              </article>;
+                </article>
+              </div>;
             })}
           </div>
           {day.activities && day.notes && <div className="ml-4 mt-3 rounded-md bg-slate-100 px-3 py-2 text-sm leading-relaxed text-slate-600"><span className="font-semibold text-[#1a2e4a]">Observações do dia: </span>{day.notes}</div>}
