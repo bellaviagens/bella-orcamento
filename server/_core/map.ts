@@ -89,6 +89,33 @@ export async function makeRequest<T = unknown>(
   return (await response.json()) as T;
 }
 
+/**
+ * Recupera uma foto de estabelecimento pelo proxy autenticado do Google Maps.
+ * A imagem é retornada em bytes para que o servidor possa armazená-la sem
+ * expor a chave de acesso no navegador.
+ */
+export async function fetchPlacePhoto(
+  photoReference: string,
+  maxWidth = 720,
+): Promise<{ data: Buffer; contentType: string }> {
+  const { baseUrl, apiKey } = getMapsConfig();
+  const url = new URL(`${baseUrl}/v1/maps/proxy/maps/api/place/photo`);
+  url.searchParams.set("key", apiKey);
+  url.searchParams.set("photoreference", photoReference);
+  url.searchParams.set("maxwidth", String(maxWidth));
+
+  const response = await fetch(url.toString(), { redirect: "follow" });
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => response.statusText);
+    throw new Error(`Google Maps photo request failed (${response.status}): ${errorText}`);
+  }
+
+  return {
+    data: Buffer.from(await response.arrayBuffer()),
+    contentType: response.headers.get("content-type")?.split(";", 1)[0] || "image/jpeg",
+  };
+}
+
 // ============================================================================
 // Type Definitions
 // ============================================================================
@@ -175,6 +202,12 @@ export type PlacesSearchResult = {
     user_ratings_total?: number;
     business_status?: string;
     types: string[];
+    photos?: Array<{
+      photo_reference: string;
+      height: number;
+      width: number;
+      html_attributions?: string[];
+    }>;
   }>;
   status: string;
 };
@@ -189,6 +222,12 @@ export type PlaceDetailsResult = {
     website?: string;
     rating?: number;
     user_ratings_total?: number;
+    photos?: Array<{
+      photo_reference: string;
+      height: number;
+      width: number;
+      html_attributions?: string[];
+    }>;
     reviews?: Array<{
       author_name: string;
       rating: number;
@@ -313,7 +352,6 @@ export type RoadsResult = {
  * Output: Image URL (not JSON) - use directly in <img src={url} />
  * Note: Construct URL manually with getMapsConfig() for auth
  */
-
 
 
 

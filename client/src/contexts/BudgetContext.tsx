@@ -216,6 +216,7 @@ export function addGastronomyToDayInBudget(budget: BudgetData, dayId: string, op
     description: option.description || [option.location, option.address].filter(Boolean).join(" • "),
     linkUrl: option.website || "",
     addressUrl: option.mapsUrl,
+    photoUrl: option.photoUrl || "",
     importantNotes: option.address ? `Local: ${option.address}` : "",
   });
 }

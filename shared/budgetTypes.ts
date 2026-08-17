@@ -123,6 +123,7 @@ export interface GastronomyOption {
   description: string;
   website?: string;
   mapsUrl: string;
+  photoUrl?: string;
   rating?: number;
 }
 

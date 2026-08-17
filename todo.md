@@ -535,3 +535,7 @@
 - [x] Centralizar a foto do passeio e mover os links de Mais informações e Fotos para logo abaixo dela.
 - [x] Manter o link de endereço do restaurante e adicionar link separado para fotos/site do local nas opções gastronômicas.
 - [x] Validar testes, tipagem, build e visualização sem alterar os demais módulos.
+
+- [x] Obter uma foto representativa retornada pela busca de cada restaurante validado.
+- [x] Exibir a foto do restaurante no cartão gastronômico da Proposta e no PDF correspondente.
+- [x] Validar busca, tipagem, testes, build e visualização sem alterar os demais módulos.

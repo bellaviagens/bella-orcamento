@@ -6,7 +6,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { buildImportDocumentContent } from "./importDocument";
 import { createSharedItinerary, deleteBudgetDraft, duplicateTourProposal, getBudgetDraft, getSharedItinerary, getTourProposal, listBudgetDrafts, listTourProposals, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveTourProposal, updateTourProposalStatus } from "./db";
 import { storagePut } from "./storage";
-import { makeRequest, type PlacesSearchResult } from "./_core/map";
+import { fetchPlacePhoto, makeRequest, type PlacesSearchResult } from "./_core/map";
 import { TRPCError } from "@trpc/server";
 import { lookup } from "node:dns/promises";
 import { z } from "zod";
@@ -255,6 +255,7 @@ export const appRouter = router({
           const response = await makeRequest<PlacesSearchResult>("/maps/api/place/textsearch/json", { query, type: "restaurant", language: "pt-BR" });
           const results = await Promise.all((response.results || []).slice(0, 5).map(async (place) => {
             let website: string | undefined;
+            let photoUrl: string | undefined;
             try {
               const details = await makeRequest<{ result?: { website?: string } }>("/maps/api/place/details/json", {
                 place_id: place.place_id,
@@ -266,6 +267,18 @@ export const appRouter = router({
               console.warn("Gastronomy place details unavailable:", detailsError);
             }
 
+            const photoReference = place.photos?.[0]?.photo_reference;
+            if (photoReference) {
+              try {
+                const photo = await fetchPlacePhoto(photoReference);
+                const extension = photo.contentType === "image/png" ? "png" : photo.contentType === "image/webp" ? "webp" : "jpg";
+                const storedPhoto = await storagePut(`gastronomy/${sanitizeAttachmentFileName(place.place_id)}.${extension}`, photo.data, photo.contentType);
+                photoUrl = storedPhoto.url;
+              } catch (photoError) {
+                console.warn("Gastronomy place photo unavailable:", photoError);
+              }
+            }
+
             return {
               id: place.place_id,
               name: place.name,
@@ -275,6 +288,7 @@ export const appRouter = router({
               rating: place.rating,
               mapsUrl: `https://www.google.com/maps/search/?api=1&query_place_id=${encodeURIComponent(place.place_id)}`,
               website,
+              photoUrl,
             };
           }));
           return { results };
