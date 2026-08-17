@@ -184,6 +184,10 @@ export interface FinalItinerary {
   enabled: boolean;
   title: string;
   introMessage: string;
+  /** Imagem opcional do destino exibida na capa do roteiro. */
+  coverImageUrl?: string;
+  /** Define a densidade da capa gerada no preview e no PDF. */
+  coverMode?: "compact" | "detailed";
   essentialInfo?: string;
   emergencyContacts?: string;
   shareToken?: string;
@@ -385,6 +389,8 @@ export const defaultBudgetData: BudgetData = {
     enabled: false,
     title: "Roteiro final da viagem",
     introMessage: "",
+    coverImageUrl: "",
+    coverMode: "detailed",
     essentialInfo: "",
     emergencyContacts: "",
     passengers: [],

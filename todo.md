@@ -461,3 +461,8 @@
 - [x] Refinar a capa do Roteiro Final para uma abertura mais informativa e equilibrada.
 - [x] Aproveitar melhor a largura e a altura das páginas do Roteiro Final, reduzindo espaços ociosos.
 - [x] Validar a nova capa e a paginação do PDF do Roteiro Final.
+
+- [x] Permitir incluir uma imagem de capa do destino no Roteiro Final e no PDF.
+- [x] Adicionar um resumo diário das atividades na capa do Roteiro Final.
+- [x] Criar opção de capa compacta ou detalhada no formulário do Roteiro Final.
+- [x] Validar os dois modos de capa no preview e no PDF sem alterar a paginação existente.

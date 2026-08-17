@@ -133,6 +133,12 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
     groups.set(event.day, [...(groups.get(event.day) || []), event]);
     return groups;
   }, new Map());
+  const coverMode = finalItinerary.coverMode || "detailed";
+  const dailySummary = Array.from(eventsByDay.entries()).map(([day, dayEvents]) => ({
+    day,
+    date: dayEvents.map((event) => event.flightDate || event.hotelCheckIn || event.hotelCheckOut).find(Boolean),
+    activities: dayEvents.map((event) => event.title || EVENT_LABELS[event.kind]).filter(Boolean),
+  }));
 
   return (
     <div id="final-itinerary-document" className="w-full max-w-none rounded-2xl bg-white p-5 text-[#1a2e4a] shadow-xl" style={{ fontFamily: "Poppins, sans-serif" }}>
@@ -144,7 +150,7 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
           </div>
           <div className="rounded-md border border-white/15 bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.13em] text-slate-100">Roteiro Final</div>
         </div>
-        <div className="mt-4 grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
+        <div className={`mt-4 grid gap-4 ${finalItinerary.coverImageUrl && coverMode === "detailed" ? "lg:grid-cols-[1.15fr_0.55fr_0.65fr]" : "lg:grid-cols-[1.35fr_0.65fr]"}`}>
           <div>
             <h2 className="text-2xl font-extrabold leading-tight text-white">{finalItinerary.title || "Roteiro final da viagem"}</h2>
             <p className="mt-1.5 text-sm font-medium text-slate-200">{data.tripInfo.destination || "Destino da viagem"}{data.tripInfo.period ? ` • ${data.tripInfo.period}` : ""}</p>
@@ -155,7 +161,10 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
             <DetailCell label="Período" value={data.tripInfo.period} />
             <DetailCell label="Viajantes" value={(finalItinerary.passengers || []).map((passenger) => passenger.name).join(", ") || data.tripInfo.passengers} />
           </div>
+          {finalItinerary.coverImageUrl && coverMode === "detailed" && <img src={finalItinerary.coverImageUrl} alt={`Destino: ${data.tripInfo.destination || "viagem"}`} className="h-full min-h-36 w-full rounded-lg border border-white/15 object-cover" />}
         </div>
+        {finalItinerary.coverImageUrl && coverMode === "compact" && <img src={finalItinerary.coverImageUrl} alt={`Destino: ${data.tripInfo.destination || "viagem"}`} className="mt-4 h-24 w-full rounded-lg border border-white/15 object-cover" />}
+        {dailySummary.length > 0 && <section className={`mt-4 rounded-lg border border-white/15 bg-white/10 ${coverMode === "detailed" ? "p-3" : "p-2.5"}`}><div className="flex items-center justify-between gap-2"><p className="text-[10px] font-bold uppercase tracking-[0.13em] text-amber-300">Resumo diário</p><span className="text-[10px] font-medium text-slate-200">{dailySummary.length} {dailySummary.length === 1 ? "dia planejado" : "dias planejados"}</span></div><div className={`mt-2 grid gap-2 ${coverMode === "detailed" ? "sm:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-3"}`}>{dailySummary.map((summary) => <div key={summary.day} className="rounded-md border border-white/10 bg-[#10233d]/55 px-2.5 py-2"><div className="flex items-baseline justify-between gap-2"><p className="text-[10px] font-bold uppercase tracking-[0.1em] text-amber-300">Dia {summary.day}</p>{summary.date && <p className="text-[10px] text-slate-300">{formatDate(summary.date)}</p>}</div><p className="mt-1 text-xs font-medium leading-relaxed text-white">{summary.activities.slice(0, coverMode === "detailed" ? 3 : 2).join(" • ")}{summary.activities.length > (coverMode === "detailed" ? 3 : 2) ? " • …" : ""}</p></div>)}</div></section>}
         {(finalItinerary.essentialInfo || finalItinerary.emergencyContacts) && <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {finalItinerary.essentialInfo && <section className="rounded-lg border border-blue-100 bg-white p-3 text-[#1a2e4a]"><div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em]"><ShieldAlert className="h-3.5 w-3.5" />Informações essenciais</div><p className="mt-1.5 whitespace-pre-line text-xs leading-relaxed text-slate-600">{finalItinerary.essentialInfo}</p></section>}
           {finalItinerary.emergencyContacts && <section className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-[#1a2e4a]"><div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em]"><Phone className="h-3.5 w-3.5" />Contatos de emergência</div><p className="mt-1.5 whitespace-pre-line text-xs leading-relaxed text-slate-600">{finalItinerary.emergencyContacts}</p></section>}

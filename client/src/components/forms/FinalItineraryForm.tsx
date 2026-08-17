@@ -53,6 +53,8 @@ export function FinalItineraryForm() {
   const [dragOverEventId, setDragOverEventId] = useState<string | null>(null);
   const [uploadingEventId, setUploadingEventId] = useState<string | null>(null);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [uploadingCoverImage, setUploadingCoverImage] = useState(false);
+  const [coverImageError, setCoverImageError] = useState<string | null>(null);
   const [newPassengerName, setNewPassengerName] = useState("");
   const [attachmentPassengerByEvent, setAttachmentPassengerByEvent] = useState<Record<string, string>>({});
   const [newBaggageItemByPassenger, setNewBaggageItemByPassenger] = useState<Record<string, string>>({});
@@ -62,6 +64,7 @@ export function FinalItineraryForm() {
   const [shareCopied, setShareCopied] = useState(false);
   const [shareExpiryDate, setShareExpiryDate] = useState("");
   const attachmentInputs = useRef<Record<string, HTMLInputElement | null>>({});
+  const coverImageInput = useRef<HTMLInputElement | null>(null);
   const uploadAttachment = trpc.itineraryAttachments.upload.useMutation();
   const createSharedItinerary = trpc.sharedItineraries.create.useMutation();
   const revokeSharedItinerary = trpc.sharedItineraries.revoke.useMutation();
@@ -70,6 +73,38 @@ export function FinalItineraryForm() {
     first.day - second.day || EVENT_ORDER[first.kind] - EVENT_ORDER[second.kind] || first.time.localeCompare(second.time),
   );
   const usefulLinks = finalItinerary.usefulLinks || [];
+
+  const handleCoverImageSelection = (file?: File) => {
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setCoverImageError("Use uma imagem em JPG, PNG ou WEBP para a capa.");
+      return;
+    }
+    if (file.size > MAX_ATTACHMENT_SIZE) {
+      setCoverImageError(`A imagem da capa deve ter no máximo ${formatFileSize(MAX_ATTACHMENT_SIZE)}.`);
+      return;
+    }
+    setCoverImageError(null);
+    setUploadingCoverImage(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const dataBase64 = String(reader.result).split(",")[1];
+        const uploaded = await uploadAttachment.mutateAsync({
+          fileName: file.name,
+          contentType: file.type as "image/jpeg" | "image/png" | "image/webp",
+          dataBase64,
+        });
+        updateFinalItinerary({ enabled: true, coverImageUrl: uploaded.url });
+      } catch (error) {
+        setCoverImageError(error instanceof Error ? error.message : "Não foi possível enviar a imagem da capa.");
+      } finally {
+        setUploadingCoverImage(false);
+        if (coverImageInput.current) coverImageInput.current.value = "";
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const reorder = (targetId: string) => {
     if (!draggedEventId || draggedEventId === targetId) return;
@@ -230,6 +265,10 @@ export function FinalItineraryForm() {
         <div className="grid gap-3">
           <div><Label htmlFor="final-title">Título</Label><Input id="final-title" value={finalItinerary.title} onChange={(event) => updateFinalItinerary({ title: event.target.value, enabled: true })} className="mt-1 bg-white" /></div>
           <div><Label htmlFor="final-intro">Mensagem inicial</Label><Textarea id="final-intro" value={finalItinerary.introMessage} onChange={(event) => updateFinalItinerary({ introMessage: event.target.value, enabled: true })} placeholder="Ex.: Olá, Suelen! Abaixo está o seu roteiro completo, com horários e contatos importantes." className="mt-1 min-h-20 bg-white" /></div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div><Label htmlFor="final-cover-mode">Modelo da capa</Label><Select value={finalItinerary.coverMode || "detailed"} onValueChange={(value) => updateFinalItinerary({ enabled: true, coverMode: value as "compact" | "detailed" })}><SelectTrigger id="final-cover-mode" className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="detailed">Detalhada — imagem, resumo diário e informações completas</SelectItem><SelectItem value="compact">Compacta — abertura mais enxuta e objetiva</SelectItem></SelectContent></Select><p className="mt-1 text-[11px] leading-relaxed text-slate-500">A escolha aparece no preview e no PDF do Roteiro Final.</p></div>
+            <div><Label htmlFor="final-cover-image-url">Imagem do destino <span className="font-normal text-slate-500">(opcional)</span></Label><Input id="final-cover-image-url" value={finalItinerary.coverImageUrl || ""} onChange={(event) => updateFinalItinerary({ enabled: true, coverImageUrl: event.target.value })} placeholder="Cole a URL ou envie uma imagem" className="mt-1 bg-white" /><div className="mt-2 flex flex-wrap items-center gap-2"><input ref={coverImageInput} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => handleCoverImageSelection(event.target.files?.[0])} /><Button type="button" variant="outline" size="sm" onClick={() => coverImageInput.current?.click()} disabled={uploadingCoverImage} className="bg-white text-xs"><Upload className="mr-1.5 h-3.5 w-3.5" />{uploadingCoverImage ? "Enviando imagem..." : "Enviar imagem"}</Button>{finalItinerary.coverImageUrl && <Button type="button" variant="ghost" size="sm" onClick={() => updateFinalItinerary({ coverImageUrl: "" })} className="h-8 text-xs text-slate-500 hover:text-red-600"><X className="mr-1 h-3.5 w-3.5" />Remover</Button>}</div>{coverImageError && <p className="mt-1.5 text-xs font-medium text-red-600">{coverImageError}</p>}{finalItinerary.coverImageUrl && <img src={finalItinerary.coverImageUrl} alt="Prévia da imagem de capa do destino" className="mt-2 h-20 w-full rounded-md border border-blue-100 object-cover" />}</div>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div><Label htmlFor="final-essential-info">Informações essenciais</Label><Textarea id="final-essential-info" value={finalItinerary.essentialInfo || ""} onChange={(event) => updateFinalItinerary({ essentialInfo: event.target.value, enabled: true })} placeholder="Ex.: Levar passaporte, chegar ao aeroporto com 3 horas de antecedência..." className="mt-1 min-h-24 bg-white" /></div>
             <div><Label htmlFor="final-emergency-contacts">Contatos de emergência</Label><Textarea id="final-emergency-contacts" value={finalItinerary.emergencyContacts || ""} onChange={(event) => updateFinalItinerary({ emergencyContacts: event.target.value, enabled: true })} placeholder="Ex.: Agência: +55...&#10;Transfer: +56...&#10;Seguro: +55..." className="mt-1 min-h-24 bg-white" /></div>

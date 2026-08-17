@@ -35,5 +35,25 @@ describe("FinalItineraryPreview — capa institucional", () => {
     expect(markup).toContain("bg-[#1a2e4a]");
     expect(markup).toContain("Santiago");
   });
-});
 
+  it("exibe imagem e resumo diário na capa detalhada", () => {
+    const data = {
+      tripInfo: { destination: "Santiago", period: "10/09/2026 a 17/09/2026", passengers: "2 viajantes" },
+      finalItinerary: {
+        title: "Roteiro Santiago",
+        introMessage: "",
+        coverMode: "detailed",
+        coverImageUrl: "https://example.com/santiago.jpg",
+        passengers: [],
+        usefulLinks: [],
+        events: [{ id: "event-1", day: 1, time: "09:00", kind: "tour", title: "Tour panorâmico", description: "", linkUrl: "" }],
+      },
+    } as unknown as BudgetData;
+
+    const markup = renderToStaticMarkup(<FinalItineraryPreview data={data} />);
+
+    expect(markup).toContain("Resumo diário");
+    expect(markup).toContain("Tour panorâmico");
+    expect(markup).toContain("https://example.com/santiago.jpg");
+  });
+});
