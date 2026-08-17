@@ -481,3 +481,10 @@
 - [x] Criar mensagem padrão de boas-vindas editável para novos Roteiros Finais.
 - [x] Permitir compartilhar o Roteiro Final por WhatsApp e e-mail com os passageiros.
 - [x] Cobrir e validar os novos fluxos de gastronomia, proposta, voos, boas-vindas, compartilhamento e PDF.
+
+- [x] Agrupar todos os compromissos de cada data em um único cartão do resumo da Proposta de Passeios.
+- [x] Incluir as opções gastronômicas cadastradas no dia selecionado dentro do respectivo resumo diário.
+- [x] Criar modelos salvos de mensagem de boas-vindas e permitir alternar rapidamente entre eles.
+- [x] Permitir personalizar o texto enviado junto ao link por WhatsApp e e-mail.
+- [x] Adicionar ícones específicos de voo, hospedagem, passeio e gastronomia no resumo cronológico.
+- [x] Validar agrupamentos, modelos, mensagens personalizadas, ícones, preview e PDF dos novos ajustes.

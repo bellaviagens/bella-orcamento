@@ -84,4 +84,43 @@ describe("ItineraryPreview — agenda de dia extenso", () => {
     expect(markup).toContain("Chegada ao destino: 13:30 — Santiago");
     expect(markup).not.toContain("Duração: 2 dias");
   });
+
+  it("mantém todas as atividades e gastronomia no respectivo dia do resumo, com ícones por tipo", () => {
+    const data = {
+      tripInfo: { passengers: "2", destination: "Santiago" },
+      tours: [],
+      itinerary: [
+        {
+          id: "day-1",
+          day: 1,
+          date: "2026-08-26",
+          title: "Chegada",
+          activities: [
+            { id: "flight-1", kind: "flight", title: "Voo de ida", time: "10:05" },
+            { id: "meal-1", kind: "meal", title: "Almoço no Costanera", time: "13:00" },
+            { id: "tour-1", kind: "tour", title: "Passeio panorâmico", time: "15:00" },
+          ],
+        },
+        {
+          id: "day-2",
+          day: 2,
+          date: "2026-08-27",
+          title: "Passeios",
+          activities: [{ id: "tour-2", kind: "tour", title: "Centro histórico", time: "09:00" }],
+        },
+      ],
+      tourProposal: { title: "Proposta de passeios", introMessage: "", paymentDetails: "" },
+    } as unknown as BudgetData;
+
+    const markup = renderToStaticMarkup(<ItineraryPreview data={data} />);
+    const coverMarkup = markup.slice(markup.indexOf("Resumo da proposta"), markup.indexOf('data-proposal-day'));
+
+    expect(coverMarkup).toContain("Almoço no Costanera");
+    expect(coverMarkup).toContain("Passeio panorâmico");
+    expect(coverMarkup).toContain("Centro histórico");
+    expect(coverMarkup.match(/Dia 1 •/g)).toHaveLength(1);
+    expect(coverMarkup).toContain("lucide-plane-takeoff");
+    expect(coverMarkup).toContain("lucide-utensils");
+    expect(coverMarkup).toContain("lucide-sparkles");
+  });
 });

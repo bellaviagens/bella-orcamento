@@ -152,6 +152,12 @@ export interface FinalItineraryUsefulLink {
   url: string;
 }
 
+export interface FinalItineraryWelcomeMessageTemplate {
+  id: string;
+  name: string;
+  message: string;
+}
+
 export interface FinalItineraryEvent {
   id: string;
   day: number;
@@ -191,6 +197,10 @@ export interface FinalItinerary {
   coverMode?: "compact" | "detailed";
   essentialInfo?: string;
   emergencyContacts?: string;
+  /** Modelos salvos para reaproveitar mensagens de abertura. */
+  welcomeMessageTemplates?: FinalItineraryWelcomeMessageTemplate[];
+  /** Texto editável enviado junto ao link compartilhável. */
+  shareMessage?: string;
   shareToken?: string;
   shareExpiresAt?: string;
   passengers?: FinalItineraryPassenger[];
@@ -282,6 +292,12 @@ export interface BudgetData {
 }
 
 export const DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE = "Olá! Seja bem-vindo(a) ao seu roteiro de viagem. Reunimos abaixo horários, documentos e contatos importantes para que você aproveite cada momento com tranquilidade.";
+export const DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE = "Olá! Preparamos seu roteiro de viagem com os horários, documentos e contatos importantes.";
+export const DEFAULT_FINAL_ITINERARY_WELCOME_TEMPLATES: FinalItineraryWelcomeMessageTemplate[] = [
+  { id: "welcome-standard", name: "Viagem padrão", message: DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE },
+  { id: "welcome-honeymoon", name: "Lua de mel", message: "Olá, casal! É uma alegria fazer parte deste momento tão especial. Preparamos o roteiro da sua lua de mel com carinho, para que vocês aproveitem cada experiência com tranquilidade." },
+  { id: "welcome-family", name: "Viagem em família", message: "Olá, família! Preparamos este roteiro para que todos aproveitem a viagem com conforto, organização e momentos inesquecíveis juntos." },
+];
 
 export const defaultBudgetData: BudgetData = {
   tripInfo: {
@@ -396,6 +412,8 @@ export const defaultBudgetData: BudgetData = {
     coverMode: "detailed",
     essentialInfo: "",
     emergencyContacts: "",
+    welcomeMessageTemplates: DEFAULT_FINAL_ITINERARY_WELCOME_TEMPLATES.map((template) => ({ ...template })),
+    shareMessage: DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE,
     passengers: [],
     events: [],
   },

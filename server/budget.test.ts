@@ -60,7 +60,7 @@ describe("appRouter", () => {
 
 describe("budgetTypes defaults", () => {
   it("defaultBudgetData has correct structure", async () => {
-    const { DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE, defaultBudgetData } = await import("../shared/budgetTypes");
+    const { DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE, DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE, defaultBudgetData } = await import("../shared/budgetTypes");
     expect(defaultBudgetData.flights.length).toBeGreaterThan(0);
     expect(defaultBudgetData.hotels.length).toBeGreaterThan(0);
     expect(defaultBudgetData.fareComparison.tiers.length).toBeGreaterThan(0);
@@ -70,6 +70,8 @@ describe("budgetTypes defaults", () => {
     expect(defaultBudgetData.itinerary).toEqual([]);
     expect(defaultBudgetData.tourProposal).toMatchObject({ title: "Proposta de passeios", introMessage: "", paymentDetails: "" });
     expect(defaultBudgetData.finalItinerary.introMessage).toBe(DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE);
+    expect(defaultBudgetData.finalItinerary.shareMessage).toBe(DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE);
+    expect(defaultBudgetData.finalItinerary.welcomeMessageTemplates?.map((template) => template.name)).toEqual(["Viagem padrão", "Lua de mel", "Viagem em família"]);
     expect(defaultBudgetData.tripInfo.introText).toContain("Prezadíssimos");
   });
 

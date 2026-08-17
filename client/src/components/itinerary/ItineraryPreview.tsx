@@ -1,6 +1,6 @@
-import type { BudgetData } from "@shared/budgetTypes";
+import type { BudgetData, ItineraryActivityKind } from "@shared/budgetTypes";
 import { getItineraryDayActivities } from "@/contexts/BudgetContext";
-import { CalendarDays, ExternalLink, Images, MapPin, PlaneTakeoff, Sparkles, Users } from "lucide-react";
+import { CalendarDays, ExternalLink, Hotel, Images, MapPin, PlaneTakeoff, Sparkles, Utensils, Users } from "lucide-react";
 import { calculateTourProposalInstallment, calculateTourTotal, getTourTravelerCount } from "@shared/tourPricing";
 
 function formatCurrency(value: number) {
@@ -47,21 +47,34 @@ function PriceCell({ label, value, icon }: { label: string; value: string; icon?
   return <div className="min-w-0 rounded-md border border-slate-200 bg-white px-2 py-2 text-center"><p className="flex items-center justify-center gap-1 text-[9px] font-bold uppercase tracking-wide text-slate-400">{icon && <Users className="h-3 w-3" />}{label}</p><p className="mt-0.5 truncate text-xs font-semibold text-[#1a2e4a]">{value}</p></div>;
 }
 
+function CoverSummaryIcon({ kind, hasFlight }: { kind: ItineraryActivityKind; hasFlight: boolean }) {
+  const iconClassName = "h-3.5 w-3.5";
+  if (kind === "flight" || hasFlight) return <PlaneTakeoff className={iconClassName} />;
+  if (kind === "meal") return <Utensils className={iconClassName} />;
+  if (kind === "custom") return <Hotel className={iconClassName} />;
+  return <Sparkles className={iconClassName} />;
+}
+
 export function ItineraryPreview({ data }: { data: BudgetData }) {
   const days = [...data.itinerary].sort((left, right) => left.day - right.day);
   const defaultTravelerCount = Math.max(1, Number.parseInt(data.tripInfo.passengers, 10) || 1);
   const totalTours = data.tours.reduce((total, tour) => total + calculateTourTotal(tour, defaultTravelerCount), 0);
   const proposal = data.tourProposal || { title: "Proposta de passeios", introMessage: "", paymentDetails: "" };
   const installment = calculateTourProposalInstallment(totalTours, proposal.installments);
-  const coverSummaryItems = days.flatMap((day) => getItineraryDayActivities(day).map((activity) => ({
-    id: activity.id,
+  const coverSummaryDays = days.map((day) => ({
+    id: day.id,
     day: day.day,
     date: day.date,
-    time: activity.time,
-    type: activity.kind === "flight" || activity.flightId ? "Voo" : activity.kind === "meal" ? "Gastronomia" : activity.kind === "tour" ? "Passeio" : "Compromisso",
-    title: activity.title || "Novo compromisso",
-  })));
-  const visibleCoverSummaryItems = coverSummaryItems.slice(0, 6);
+    activities: getItineraryDayActivities(day).map((activity) => ({
+      id: activity.id,
+      time: activity.time,
+      kind: activity.kind,
+      hasFlight: Boolean(activity.flightId),
+      type: activity.kind === "flight" || activity.flightId ? "Voo" : activity.kind === "meal" ? "Gastronomia" : activity.kind === "tour" ? "Passeio" : "Compromisso",
+      title: activity.title || "Novo compromisso",
+    })),
+  })).filter((day) => day.activities.length > 0);
+  const visibleCoverSummaryDays = coverSummaryDays.slice(0, 4);
 
   return (
     <div id="itinerary-document" className="w-full max-w-[794px] overflow-hidden bg-white text-[#1a2e4a] shadow-xl" style={{ fontFamily: "Poppins, sans-serif" }}>
@@ -82,14 +95,16 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
           <div><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Viajantes</p><p className="font-semibold text-[#1a2e4a]">{data.tripInfo.passengers || "A confirmar"}</p></div>
         </div>
         {proposal.introMessage && <div className="border-b border-slate-200 px-5 py-3"><p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">{proposal.introMessage}</p></div>}
-        {visibleCoverSummaryItems.length > 0 && <div className="border-b border-slate-200 px-5 py-3" data-pdf-keep-together="true">
+        {visibleCoverSummaryDays.length > 0 && <div className="border-b border-slate-200 px-5 py-3" data-pdf-keep-together="true">
           <div className="mb-2 flex items-center gap-2"><CalendarDays className="h-4 w-4 text-amber-600" /><p className="text-xs font-bold uppercase tracking-[0.12em] text-[#1a2e4a]">Resumo da proposta</p></div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{visibleCoverSummaryItems.map((item) => <div key={item.id} className="rounded-md border border-slate-200 bg-white px-2.5 py-2">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-amber-700">Dia {item.day}{item.date ? ` • ${formatDateWithWeekday(item.date)}` : ""}</p>
-            <p className="mt-0.5 truncate text-xs font-semibold text-[#1a2e4a]">{item.time ? `${item.time} • ` : ""}{item.type}</p>
-            <p className="mt-0.5 truncate text-xs text-slate-600">{item.title}</p>
-          </div>)}</div>
-          {coverSummaryItems.length > visibleCoverSummaryItems.length && <p className="mt-2 text-[11px] font-medium text-slate-500">+ {coverSummaryItems.length - visibleCoverSummaryItems.length} compromisso(s) detalhado(s) nas próximas páginas.</p>}
+          <div className="grid gap-2 sm:grid-cols-2">{visibleCoverSummaryDays.map((day) => <section key={day.id} data-pdf-keep-together="true" className="rounded-md border border-slate-200 bg-white px-2.5 py-2">
+            <p className="text-[10px] font-bold uppercase tracking-wide text-amber-700">Dia {day.day}{day.date ? ` • ${formatDateWithWeekday(day.date)}` : ""}</p>
+            <div className="mt-1.5 space-y-1.5">{day.activities.map((activity) => <div key={activity.id} className="flex min-w-0 items-start gap-2 border-t border-slate-100 pt-1.5 first:border-t-0 first:pt-0">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-blue-50 text-[#1a2e4a]"><CoverSummaryIcon kind={activity.kind} hasFlight={activity.hasFlight} /></span>
+              <div className="min-w-0 flex-1"><p className="text-[11px] font-bold text-[#1a2e4a]">{activity.time ? `${activity.time} • ` : ""}{activity.type}</p><p className="truncate text-[11px] text-slate-600">{activity.title}</p></div>
+            </div>)}</div>
+          </section>)}</div>
+          {coverSummaryDays.length > visibleCoverSummaryDays.length && <p className="mt-2 text-[11px] font-medium text-slate-500">+ {coverSummaryDays.length - visibleCoverSummaryDays.length} dia(s) detalhado(s) nas próximas páginas.</p>}
         </div>}
       </header>
 

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Building2, CalendarDays, CarFront, Copy, ExternalLink, FileText, GripVertical, Hotel, Link2, Luggage, Mail, MessageCircle, Phone, Plane, Plus, QrCode, Share2, Trash2, Upload, UserRound, Users, X } from "lucide-react";
-import { DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE } from "@shared/budgetTypes";
+import { DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE, DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE } from "@shared/budgetTypes";
 import type { FinalItineraryBaggageItem, FinalItineraryEventKind } from "@shared/budgetTypes";
 import QRCode from "qrcode";
 
@@ -64,6 +64,8 @@ export function FinalItineraryForm() {
   const [shareError, setShareError] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const [shareExpiryDate, setShareExpiryDate] = useState("");
+  const [selectedWelcomeTemplateId, setSelectedWelcomeTemplateId] = useState("");
+  const [newWelcomeTemplateName, setNewWelcomeTemplateName] = useState("");
   const attachmentInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const coverImageInput = useRef<HTMLInputElement | null>(null);
   const uploadAttachment = trpc.itineraryAttachments.upload.useMutation();
@@ -74,8 +76,10 @@ export function FinalItineraryForm() {
     first.day - second.day || EVENT_ORDER[first.kind] - EVENT_ORDER[second.kind] || first.time.localeCompare(second.time),
   );
   const usefulLinks = finalItinerary.usefulLinks || [];
+  const welcomeTemplates = finalItinerary.welcomeMessageTemplates || [];
+  const shareMessageBody = finalItinerary.shareMessage?.trim() || DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE;
   const shareMessage = shareUrl
-    ? `Olá! O roteiro “${finalItinerary.title || "Roteiro final da viagem"}” está disponível neste link: ${shareUrl}`
+    ? `${shareMessageBody}\n\nRoteiro “${finalItinerary.title || "Roteiro final da viagem"}”: ${shareUrl}`
     : "";
   const whatsappShareUrl = shareMessage ? `https://wa.me/?text=${encodeURIComponent(shareMessage)}` : "";
   const emailShareUrl = shareMessage
@@ -128,6 +132,28 @@ export function FinalItineraryForm() {
   const buildGoogleMapsUrl = (address: string) => address.trim()
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address.trim())}`
     : "";
+
+  const applyWelcomeTemplate = () => {
+    const template = welcomeTemplates.find((item) => item.id === selectedWelcomeTemplateId);
+    if (!template) return;
+    updateFinalItinerary({ introMessage: template.message, enabled: true });
+  };
+
+  const saveWelcomeTemplate = () => {
+    const name = newWelcomeTemplateName.trim();
+    const message = finalItinerary.introMessage.trim();
+    if (!name || !message) return;
+    const template = { id: crypto.randomUUID(), name, message };
+    updateFinalItinerary({ welcomeMessageTemplates: [...welcomeTemplates, template], enabled: true });
+    setSelectedWelcomeTemplateId(template.id);
+    setNewWelcomeTemplateName("");
+  };
+
+  const removeWelcomeTemplate = () => {
+    if (!selectedWelcomeTemplateId) return;
+    updateFinalItinerary({ welcomeMessageTemplates: welcomeTemplates.filter((item) => item.id !== selectedWelcomeTemplateId), enabled: true });
+    setSelectedWelcomeTemplateId("");
+  };
 
   const addPassenger = () => {
     const name = newPassengerName.trim();
@@ -272,7 +298,7 @@ export function FinalItineraryForm() {
         <div className="mb-3 flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><CalendarDays className="h-4 w-4" />Capa e informações essenciais</div>
         <div className="grid gap-3">
           <div><Label htmlFor="final-title">Título</Label><Input id="final-title" value={finalItinerary.title} onChange={(event) => updateFinalItinerary({ title: event.target.value, enabled: true })} className="mt-1 bg-white" /></div>
-          <div><div className="flex flex-wrap items-center justify-between gap-2"><Label htmlFor="final-intro">Mensagem de boas-vindas <span className="font-normal text-slate-500">(editável)</span></Label><Button type="button" variant="ghost" size="sm" onClick={() => updateFinalItinerary({ introMessage: DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE, enabled: true })} className="h-7 px-2 text-[11px] font-semibold text-[#1a2e4a] hover:bg-white">Restaurar mensagem padrão</Button></div><Textarea id="final-intro" value={finalItinerary.introMessage} onChange={(event) => updateFinalItinerary({ introMessage: event.target.value, enabled: true })} placeholder="Ex.: Olá, Suelen! Abaixo está o seu roteiro completo, com horários e contatos importantes." className="mt-1 min-h-20 bg-white" /><p className="mt-1.5 text-[11px] text-slate-500">Ela já é incluída ao iniciar um novo Roteiro Final e pode ser personalizada para cada passageiro.</p></div>
+          <div><div className="flex flex-wrap items-center justify-between gap-2"><Label htmlFor="final-intro">Mensagem de boas-vindas <span className="font-normal text-slate-500">(editável)</span></Label><Button type="button" variant="ghost" size="sm" onClick={() => updateFinalItinerary({ introMessage: DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE, enabled: true })} className="h-7 px-2 text-[11px] font-semibold text-[#1a2e4a] hover:bg-white">Restaurar mensagem padrão</Button></div><Textarea id="final-intro" value={finalItinerary.introMessage} onChange={(event) => updateFinalItinerary({ introMessage: event.target.value, enabled: true })} placeholder="Ex.: Olá, Suelen! Abaixo está o seu roteiro completo, com horários e contatos importantes." className="mt-1 min-h-20 bg-white" /><div className="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]"><Select value={selectedWelcomeTemplateId} onValueChange={setSelectedWelcomeTemplateId}><SelectTrigger className="h-9 bg-white text-xs"><SelectValue placeholder="Escolha um modelo salvo" /></SelectTrigger><SelectContent>{welcomeTemplates.map((template) => <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>)}</SelectContent></Select><Button type="button" variant="outline" size="sm" onClick={applyWelcomeTemplate} disabled={!selectedWelcomeTemplateId} className="h-9 bg-white text-xs">Aplicar modelo</Button><Button type="button" variant="ghost" size="sm" onClick={removeWelcomeTemplate} disabled={!selectedWelcomeTemplateId} className="h-9 px-2 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"><Trash2 className="mr-1 h-3.5 w-3.5" />Excluir</Button></div><div className="mt-2 flex gap-2"><Input value={newWelcomeTemplateName} onChange={(event) => setNewWelcomeTemplateName(event.target.value)} placeholder="Nome para salvar este modelo" className="h-9 bg-white text-xs" /><Button type="button" variant="outline" size="sm" onClick={saveWelcomeTemplate} disabled={!newWelcomeTemplateName.trim() || !finalItinerary.introMessage.trim()} className="h-9 shrink-0 bg-white text-xs"><Plus className="mr-1 h-3.5 w-3.5" />Salvar modelo</Button></div><p className="mt-1.5 text-[11px] text-slate-500">Os modelos ficam salvos no rascunho para você alternar rapidamente entre mensagens como Lua de mel e Viagem em família.</p></div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div><Label htmlFor="final-cover-mode">Modelo da capa</Label><Select value={finalItinerary.coverMode || "detailed"} onValueChange={(value) => updateFinalItinerary({ enabled: true, coverMode: value as "compact" | "detailed" })}><SelectTrigger id="final-cover-mode" className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="detailed">Detalhada — imagem, resumo diário e informações completas</SelectItem><SelectItem value="compact">Compacta — abertura mais enxuta e objetiva</SelectItem></SelectContent></Select><p className="mt-1 text-[11px] leading-relaxed text-slate-500">A escolha aparece no preview e no PDF do Roteiro Final.</p></div>
             <div><Label htmlFor="final-cover-image-url">Imagem do destino <span className="font-normal text-slate-500">(opcional)</span></Label><Input id="final-cover-image-url" value={finalItinerary.coverImageUrl || ""} onChange={(event) => updateFinalItinerary({ enabled: true, coverImageUrl: event.target.value })} placeholder="Cole a URL ou envie uma imagem" className="mt-1 bg-white" /><div className="mt-2 flex flex-wrap items-center gap-2"><input ref={coverImageInput} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => handleCoverImageSelection(event.target.files?.[0])} /><Button type="button" variant="outline" size="sm" onClick={() => coverImageInput.current?.click()} disabled={uploadingCoverImage} className="bg-white text-xs"><Upload className="mr-1.5 h-3.5 w-3.5" />{uploadingCoverImage ? "Enviando imagem..." : "Enviar imagem"}</Button>{finalItinerary.coverImageUrl && <Button type="button" variant="ghost" size="sm" onClick={() => updateFinalItinerary({ coverImageUrl: "" })} className="h-8 text-xs text-slate-500 hover:text-red-600"><X className="mr-1 h-3.5 w-3.5" />Remover</Button>}</div>{coverImageError && <p className="mt-1.5 text-xs font-medium text-red-600">{coverImageError}</p>}{finalItinerary.coverImageUrl && <img src={finalItinerary.coverImageUrl} alt="Prévia da imagem de capa do destino" className="mt-2 h-20 w-full rounded-md border border-blue-100 object-cover" />}</div>
@@ -288,6 +314,7 @@ export function FinalItineraryForm() {
         <div className="mb-1 flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><Share2 className="h-4 w-4" />Acesso rápido pelo celular</div>
         <p className="text-xs leading-relaxed text-slate-600">Crie um link público com uma cópia deste roteiro. O cliente poderá abrir a versão compartilhada no celular pelo link ou QR Code. Depois de alterar o roteiro, gere um novo link para enviar a versão atualizada.</p>
         <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,220px)_1fr]"><div><Label htmlFor="share-expiry" className="text-[11px]">Expira em <span className="font-normal text-slate-500">(opcional)</span></Label><Input id="share-expiry" type="date" value={shareExpiryDate} onChange={(event) => setShareExpiryDate(event.target.value)} min={new Date().toISOString().slice(0, 10)} className="mt-1 h-9 bg-white text-xs" /></div><p className="self-end pb-1 text-[11px] leading-relaxed text-slate-500">Sem uma data, o acesso permanece ativo até ser revogado. A expiração será aplicada ao próximo link gerado.</p></div>
+        <div className="mt-3"><Label htmlFor="share-message" className="text-[11px]">Mensagem que acompanha o link <span className="font-normal text-slate-500">(editável)</span></Label><Textarea id="share-message" value={finalItinerary.shareMessage ?? DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE} onChange={(event) => updateFinalItinerary({ shareMessage: event.target.value, enabled: true })} placeholder="Ex.: Olá! Preparamos seu roteiro com todos os horários e contatos." className="mt-1 min-h-18 bg-white text-xs" /><p className="mt-1 text-[11px] text-slate-500">O link do roteiro é incluído automaticamente no final da mensagem de WhatsApp e e-mail.</p></div>
         <div className="mt-3 flex flex-wrap gap-2"><Button type="button" onClick={createShareLink} disabled={createSharedItinerary.isPending} className="bg-[#1a2e4a] text-xs hover:bg-[#264566]"><QrCode className="mr-1.5 h-3.5 w-3.5" />{createSharedItinerary.isPending ? "Criando acesso..." : finalItinerary.shareToken ? "Atualizar link e QR Code" : "Criar link e QR Code"}</Button>{shareUrl && <Button type="button" variant="outline" onClick={copyShareLink} className="bg-white text-xs"><Copy className="mr-1.5 h-3.5 w-3.5" />{shareCopied ? "Link copiado" : "Copiar link"}</Button>}{finalItinerary.shareToken && <Button type="button" variant="outline" onClick={revokeShareLink} disabled={revokeSharedItinerary.isPending} className="border-red-200 bg-white text-xs text-red-700 hover:bg-red-50 hover:text-red-800"><Trash2 className="mr-1.5 h-3.5 w-3.5" />{revokeSharedItinerary.isPending ? "Revogando..." : "Revogar acesso"}</Button>}</div>
         {finalItinerary.shareToken && <p className="mt-2 text-[11px] text-slate-500">{finalItinerary.shareExpiresAt ? `Acesso ativo até ${new Date(`${finalItinerary.shareExpiresAt.slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR")}.` : "Acesso ativo sem data de expiração."}</p>}
         {shareUrl && <div className="mt-3 flex flex-col gap-3 rounded-lg border border-amber-200 bg-white p-3 sm:flex-row sm:items-center"><div className="min-w-0 flex-1"><Label htmlFor="shared-itinerary-url" className="text-[11px]">Link compartilhável</Label><Input id="shared-itinerary-url" value={shareUrl} readOnly onFocus={(event) => event.currentTarget.select()} className="mt-1 h-9 bg-slate-50 text-xs" /><a href={shareUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#1a2e4a] hover:text-amber-700"><ExternalLink className="h-3.5 w-3.5" />Abrir versão compartilhada</a><div className="mt-3 flex flex-wrap gap-2"><Button type="button" size="sm" asChild className="bg-[#1a2e4a] text-xs hover:bg-[#264566]"><a href={whatsappShareUrl} target="_blank" rel="noreferrer"><MessageCircle className="mr-1.5 h-3.5 w-3.5" />Enviar pelo WhatsApp</a></Button><Button type="button" size="sm" variant="outline" asChild className="bg-white text-xs"><a href={emailShareUrl}><Mail className="mr-1.5 h-3.5 w-3.5" />Enviar por e-mail</a></Button></div><p className="mt-2 text-[11px] text-slate-500">Escolha o passageiro no WhatsApp ou informe os destinatários na mensagem de e-mail.</p></div>{qrCodeUrl && <img src={qrCodeUrl} alt="QR Code do roteiro compartilhável" className="h-28 w-28 self-center rounded-md border border-slate-200 bg-white p-1" />}</div>}
