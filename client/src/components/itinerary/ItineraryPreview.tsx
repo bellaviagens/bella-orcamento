@@ -65,7 +65,7 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
 
       {days.length === 0 ? <div className="py-16 text-center text-sm text-slate-500">Adicione os passeios e as datas na aba <strong>Roteiro</strong> para montar esta proposta.</div> : <div className="mt-5 space-y-5">{days.map((day) => {
         const activities = getItineraryDayActivities(day);
-        return <section key={day.id}>
+        return <section key={day.id} data-pdf-keep-together="true">
           <div className="mb-3 flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day.day}</span><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-600">Dia {day.day}{day.date ? ` • ${formatDateWithWeekday(day.date)}` : ""}</p><h3 className="text-sm font-bold text-[#1a2e4a]">{day.title || "Dia livre"}</h3></div></div>
           <div className="ml-4 space-y-3 border-l-2 border-amber-200 pl-4">
             {activities.map((activity) => {

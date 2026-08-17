@@ -430,3 +430,7 @@
 - [x] Criar o cadastro de Dicas e Links Úteis no Roteiro Final para transfer, aluguel de roupas, Instagram, WhatsApp e demais orientações.
 - [x] Exibir Dicas e Links Úteis como a última página da visualização e PDF do Roteiro Final.
 - [x] Validar a compatibilidade de propostas existentes, importação por data, previews, PDFs e Roteiro Final.
+
+- [x] Impedir que um dia ou seus compromissos sejam cortados entre páginas no PDF da Proposta de Passeios.
+- [x] Manter título, data e conteúdo do dia agrupados quando houver espaço suficiente na página seguinte.
+- [x] Validar a exportação em PDF com uma proposta de vários dias sem alterar conteúdos, cálculos ou demais módulos.

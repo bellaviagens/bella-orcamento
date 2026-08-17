@@ -18,6 +18,14 @@ describe("buildPdfSegments", () => {
     ]);
   });
 
+  it("move um dia completo da proposta de passeios para a página seguinte", () => {
+    expect(buildPdfSegments(2500, 1000, [{ top: 760, bottom: 1460 }], [])).toEqual([
+      { start: 0, end: 760 },
+      { start: 760, end: 1760 },
+      { start: 1760, end: 2500 },
+    ]);
+  });
+
   it("mantém um bloco maior que a página no mesmo segmento para escala de exportação", () => {
     expect(buildPdfSegments(2200, 1000, [{ top: 0, bottom: 1250 }], [])).toEqual([
       { start: 0, end: 1250 },
