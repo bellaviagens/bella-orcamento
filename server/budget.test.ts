@@ -346,9 +346,10 @@ describe("gestão de passeios e roteiro", () => {
         pageUrl: "https://exemplo.com/passeios/vinicola",
         photosUrl: "https://images.exemplo.com/vinicola.jpg",
       },
+      { name: "Almoço no vale", date: "2026-08-30", description: "Almoço reservado após a visita." },
     ], quotationUrl);
 
-    expect(importedBudget.tours).toHaveLength(2);
+    expect(importedBudget.tours).toHaveLength(3);
     expect(importedBudget.tours.find((tour) => tour.name === "Passeio à vinícola")).toMatchObject({
       location: "Vale do Casablanca",
       duration: "6 horas",
@@ -357,11 +358,15 @@ describe("gestão de passeios e roteiro", () => {
     });
     expect(importedBudget.tours.find((tour) => tour.name === "Tour panorâmico")?.pageUrl).toBe(quotationUrl);
     expect(importedBudget.itinerary.map((day) => day.title)).toEqual([
-      "29/08/2026 — Tour panorâmico",
-      "30/08/2026 — Passeio à vinícola",
+      "Sábado — 29/08/2026",
+      "Domingo — 30/08/2026",
     ]);
     expect(importedBudget.itinerary.map((day) => day.day)).toEqual([1, 2]);
-    expect(importedBudget.itinerary[0].notes).toBe("Centro da cidade");
+    expect(importedBudget.itinerary[0].activities?.[0].description).toBe("Centro da cidade");
+    expect(importedBudget.itinerary[1].activities?.map((activity) => activity.title)).toEqual([
+      "Almoço no vale",
+      "Passeio à vinícola",
+    ]);
   });
 });
 

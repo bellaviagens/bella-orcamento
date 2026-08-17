@@ -128,6 +128,7 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
   const finalItinerary = data.finalItinerary;
   const destination = data.tripInfo.destination || "";
   const events = [...finalItinerary.events].sort((first, second) => first.day - second.day || sortableTime(first.time).localeCompare(sortableTime(second.time)) || EVENT_ORDER[first.kind] - EVENT_ORDER[second.kind]);
+  const usefulLinks = finalItinerary.usefulLinks || [];
   const eventsByDay = events.reduce<Map<number, typeof events>>((groups, event) => {
     groups.set(event.day, [...(groups.get(event.day) || []), event]);
     return groups;
@@ -204,6 +205,10 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
         </div>;
       })}</div></section>;
       })}</div></div>}
+      {usefulLinks.length > 0 && <section data-page-break="true" className="mt-8 border-t-2 border-amber-400 pt-6">
+        <div className="mb-5 flex items-center gap-2"><Sparkles className="h-5 w-5 text-amber-600" /><div><h3 className="text-sm font-bold uppercase tracking-[0.16em] text-[#1a2e4a]">Dicas e Links Úteis</h3><p className="mt-0.5 text-xs text-slate-500">Informações práticas para aproveitar a viagem com mais tranquilidade.</p></div></div>
+        <div className="grid gap-3 sm:grid-cols-2">{usefulLinks.map((usefulLink) => <article key={usefulLink.id} data-pdf-keep-together="true" className="rounded-xl border border-amber-200 bg-amber-50/70 p-4"><p className="text-sm font-bold text-[#1a2e4a]">{usefulLink.title || "Informação útil"}</p>{usefulLink.description && <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-slate-600">{usefulLink.description}</p>}{usefulLink.url && <a data-pdf-link={usefulLink.url} href={usefulLink.url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-[#1a2e4a] hover:text-amber-700"><ExternalLink className="h-3.5 w-3.5" />Acessar contato ou informação</a>}</article>)}</div>
+      </section>}
     </div>
   );
 }

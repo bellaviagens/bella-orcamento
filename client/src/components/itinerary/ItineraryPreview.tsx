@@ -7,6 +7,13 @@ function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 }
 
+function formatDateWithWeekday(date?: string) {
+  if (!date) return "";
+  const parsed = new Date(`${date}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return date;
+  return new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "2-digit" }).format(parsed);
+}
+
 interface DescriptionBlock {
   title: string;
   paragraphs: string[];
@@ -59,7 +66,7 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
       {days.length === 0 ? <div className="py-16 text-center text-sm text-slate-500">Adicione os passeios e as datas na aba <strong>Roteiro</strong> para montar esta proposta.</div> : <div className="mt-5 space-y-5">{days.map((day) => {
         const activities = getItineraryDayActivities(day);
         return <section key={day.id}>
-          <div className="mb-3 flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day.day}</span><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-600">Dia {day.day}</p><h3 className="text-sm font-bold text-[#1a2e4a]">{day.title || "Dia livre"}</h3></div></div>
+          <div className="mb-3 flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day.day}</span><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-600">Dia {day.day}{day.date ? ` • ${formatDateWithWeekday(day.date)}` : ""}</p><h3 className="text-sm font-bold text-[#1a2e4a]">{day.title || "Dia livre"}</h3></div></div>
           <div className="ml-4 space-y-3 border-l-2 border-amber-200 pl-4">
             {activities.map((activity) => {
               const tour = activity.tourId ? data.tours.find((currentTour) => currentTour.id === activity.tourId) : undefined;
@@ -82,8 +89,9 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
                     {total > 0 && tour && <div className={`mt-3 grid gap-2 ${tour.pricingMode === "perPerson" ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-2"}`}>{tour.pricingMode === "perPerson" ? <><PriceCell label="Adulto" value={formatCurrency(Number(tour.pricePerPerson) || 0)} /><PriceCell label="Adultos" value={String(adults)} icon /><PriceCell label={children > 0 ? `Criança (${children})` : "Criança"} value={children > 0 ? formatCurrency(Number(tour.childPrice) || 0) : "—"} /><PriceCell label="Total" value={formatCurrency(total)} /></> : <><PriceCell label="Valor do passeio" value={formatCurrency(total)} /><PriceCell label="Total" value={formatCurrency(total)} /></>}</div>}
 
                     {descriptionBlocks.map((block, index) => <section key={`${activity.id}-${block.title}-${index}`} className="mt-3 rounded-md bg-white p-3"><h5 className="text-xs font-bold uppercase tracking-wide text-[#1a2e4a]">{block.title}</h5>{block.paragraphs.map((paragraph, paragraphIndex) => <p key={`${paragraphIndex}-${paragraph.slice(0, 16)}`} className="mt-1.5 text-xs leading-relaxed text-slate-600">{paragraph}</p>)}{block.items.length > 0 && <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs leading-relaxed text-slate-600">{block.items.map((item, itemIndex) => <li key={`${itemIndex}-${item.slice(0, 16)}`} className="flex gap-1.5"><span className="font-bold text-amber-600">•</span><span>{item}</span></li>)}</ul>}</section>)}
+                    {activity.importantNotes && <div className="mt-3 rounded-md border border-amber-300 bg-amber-100 px-3 py-2 text-xs leading-relaxed text-amber-950"><span className="font-bold">Atenção: </span>{activity.importantNotes}</div>}
                     {tour?.notes && <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-slate-700"><span className="font-bold text-amber-800">Observações importantes: </span>{tour.notes}</div>}
-                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs font-semibold text-[#1a2e4a]">{informationUrl && <a data-pdf-link={informationUrl} href={informationUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-amber-600"><ExternalLink className="h-3 w-3" />Mais informações</a>}{photoUrl && <a data-pdf-link={photoUrl} href={photoUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-amber-600"><Images className="h-3 w-3" />Fotos</a>}</div>
+                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs font-semibold text-[#1a2e4a]">{informationUrl && <a data-pdf-link={informationUrl} href={informationUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-amber-600"><ExternalLink className="h-3 w-3" />Mais informações</a>}{activity.ticketUrl && <a data-pdf-link={activity.ticketUrl} href={activity.ticketUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-amber-700 hover:text-amber-900"><ExternalLink className="h-3 w-3" />Comprar ingresso</a>}{photoUrl && <a data-pdf-link={photoUrl} href={photoUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-amber-600"><Images className="h-3 w-3" />Fotos</a>}</div>
                   </div>
                 </div>
               </article>;

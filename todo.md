@@ -423,3 +423,10 @@
 - [x] Preservar horário, descrição, links, foto e valores ao mover o compromisso para o dia de destino.
 - [x] Manter a ordem escolhida no dia de destino e refletir a movimentação na prévia e PDF.
 - [x] Cobrir a movimentação entre dias com testes sem alterar o Roteiro Final.
+
+- [x] Agrupar os passeios importados pela mesma data, evitando criar dias duplicados para atividades do mesmo dia.
+- [x] Exibir a data e o dia da semana correspondente em cada dia da Proposta de Passeios e seus PDFs.
+- [x] Adicionar link de compra de ingresso e observação importante destacada em amarelo a cada passeio.
+- [x] Criar o cadastro de Dicas e Links Úteis no Roteiro Final para transfer, aluguel de roupas, Instagram, WhatsApp e demais orientações.
+- [x] Exibir Dicas e Links Úteis como a última página da visualização e PDF do Roteiro Final.
+- [x] Validar a compatibilidade de propostas existentes, importação por data, previews, PDFs e Roteiro Final.

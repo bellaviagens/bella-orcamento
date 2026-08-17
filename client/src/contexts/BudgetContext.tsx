@@ -168,6 +168,8 @@ export function getItineraryDayActivities(day: ItineraryDay): ItineraryActivity[
     description: day.notes || "",
     linkUrl: "",
     photoUrl: "",
+    ticketUrl: "",
+    importantNotes: "",
     tourId: day.tourId,
   }];
 }
@@ -189,6 +191,8 @@ export function addItineraryActivityToBudget(
         description: activity.description || "",
         linkUrl: activity.linkUrl || "",
         photoUrl: activity.photoUrl || "",
+        ticketUrl: activity.ticketUrl || "",
+        importantNotes: activity.importantNotes || "",
         tourId: activity.tourId,
         flightId: activity.flightId,
       };
@@ -266,6 +270,11 @@ function formatQuotationDate(date: string): string {
   return `${day}/${month}/${year}`;
 }
 
+function formatQuotationWeekday(date: string): string {
+  const weekday = new Intl.DateTimeFormat("pt-BR", { weekday: "long", timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`));
+  return weekday.charAt(0).toUpperCase() + weekday.slice(1);
+}
+
 export function importQuotationActivitiesIntoBudget(
   budget: BudgetData,
   activities: QuotationActivity[],
@@ -275,7 +284,7 @@ export function importQuotationActivitiesIntoBudget(
     budget.tours.map((tour) => [`${tour.name.trim().toLocaleLowerCase("pt-BR")}|${tour.pageUrl || ""}`, tour]),
   );
   const toursById = new Map(budget.tours.map((tour) => [tour.id, tour]));
-  const newDays: ItineraryDay[] = [];
+  const newDaysByDate = new Map<string, ItineraryDay>();
 
   const chronologicalActivities = [...activities].sort((first, second) => (
     first.date.localeCompare(second.date) || first.name.localeCompare(second.name, "pt-BR")
@@ -319,24 +328,40 @@ export function importQuotationActivitiesIntoBudget(
     }
     toursById.set(tour.id, tour);
 
-    const title = `${formatQuotationDate(activity.date)} — ${name}`;
-    const alreadyInItinerary = budget.itinerary.some((day) => day.tourId === tour.id && day.title === title)
-      || newDays.some((day) => day.tourId === tour.id && day.title === title);
+    const alreadyInItinerary = budget.itinerary.some((day) => getItineraryDayActivities(day).some((item) => item.tourId === tour.id))
+      || Array.from(newDaysByDate.values()).some((day) => day.activities?.some((item) => item.tourId === tour.id));
     if (!alreadyInItinerary) {
-      newDays.push({
+      const importedDay = newDaysByDate.get(activity.date) || {
         id: nanoid(),
         day: 0,
-        title,
-        tourId: tour.id,
-        notes: activity.description.trim(),
-      });
+        date: activity.date,
+        title: `${formatQuotationWeekday(activity.date)} — ${formatQuotationDate(activity.date)}`,
+        notes: "",
+        activities: [],
+      };
+      importedDay.activities = [
+        ...(importedDay.activities || []),
+        {
+          id: nanoid(),
+          kind: "tour",
+          title: name,
+          time: "",
+          description: activity.description.trim(),
+          linkUrl: pageUrl,
+          photoUrl: activity.photosUrl?.trim() || "",
+          ticketUrl: "",
+          importantNotes: "",
+          tourId: tour.id,
+        },
+      ];
+      newDaysByDate.set(activity.date, importedDay);
     }
   }
 
   return {
     ...budget,
     tours: Array.from(toursById.values()),
-    itinerary: [...budget.itinerary, ...newDays].map((day, index) => ({ ...day, day: index + 1 })),
+    itinerary: [...budget.itinerary, ...Array.from(newDaysByDate.values())].map((day, index) => ({ ...day, day: index + 1 })),
   };
 }
 

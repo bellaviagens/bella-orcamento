@@ -133,6 +133,13 @@ export interface FinalItineraryPassenger {
   baggageChecklist?: FinalItineraryBaggageItem[];
 }
 
+export interface FinalItineraryUsefulLink {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+}
+
 export interface FinalItineraryEvent {
   id: string;
   day: number;
@@ -170,6 +177,7 @@ export interface FinalItinerary {
   shareToken?: string;
   shareExpiresAt?: string;
   passengers?: FinalItineraryPassenger[];
+  usefulLinks?: FinalItineraryUsefulLink[];
   events: FinalItineraryEvent[];
 }
 
@@ -183,6 +191,8 @@ export interface ItineraryActivity {
   description: string;
   linkUrl: string;
   photoUrl: string;
+  ticketUrl?: string;
+  importantNotes?: string;
   tourId?: string;
   flightId?: string;
 }
@@ -193,6 +203,8 @@ export interface ItineraryDay {
   title: string;
   tourId?: string;
   notes: string;
+  /** Data ISO para organizar e apresentar os compromissos do dia. */
+  date?: string;
   /** Atividades do mesmo dia. Ausente em propostas antigas, que seguem usando os campos legados acima. */
   activities?: ItineraryActivity[];
 }

@@ -69,6 +69,7 @@ export function FinalItineraryForm() {
   const events = [...finalItinerary.events].sort((first, second) =>
     first.day - second.day || EVENT_ORDER[first.kind] - EVENT_ORDER[second.kind] || first.time.localeCompare(second.time),
   );
+  const usefulLinks = finalItinerary.usefulLinks || [];
 
   const reorder = (targetId: string) => {
     if (!draggedEventId || draggedEventId === targetId) return;
@@ -320,6 +321,10 @@ export function FinalItineraryForm() {
       ))}
 
       {events.length === 0 && <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500"><CarFront className="mx-auto mb-2 h-5 w-5 text-slate-400" />Adicione o primeiro compromisso prático ou reutilize os dados que já estão no orçamento.</div>}
+      <section className="rounded-xl border border-amber-200 bg-amber-50/70 p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-sm font-bold text-[#1a2e4a]">Dicas e Links Úteis</p><p className="mt-0.5 text-xs text-slate-600">Inclua transfer, aluguel de roupas, Instagram, WhatsApp e demais contatos práticos. Esta seção ficará ao final do roteiro.</p></div><Button type="button" variant="outline" size="sm" onClick={() => updateFinalItinerary({ usefulLinks: [...usefulLinks, { id: crypto.randomUUID(), title: "Nova dica", description: "", url: "" }] })} className="bg-white text-xs font-bold"><Plus className="mr-1.5 h-3.5 w-3.5" />Adicionar dica</Button></div>
+        <div className="mt-3 space-y-3">{usefulLinks.map((usefulLink) => <div key={usefulLink.id} className="grid gap-3 rounded-lg border border-amber-100 bg-white p-3 sm:grid-cols-2"><div><Label>Título</Label><Input value={usefulLink.title} onChange={(event) => updateFinalItinerary({ usefulLinks: usefulLinks.map((item) => item.id === usefulLink.id ? { ...item, title: event.target.value } : item) })} placeholder="Ex.: Transfer aeroporto" className="mt-1" /></div><div><Label>Link (WhatsApp, Instagram ou site)</Label><Input type="url" value={usefulLink.url} onChange={(event) => updateFinalItinerary({ usefulLinks: usefulLinks.map((item) => item.id === usefulLink.id ? { ...item, url: event.target.value } : item) })} placeholder="https://..." className="mt-1" /></div><div className="sm:col-span-2"><div className="flex items-center justify-between gap-2"><Label>Descrição ou dica</Label><button type="button" onClick={() => updateFinalItinerary({ usefulLinks: usefulLinks.filter((item) => item.id !== usefulLink.id) })} className="text-xs font-semibold text-red-600 hover:text-red-700">Remover</button></div><Textarea value={usefulLink.description} onChange={(event) => updateFinalItinerary({ usefulLinks: usefulLinks.map((item) => item.id === usefulLink.id ? { ...item, description: event.target.value } : item) })} placeholder="Ex.: solicitar com antecedência pelo WhatsApp." className="mt-1 min-h-16" /></div></div>)}</div>
+      </section>
       <Button type="button" variant="outline" onClick={() => addFinalItineraryEvent({ kind: "custom", title: "Novo compromisso" })} className="h-12 w-full text-base font-bold shadow-md"><Plus className="mr-2 h-5 w-5" />Adicionar informação ao roteiro final</Button>
       <p className="flex items-center gap-1.5 text-xs text-slate-500"><Link2 className="h-3.5 w-3.5" />O link pode ser do WhatsApp, empresa, cartão de embarque ou fotos. Ele será clicável no PDF.</p>
     </div>
