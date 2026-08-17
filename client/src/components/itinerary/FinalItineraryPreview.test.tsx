@@ -98,4 +98,22 @@ describe("FinalItineraryPreview — capa institucional", () => {
     expect(markup).toContain("data-pdf-keep-together=\"true\"");
     expect(markup).toContain("break-inside:avoid");
   });
+
+  it("usa o visual personalizado da atividade no resumo cronológico", () => {
+    const data = {
+      tripInfo: { destination: "Santiago", period: "10/09/2026 a 17/09/2026", passengers: "2 viajantes" },
+      finalItinerary: {
+        title: "Roteiro Santiago",
+        introMessage: "",
+        passengers: [],
+        usefulLinks: [],
+        events: [{ id: "tour-visual", day: 1, time: "10:00", kind: "tour", title: "Passeio com visual", description: "", linkUrl: "", summaryVisualUrl: "https://example.com/passeio.png" }],
+      },
+    } as unknown as BudgetData;
+
+    const markup = renderToStaticMarkup(<FinalItineraryPreview data={data} />);
+
+    expect(markup).toContain("https://example.com/passeio.png");
+    expect(markup).toContain("Passeio com visual");
+  });
 });

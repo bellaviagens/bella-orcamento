@@ -167,6 +167,8 @@ export interface FinalItineraryEvent {
   description: string;
   linkUrl: string;
   photoUrl: string;
+  /** Ícone ou imagem opcional exibido no resumo cronológico da capa. */
+  summaryVisualUrl?: string;
   sourceFlightId?: string;
   sourceHotelId?: string;
   sourceTourId?: string;

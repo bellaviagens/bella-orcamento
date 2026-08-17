@@ -442,6 +442,7 @@ export function addFinalItineraryEventToBudget(budget: BudgetData, event: Partia
     description: event.description || "",
     linkUrl: event.linkUrl || "",
     photoUrl: event.photoUrl || "",
+    summaryVisualUrl: event.summaryVisualUrl || "",
     sourceFlightId: event.sourceFlightId,
     sourceHotelId: event.sourceHotelId,
     sourceTourId: event.sourceTourId,

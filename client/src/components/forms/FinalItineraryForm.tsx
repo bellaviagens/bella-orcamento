@@ -56,6 +56,9 @@ export function FinalItineraryForm() {
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
   const [uploadingCoverImage, setUploadingCoverImage] = useState(false);
   const [coverImageError, setCoverImageError] = useState<string | null>(null);
+  const [uploadingEventVisualId, setUploadingEventVisualId] = useState<string | null>(null);
+  const [eventVisualError, setEventVisualError] = useState<string | null>(null);
+  const [eventVisualErrorId, setEventVisualErrorId] = useState<string | null>(null);
   const [newPassengerName, setNewPassengerName] = useState("");
   const [attachmentPassengerByEvent, setAttachmentPassengerByEvent] = useState<Record<string, string>>({});
   const [newBaggageItemByPassenger, setNewBaggageItemByPassenger] = useState<Record<string, string>>({});
@@ -64,23 +67,24 @@ export function FinalItineraryForm() {
   const [shareError, setShareError] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const [shareExpiryDate, setShareExpiryDate] = useState("");
+  const [showSharePreview, setShowSharePreview] = useState(false);
   const [selectedWelcomeTemplateId, setSelectedWelcomeTemplateId] = useState("");
   const [newWelcomeTemplateName, setNewWelcomeTemplateName] = useState("");
   const attachmentInputs = useRef<Record<string, HTMLInputElement | null>>({});
+  const eventVisualInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const coverImageInput = useRef<HTMLInputElement | null>(null);
   const uploadAttachment = trpc.itineraryAttachments.upload.useMutation();
   const createSharedItinerary = trpc.sharedItineraries.create.useMutation();
   const revokeSharedItinerary = trpc.sharedItineraries.revoke.useMutation();
   const finalItinerary = budget.finalItinerary;
-  const events = [...finalItinerary.events].sort((first, second) =>
-    first.day - second.day || EVENT_ORDER[first.kind] - EVENT_ORDER[second.kind] || first.time.localeCompare(second.time),
-  );
+  const events = [...finalItinerary.events].sort((first, second) => first.day - second.day);
   const usefulLinks = finalItinerary.usefulLinks || [];
   const welcomeTemplates = finalItinerary.welcomeMessageTemplates || [];
   const shareMessageBody = finalItinerary.shareMessage?.trim() || DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE;
   const shareMessage = shareUrl
     ? `${shareMessageBody}\n\nRoteiro “${finalItinerary.title || "Roteiro final da viagem"}”: ${shareUrl}`
     : "";
+  const sharePreviewMessage = `${shareMessageBody}\n\nRoteiro “${finalItinerary.title || "Roteiro final da viagem"}”: ${shareUrl || "[link do roteiro será inserido aqui]"}`;
   const whatsappShareUrl = shareMessage ? `https://wa.me/?text=${encodeURIComponent(shareMessage)}` : "";
   const emailShareUrl = shareMessage
     ? `mailto:?subject=${encodeURIComponent(`Roteiro de viagem — ${finalItinerary.title || "Bella Viagens e Milhas"}`)}&body=${encodeURIComponent(shareMessage)}`
@@ -118,15 +122,59 @@ export function FinalItineraryForm() {
     reader.readAsDataURL(file);
   };
 
+  const handleEventVisualSelection = (eventId: string, file?: File) => {
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setEventVisualError("Use JPG, PNG ou WEBP para o ícone ou imagem da atividade.");
+      setEventVisualErrorId(eventId);
+      return;
+    }
+    if (file.size > MAX_ATTACHMENT_SIZE) {
+      setEventVisualError(`O arquivo deve ter no máximo ${formatFileSize(MAX_ATTACHMENT_SIZE)}.`);
+      setEventVisualErrorId(eventId);
+      return;
+    }
+    setEventVisualError(null);
+    setEventVisualErrorId(null);
+    setUploadingEventVisualId(eventId);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const dataBase64 = String(reader.result).split(",")[1];
+        const uploaded = await uploadAttachment.mutateAsync({
+          fileName: file.name,
+          contentType: file.type as "image/jpeg" | "image/png" | "image/webp",
+          dataBase64,
+        });
+        updateFinalItineraryEvent(eventId, { summaryVisualUrl: uploaded.url });
+      } catch (error) {
+        setEventVisualError(error instanceof Error ? error.message : "Não foi possível enviar o visual da atividade.");
+        setEventVisualErrorId(eventId);
+      } finally {
+        setUploadingEventVisualId(null);
+        const input = eventVisualInputs.current[eventId];
+        if (input) input.value = "";
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const reorder = (targetId: string) => {
     if (!draggedEventId || draggedEventId === targetId) return;
     const sourceIndex = events.findIndex((event) => event.id === draggedEventId);
     const targetIndex = events.findIndex((event) => event.id === targetId);
     if (sourceIndex < 0 || targetIndex < 0) return;
+    if (events[sourceIndex].day !== events[targetIndex].day) return;
     const nextEvents = [...events];
     const [moved] = nextEvents.splice(sourceIndex, 1);
     nextEvents.splice(targetIndex, 0, moved);
     reorderFinalItineraryEvents(nextEvents);
+  };
+
+  const canReorderAt = (targetId: string) => {
+    const source = events.find((event) => event.id === draggedEventId);
+    const target = events.find((event) => event.id === targetId);
+    return Boolean(source && target && source.id !== target.id && source.day === target.day);
   };
 
   const buildGoogleMapsUrl = (address: string) => address.trim()
@@ -314,7 +362,7 @@ export function FinalItineraryForm() {
         <div className="mb-1 flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><Share2 className="h-4 w-4" />Acesso rápido pelo celular</div>
         <p className="text-xs leading-relaxed text-slate-600">Crie um link público com uma cópia deste roteiro. O cliente poderá abrir a versão compartilhada no celular pelo link ou QR Code. Depois de alterar o roteiro, gere um novo link para enviar a versão atualizada.</p>
         <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,220px)_1fr]"><div><Label htmlFor="share-expiry" className="text-[11px]">Expira em <span className="font-normal text-slate-500">(opcional)</span></Label><Input id="share-expiry" type="date" value={shareExpiryDate} onChange={(event) => setShareExpiryDate(event.target.value)} min={new Date().toISOString().slice(0, 10)} className="mt-1 h-9 bg-white text-xs" /></div><p className="self-end pb-1 text-[11px] leading-relaxed text-slate-500">Sem uma data, o acesso permanece ativo até ser revogado. A expiração será aplicada ao próximo link gerado.</p></div>
-        <div className="mt-3"><Label htmlFor="share-message" className="text-[11px]">Mensagem que acompanha o link <span className="font-normal text-slate-500">(editável)</span></Label><Textarea id="share-message" value={finalItinerary.shareMessage ?? DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE} onChange={(event) => updateFinalItinerary({ shareMessage: event.target.value, enabled: true })} placeholder="Ex.: Olá! Preparamos seu roteiro com todos os horários e contatos." className="mt-1 min-h-18 bg-white text-xs" /><p className="mt-1 text-[11px] text-slate-500">O link do roteiro é incluído automaticamente no final da mensagem de WhatsApp e e-mail.</p></div>
+        <div className="mt-3"><div className="flex flex-wrap items-center justify-between gap-2"><Label htmlFor="share-message" className="text-[11px]">Mensagem que acompanha o link <span className="font-normal text-slate-500">(editável)</span></Label><Button type="button" variant="outline" size="sm" onClick={() => setShowSharePreview((current) => !current)} className="h-7 bg-white px-2 text-[11px]"><FileText className="mr-1 h-3.5 w-3.5" />{showSharePreview ? "Ocultar prévia" : "Pré-visualizar mensagem"}</Button></div><Textarea id="share-message" value={finalItinerary.shareMessage ?? DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE} onChange={(event) => updateFinalItinerary({ shareMessage: event.target.value, enabled: true })} placeholder="Ex.: Olá! Preparamos seu roteiro com todos os horários e contatos." className="mt-1 min-h-18 bg-white text-xs" /><p className="mt-1 text-[11px] text-slate-500">O link do roteiro é incluído automaticamente no final da mensagem de WhatsApp e e-mail.</p>{showSharePreview && <div className="mt-3 grid gap-3 rounded-lg border border-amber-200 bg-white p-3 sm:grid-cols-2"><div><p className="flex items-center gap-1.5 text-[11px] font-bold text-[#1a2e4a]"><MessageCircle className="h-3.5 w-3.5 text-emerald-600" />Como ficará no WhatsApp</p><div className="mt-2 rounded-lg rounded-tl-sm bg-emerald-50 px-3 py-2.5 text-xs leading-relaxed text-slate-700 whitespace-pre-line">{sharePreviewMessage}</div></div><div><p className="flex items-center gap-1.5 text-[11px] font-bold text-[#1a2e4a]"><Mail className="h-3.5 w-3.5 text-[#1a2e4a]" />Como ficará no e-mail</p><div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-700"><p className="font-semibold text-[#1a2e4a]">Assunto: Roteiro de viagem — {finalItinerary.title || "Bella Viagens e Milhas"}</p><p className="mt-2 whitespace-pre-line leading-relaxed">{sharePreviewMessage}</p></div></div></div>}</div>
         <div className="mt-3 flex flex-wrap gap-2"><Button type="button" onClick={createShareLink} disabled={createSharedItinerary.isPending} className="bg-[#1a2e4a] text-xs hover:bg-[#264566]"><QrCode className="mr-1.5 h-3.5 w-3.5" />{createSharedItinerary.isPending ? "Criando acesso..." : finalItinerary.shareToken ? "Atualizar link e QR Code" : "Criar link e QR Code"}</Button>{shareUrl && <Button type="button" variant="outline" onClick={copyShareLink} className="bg-white text-xs"><Copy className="mr-1.5 h-3.5 w-3.5" />{shareCopied ? "Link copiado" : "Copiar link"}</Button>}{finalItinerary.shareToken && <Button type="button" variant="outline" onClick={revokeShareLink} disabled={revokeSharedItinerary.isPending} className="border-red-200 bg-white text-xs text-red-700 hover:bg-red-50 hover:text-red-800"><Trash2 className="mr-1.5 h-3.5 w-3.5" />{revokeSharedItinerary.isPending ? "Revogando..." : "Revogar acesso"}</Button>}</div>
         {finalItinerary.shareToken && <p className="mt-2 text-[11px] text-slate-500">{finalItinerary.shareExpiresAt ? `Acesso ativo até ${new Date(`${finalItinerary.shareExpiresAt.slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR")}.` : "Acesso ativo sem data de expiração."}</p>}
         {shareUrl && <div className="mt-3 flex flex-col gap-3 rounded-lg border border-amber-200 bg-white p-3 sm:flex-row sm:items-center"><div className="min-w-0 flex-1"><Label htmlFor="shared-itinerary-url" className="text-[11px]">Link compartilhável</Label><Input id="shared-itinerary-url" value={shareUrl} readOnly onFocus={(event) => event.currentTarget.select()} className="mt-1 h-9 bg-slate-50 text-xs" /><a href={shareUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#1a2e4a] hover:text-amber-700"><ExternalLink className="h-3.5 w-3.5" />Abrir versão compartilhada</a><div className="mt-3 flex flex-wrap gap-2"><Button type="button" size="sm" asChild className="bg-[#1a2e4a] text-xs hover:bg-[#264566]"><a href={whatsappShareUrl} target="_blank" rel="noreferrer"><MessageCircle className="mr-1.5 h-3.5 w-3.5" />Enviar pelo WhatsApp</a></Button><Button type="button" size="sm" variant="outline" asChild className="bg-white text-xs"><a href={emailShareUrl}><Mail className="mr-1.5 h-3.5 w-3.5" />Enviar por e-mail</a></Button></div><p className="mt-2 text-[11px] text-slate-500">Escolha o passageiro no WhatsApp ou informe os destinatários na mensagem de e-mail.</p></div>{qrCodeUrl && <img src={qrCodeUrl} alt="QR Code do roteiro compartilhável" className="h-28 w-28 self-center rounded-md border border-slate-200 bg-white p-1" />}</div>}
@@ -336,22 +384,24 @@ export function FinalItineraryForm() {
         </div>
       </section>
 
+      {events.length > 1 && <p className="rounded-md border border-dashed border-slate-200 bg-white px-3 py-2 text-xs leading-relaxed text-slate-500"><GripVertical className="mr-1 inline h-3.5 w-3.5 text-[#1a2e4a]" />Arraste as atividades para reorganizá-las <strong className="font-semibold text-[#1a2e4a]">dentro do mesmo dia</strong>. Essa sequência será usada na capa, no roteiro e no PDF.</p>}
       {events.map((event) => (
         <article
           key={event.id}
-          onDragOver={(nativeEvent) => { nativeEvent.preventDefault(); if (draggedEventId && draggedEventId !== event.id) setDragOverEventId(event.id); }}
+          onDragOver={(nativeEvent) => { if (!canReorderAt(event.id)) return; nativeEvent.preventDefault(); setDragOverEventId(event.id); }}
           onDragLeave={() => dragOverEventId === event.id && setDragOverEventId(null)}
-          onDrop={(nativeEvent) => { nativeEvent.preventDefault(); reorder(event.id); setDraggedEventId(null); setDragOverEventId(null); }}
+          onDrop={(nativeEvent) => { if (!canReorderAt(event.id)) return; nativeEvent.preventDefault(); reorder(event.id); setDraggedEventId(null); setDragOverEventId(null); }}
           className={`rounded-lg border p-3 ${dragOverEventId === event.id ? "border-[#1a2e4a] bg-blue-50" : "border-slate-200 bg-slate-50"}`}
         >
           <div className="mb-3 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2"><button type="button" draggable onDragStart={(nativeEvent) => { nativeEvent.dataTransfer.effectAllowed = "move"; setDraggedEventId(event.id); }} onDragEnd={() => { setDraggedEventId(null); setDragOverEventId(null); }} className="cursor-grab text-slate-400 hover:text-[#1a2e4a]" title="Arraste para reordenar"><GripVertical className="h-5 w-5" /></button><span className="rounded-full bg-[#1a2e4a] px-2 py-1 text-xs font-bold text-white">Dia {event.day}</span><span className="text-sm font-bold text-[#1a2e4a]">{EVENT_LABELS[event.kind]}</span></div>
+            <div className="flex items-center gap-2"><button type="button" draggable onDragStart={(nativeEvent) => { nativeEvent.dataTransfer.effectAllowed = "move"; setDraggedEventId(event.id); }} onDragEnd={() => { setDraggedEventId(null); setDragOverEventId(null); }} className="cursor-grab text-slate-400 hover:text-[#1a2e4a]" title={`Arraste para reordenar dentro do Dia ${event.day}`}><GripVertical className="h-5 w-5" /></button><span className="rounded-full bg-[#1a2e4a] px-2 py-1 text-xs font-bold text-white">Dia {event.day}</span><span className="text-sm font-bold text-[#1a2e4a]">{EVENT_LABELS[event.kind]}</span></div>
             <Button type="button" variant="ghost" size="sm" onClick={() => removeFinalItineraryEvent(event.id)} className="h-8 w-8 p-0 text-red-500 hover:text-red-700" title="Remover item"><Trash2 className="h-4 w-4" /></Button>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div><Label>Tipo</Label><Select value={event.kind} onValueChange={(value) => updateFinalItineraryEvent(event.id, { kind: value as FinalItineraryEventKind })}><SelectTrigger className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent>{Object.entries(EVENT_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></div>
             <div className="grid grid-cols-2 gap-2"><div><Label>Dia</Label><Input type="number" min="1" value={event.day} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { day: Math.max(1, Number(nativeEvent.target.value) || 1) })} className="mt-1 bg-white" /></div><div><Label>Horário</Label><Input value={event.time} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { time: nativeEvent.target.value })} placeholder="Ex.: 09:30" className="mt-1 bg-white" /></div></div>
             <div className="sm:col-span-2"><Label>Título</Label><Input value={event.title} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { title: nativeEvent.target.value })} placeholder="Ex.: Transfer irá buscar você no aeroporto" className="mt-1 bg-white" /></div>
+            <div className="sm:col-span-2 rounded-lg border border-dashed border-amber-200 bg-amber-50/60 p-3"><input ref={(node) => { eventVisualInputs.current[event.id] = node; }} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(nativeEvent) => handleEventVisualSelection(event.id, nativeEvent.target.files?.[0])} /><div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-xs font-bold text-[#1a2e4a]">Ícone ou imagem no resumo da capa <span className="font-normal text-slate-500">(opcional)</span></p><p className="mt-0.5 text-[11px] text-slate-500">Envie JPG, PNG ou WEBP para identificar esta atividade. Sem arquivo, o ícone padrão do tipo continuará sendo usado.</p></div><Button type="button" variant="outline" size="sm" disabled={uploadingEventVisualId === event.id} onClick={() => eventVisualInputs.current[event.id]?.click()} className="bg-white text-xs"><Upload className="mr-1.5 h-3.5 w-3.5" />{uploadingEventVisualId === event.id ? "Enviando..." : "Enviar visual"}</Button></div>{event.summaryVisualUrl && <div className="mt-2 flex items-center gap-2"><img src={event.summaryVisualUrl} alt={`Visual personalizado de ${event.title || EVENT_LABELS[event.kind]}`} className="h-10 w-10 rounded-md border border-amber-200 bg-white object-cover" /><Button type="button" variant="ghost" size="sm" onClick={() => updateFinalItineraryEvent(event.id, { summaryVisualUrl: "" })} className="h-8 text-xs text-slate-500 hover:text-red-600"><X className="mr-1 h-3.5 w-3.5" />Usar ícone padrão</Button></div>}{eventVisualError && eventVisualErrorId === event.id && <p className="mt-2 text-xs font-medium text-red-600">{eventVisualError}</p>}</div>
             {event.kind === "hotel" && <>
               <div className="sm:col-span-2"><Label>Endereço da hospedagem</Label><Input value={event.hotelAddress || ""} onChange={(nativeEvent) => { const hotelAddress = nativeEvent.target.value; updateFinalItineraryEvent(event.id, { hotelAddress, hotelMapUrl: buildGoogleMapsUrl(hotelAddress) }); }} placeholder="Rua, número, bairro, cidade e país" className="mt-1 bg-white" /></div>
               <div><Label>Check-in</Label><Input type="date" value={event.hotelCheckIn || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { hotelCheckIn: nativeEvent.target.value })} className="mt-1 bg-white" /></div>

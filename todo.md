@@ -488,3 +488,9 @@
 - [x] Permitir personalizar o texto enviado junto ao link por WhatsApp e e-mail.
 - [x] Adicionar ícones específicos de voo, hospedagem, passeio e gastronomia no resumo cronológico.
 - [x] Validar agrupamentos, modelos, mensagens personalizadas, ícones, preview e PDF dos novos ajustes.
+
+- [x] Permitir arrastar e soltar para reordenar atividades dentro de um mesmo dia.
+- [x] Criar pré-visualização do texto personalizado de WhatsApp e e-mail antes do compartilhamento.
+- [x] Permitir upload de imagem ou ícone personalizado para cada atividade do Roteiro Final.
+- [x] Exibir a imagem ou ícone personalizado nos resumos cronológicos, com fallback visual por tipo.
+- [x] Validar reordenação, prévia de mensagens, upload de mídia e PDF/preview do roteiro.
