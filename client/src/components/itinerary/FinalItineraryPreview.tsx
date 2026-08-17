@@ -135,29 +135,39 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
   }, new Map());
 
   return (
-    <div id="final-itinerary-document" className="w-full max-w-2xl rounded-2xl bg-white p-7 text-[#1a2e4a] shadow-xl" style={{ fontFamily: "Poppins, sans-serif" }}>
-      <header data-pdf-keep-together="true" className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-blue-50 p-6">
-        <div className="mb-5 flex items-center gap-2 text-amber-600"><CalendarDays className="h-5 w-5" /><span className="text-xs font-bold uppercase tracking-[0.18em]">Bella Viagens</span></div>
-        <h2 className="text-3xl font-extrabold leading-tight">{finalItinerary.title || "Roteiro final da viagem"}</h2>
-        <p className="mt-2 text-sm font-medium text-slate-500">{data.tripInfo.destination || "Destino da viagem"}{data.tripInfo.period ? ` • ${data.tripInfo.period}` : ""}</p>
-        {finalItinerary.introMessage && <p className="mt-5 whitespace-pre-line text-sm leading-relaxed text-slate-600">{finalItinerary.introMessage}</p>}
-        <div className="mt-6 grid gap-2 sm:grid-cols-3">
-          <DetailCell label="Destino" value={data.tripInfo.destination} />
-          <DetailCell label="Período" value={data.tripInfo.period} />
-          <DetailCell label="Viajantes" value={(finalItinerary.passengers || []).map((passenger) => passenger.name).join(", ") || data.tripInfo.passengers} />
+    <div id="final-itinerary-document" className="w-full max-w-none rounded-2xl bg-white p-5 text-[#1a2e4a] shadow-xl" style={{ fontFamily: "Poppins, sans-serif" }}>
+      <header data-pdf-keep-together="true" className="rounded-xl bg-[#1a2e4a] p-5 text-white shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/15 pb-4">
+          <div>
+            <div className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-amber-300" /><span className="text-xs font-bold uppercase tracking-[0.16em] text-white">Bella Viagens e Milhas</span></div>
+            <p className="mt-1 text-xs font-semibold text-amber-300">Acumule. Viaje. Viva.</p>
+          </div>
+          <div className="rounded-md border border-white/15 bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.13em] text-slate-100">Roteiro Final</div>
         </div>
-        {(finalItinerary.essentialInfo || finalItinerary.emergencyContacts) && <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          {finalItinerary.essentialInfo && <section className="rounded-xl border border-blue-100 bg-white/90 p-3"><div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1a2e4a]"><ShieldAlert className="h-3.5 w-3.5" />Informações essenciais</div><p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-slate-600">{finalItinerary.essentialInfo}</p></section>}
-          {finalItinerary.emergencyContacts && <section className="rounded-xl border border-amber-200 bg-white/90 p-3"><div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1a2e4a]"><Phone className="h-3.5 w-3.5" />Contatos de emergência</div><p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-slate-600">{finalItinerary.emergencyContacts}</p></section>}
+        <div className="mt-4 grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
+          <div>
+            <h2 className="text-2xl font-extrabold leading-tight text-white">{finalItinerary.title || "Roteiro final da viagem"}</h2>
+            <p className="mt-1.5 text-sm font-medium text-slate-200">{data.tripInfo.destination || "Destino da viagem"}{data.tripInfo.period ? ` • ${data.tripInfo.period}` : ""}</p>
+            {finalItinerary.introMessage && <p className="mt-3 whitespace-pre-line rounded-lg border border-white/10 bg-white/10 px-3 py-2.5 text-sm leading-relaxed text-slate-100">{finalItinerary.introMessage}</p>}
+          </div>
+          <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
+            <DetailCell label="Destino" value={data.tripInfo.destination} />
+            <DetailCell label="Período" value={data.tripInfo.period} />
+            <DetailCell label="Viajantes" value={(finalItinerary.passengers || []).map((passenger) => passenger.name).join(", ") || data.tripInfo.passengers} />
+          </div>
+        </div>
+        {(finalItinerary.essentialInfo || finalItinerary.emergencyContacts) && <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {finalItinerary.essentialInfo && <section className="rounded-lg border border-blue-100 bg-white p-3 text-[#1a2e4a]"><div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em]"><ShieldAlert className="h-3.5 w-3.5" />Informações essenciais</div><p className="mt-1.5 whitespace-pre-line text-xs leading-relaxed text-slate-600">{finalItinerary.essentialInfo}</p></section>}
+          {finalItinerary.emergencyContacts && <section className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-[#1a2e4a]"><div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em]"><Phone className="h-3.5 w-3.5" />Contatos de emergência</div><p className="mt-1.5 whitespace-pre-line text-xs leading-relaxed text-slate-600">{finalItinerary.emergencyContacts}</p></section>}
         </div>}
         {destination && <WeatherWidget destination={destination} period={data.tripInfo.period} events={events} />}
       </header>
 
-      {events.length === 0 ? <div className="py-16 text-center text-sm text-slate-500">Inclua chegada, transfers, hospedagem, voos e passeios na aba <strong>Roteiro Final</strong> para gerar o documento pós-aprovação.</div> : <div data-page-break="true" className="mt-8 border-t-2 border-amber-400 pt-6"><div className="mb-6 flex items-center gap-2"><Clock3 className="h-5 w-5 text-[#1a2e4a]" /><h3 className="text-sm font-bold uppercase tracking-[0.16em] text-[#1a2e4a]">Linha do tempo diária</h3></div><div className="space-y-7">{Array.from(eventsByDay.entries()).map(([day, dayEvents]) => {
+      {events.length === 0 ? <div className="py-12 text-center text-sm text-slate-500">Inclua chegada, transfers, hospedagem, voos e passeios na aba <strong>Roteiro Final</strong> para gerar o documento pós-aprovação.</div> : <div className="mt-5 border-t-2 border-amber-400 pt-4"><div className="mb-4 flex items-center gap-2"><Clock3 className="h-5 w-5 text-[#1a2e4a]" /><h3 className="text-sm font-bold uppercase tracking-[0.16em] text-[#1a2e4a]">Linha do tempo diária</h3></div><div className="space-y-5">{Array.from(eventsByDay.entries()).map(([day, dayEvents]) => {
         const dayDate = dayEvents.map((event) => event.flightDate || event.hotelCheckIn || event.hotelCheckOut).find(Boolean);
         return <section key={day}>
-          <div className="mb-4 flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day}</span><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-600">Dia {day}</p>{dayDate && <p className="mt-0.5 text-[11px] font-medium text-slate-500">{formatDate(dayDate)}</p>}</div><div className="h-px flex-1 bg-amber-200" /></div>
-          <div className="relative ml-[18px] space-y-4 border-l-2 border-[#1a2e4a]/15 pb-1 pl-6">{dayEvents.map((event) => {
+          <div className="mb-3 flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day}</span><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-600">Dia {day}</p>{dayDate && <p className="mt-0.5 text-[11px] font-medium text-slate-500">{formatDate(dayDate)}</p>}</div><div className="h-px flex-1 bg-amber-200" /></div>
+          <div className="relative ml-4 space-y-3 border-l-2 border-[#1a2e4a]/15 pb-1 pl-5">{dayEvents.map((event) => {
         const Icon = EVENT_ICONS[event.kind];
         const isFlight = event.kind === "flight" || event.kind === "return";
         const isHotel = event.kind === "hotel";
@@ -165,9 +175,9 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
         const alert = getUpcomingAlert(event);
         const attachmentGroups = groupAttachmentsByPassenger(event.attachments || [], finalItinerary.passengers || []);
 
-        return <div key={event.id} data-pdf-keep-together="true" className="relative"><span className="absolute -left-[34px] top-5 h-4 w-4 rounded-full border-4 border-white bg-amber-400 shadow-sm" />
-          <article className={`rounded-xl border p-4 shadow-sm ${alert ? "border-amber-300 bg-amber-50/60" : "border-slate-200 bg-slate-50"}`}>
-            <div className="flex gap-3">
+        return <div key={event.id} data-pdf-keep-together="true" className="relative"><span className="absolute -left-[29px] top-4 h-3.5 w-3.5 rounded-full border-[3px] border-white bg-amber-400 shadow-sm" />
+          <article className={`rounded-xl border p-3 shadow-sm ${alert ? "border-amber-300 bg-amber-50/60" : "border-slate-200 bg-slate-50"}`}>
+            <div className="flex gap-2.5">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1a2e4a] text-white"><Icon className="h-4 w-4" /></div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-amber-600">{EVENT_LABELS[event.kind]}</p><div className="flex items-center gap-1.5">{alert && <span className={`inline-flex items-center gap-1 rounded border px-2 py-1 text-[10px] font-bold ${alert.className}`}><AlertTriangle className="h-3 w-3" />{alert.label}</span>}{event.time && <span className="rounded bg-white px-2 py-1 text-xs font-bold text-[#1a2e4a]">{event.time}</span>}</div></div>
@@ -193,7 +203,7 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
 
                 {attachmentGroups.length > 0 && <div className="mt-3 rounded-lg border border-blue-100 bg-white p-2.5"><p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1a2e4a]">Documentos anexados</p><div className="space-y-2.5">{attachmentGroups.map((group) => <section key={group.label}><p className="mb-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-slate-500"><UserRound className="h-3 w-3" />{group.label}</p><div className="flex flex-wrap gap-2">{group.attachments.map((attachment) => <a key={attachment.id} data-pdf-link={attachment.url} href={attachment.url} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-semibold text-[#1a2e4a] hover:border-amber-300 hover:text-amber-700"><FileText className="h-3.5 w-3.5 shrink-0" /><span className="max-w-52 truncate">{attachment.name}</span><ExternalLink className="h-3 w-3 shrink-0" /></a>)}</div></section>)}</div></div>}
 
-                {event.photoUrl && <a href={event.photoUrl} target="_blank" rel="noreferrer" className="mt-3 block" aria-label={`Abrir foto de ${event.title}`}><img src={event.photoUrl} alt={`Foto de ${event.title}`} crossOrigin="anonymous" onError={(nativeEvent) => nativeEvent.currentTarget.remove()} className="h-40 w-full rounded-lg border border-slate-200 object-cover" /></a>}
+                {event.photoUrl && <a href={event.photoUrl} target="_blank" rel="noreferrer" className="mt-3 block" aria-label={`Abrir foto de ${event.title}`}><img src={event.photoUrl} alt={`Foto de ${event.title}`} crossOrigin="anonymous" onError={(nativeEvent) => nativeEvent.currentTarget.remove()} className="h-32 w-full rounded-lg border border-slate-200 object-cover" /></a>}
                 {event.description && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">{event.description}</p>}
                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
                   {event.linkUrl && <a data-pdf-link={event.linkUrl} href={event.linkUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-[#1a2e4a] hover:text-amber-600"><ExternalLink className="h-3.5 w-3.5" />Acessar informações</a>}
@@ -205,9 +215,9 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
         </div>;
       })}</div></section>;
       })}</div></div>}
-      {usefulLinks.length > 0 && <section data-page-break="true" className="mt-8 border-t-2 border-amber-400 pt-6">
-        <div className="mb-5 flex items-center gap-2"><Sparkles className="h-5 w-5 text-amber-600" /><div><h3 className="text-sm font-bold uppercase tracking-[0.16em] text-[#1a2e4a]">Dicas e Links Úteis</h3><p className="mt-0.5 text-xs text-slate-500">Informações práticas para aproveitar a viagem com mais tranquilidade.</p></div></div>
-        <div className="grid gap-3 sm:grid-cols-2">{usefulLinks.map((usefulLink) => <article key={usefulLink.id} data-pdf-keep-together="true" className="rounded-xl border border-amber-200 bg-amber-50/70 p-4"><p className="text-sm font-bold text-[#1a2e4a]">{usefulLink.title || "Informação útil"}</p>{usefulLink.description && <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-slate-600">{usefulLink.description}</p>}{usefulLink.url && <a data-pdf-link={usefulLink.url} href={usefulLink.url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-[#1a2e4a] hover:text-amber-700"><ExternalLink className="h-3.5 w-3.5" />Acessar contato ou informação</a>}</article>)}</div>
+      {usefulLinks.length > 0 && <section className="mt-5 border-t-2 border-amber-400 pt-4">
+        <div className="mb-4 flex items-center gap-2"><Sparkles className="h-5 w-5 text-amber-600" /><div><h3 className="text-sm font-bold uppercase tracking-[0.16em] text-[#1a2e4a]">Dicas e Links Úteis</h3><p className="mt-0.5 text-xs text-slate-500">Informações práticas para aproveitar a viagem com mais tranquilidade.</p></div></div>
+        <div className="grid gap-3 sm:grid-cols-2">{usefulLinks.map((usefulLink) => <article key={usefulLink.id} data-pdf-keep-together="true" className="rounded-xl border border-amber-200 bg-amber-50/70 p-3"><p className="text-sm font-bold text-[#1a2e4a]">{usefulLink.title || "Informação útil"}</p>{usefulLink.description && <p className="mt-1.5 whitespace-pre-line text-xs leading-relaxed text-slate-600">{usefulLink.description}</p>}{usefulLink.url && <a data-pdf-link={usefulLink.url} href={usefulLink.url} target="_blank" rel="noreferrer" className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-bold text-[#1a2e4a] hover:text-amber-700"><ExternalLink className="h-3.5 w-3.5" />Acessar contato ou informação</a>}</article>)}</div>
       </section>}
     </div>
   );

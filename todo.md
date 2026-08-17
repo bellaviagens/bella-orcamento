@@ -456,3 +456,8 @@
 - [x] Adicionar consulta assistida de informações gastronômicas para validação antes da inclusão.
 - [x] Permitir adicionar uma opção gastronômica a um dia específico do roteiro ou somente às Dicas e Links Úteis.
 - [x] Validar o fluxo de gastronomia e a apresentação das observações no PDF.
+
+- [x] Padronizar o cabeçalho do Roteiro Final com o azul institucional da Bella Viagens.
+- [x] Refinar a capa do Roteiro Final para uma abertura mais informativa e equilibrada.
+- [x] Aproveitar melhor a largura e a altura das páginas do Roteiro Final, reduzindo espaços ociosos.
+- [x] Validar a nova capa e a paginação do PDF do Roteiro Final.
