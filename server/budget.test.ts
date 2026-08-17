@@ -4,7 +4,7 @@ import type { TrpcContext } from "./_core/context";
 import { calculateCombinedInstallmentValue, calculateCombinedTotal, calculateEffectiveHotelTotal } from "../shared/paymentCalculations";
 import { calculateCombinedPaymentPlan } from "../shared/combinedPaymentPlan";
 import { calculateTourProposalInstallment, calculateTourTotal, getTourTravelerCount } from "../shared/tourPricing";
-import { addFinalItineraryEventToBudget, addFlightToFinalItineraryInBudget, addHotelToFinalItineraryInBudget, addItineraryActivityToBudget, duplicateHotelInBudget, duplicateTourInBudget, getItineraryDayActivities, importQuotationActivitiesIntoBudget, removeItineraryActivityFromBudget, reorderHotelsInBudget, reorderItineraryActivitiesInBudget, reorderItineraryDaysInBudget, reorderToursInBudget, resetTourProposalInBudget, updateItineraryActivityInBudget } from "../client/src/contexts/BudgetContext";
+import { addFinalItineraryEventToBudget, addFlightToFinalItineraryInBudget, addHotelToFinalItineraryInBudget, addItineraryActivityToBudget, duplicateHotelInBudget, duplicateTourInBudget, getItineraryDayActivities, importQuotationActivitiesIntoBudget, moveItineraryActivityBetweenDaysInBudget, removeItineraryActivityFromBudget, reorderHotelsInBudget, reorderItineraryActivitiesInBudget, reorderItineraryDaysInBudget, reorderToursInBudget, resetTourProposalInBudget, updateItineraryActivityInBudget } from "../client/src/contexts/BudgetContext";
 
 function createMockContext(): TrpcContext {
   return {
@@ -210,6 +210,25 @@ describe("gestão de passeios e roteiro", () => {
     expect(getItineraryDayActivities(reordered.itinerary[0]).map((activity) => activity.title)).toEqual(["Jantar no centro", "Chegada em Santiago"]);
     expect(getItineraryDayActivities(removed.itinerary[0])).toHaveLength(1);
     expect(getItineraryDayActivities(removed.itinerary[0])[0].title).toBe("Jantar no centro");
+  });
+
+  it("move um compromisso completo para outro dia e o acrescenta ao fim da agenda de destino", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const baseBudget = {
+      ...defaultBudgetData,
+      itinerary: [
+        { id: "day-1", day: 1, title: "Chegada", notes: "", activities: [{ id: "arrival", kind: "flight" as const, title: "Chegada em Santiago", time: "13:30", description: "Transfer reservado", linkUrl: "https://exemplo.com/transfer", photoUrl: "https://exemplo.com/transfer.jpg" }] },
+        { id: "day-2", day: 2, title: "Passeios", notes: "", activities: [{ id: "museum", kind: "tour" as const, title: "Museu", time: "09:00", description: "Visita guiada", linkUrl: "", photoUrl: "" }] },
+      ],
+    };
+
+    const moved = moveItineraryActivityBetweenDaysInBudget(baseBudget, "day-1", "arrival", "day-2");
+
+    expect(getItineraryDayActivities(moved.itinerary[0])).toEqual([]);
+    expect(getItineraryDayActivities(moved.itinerary[1])).toMatchObject([
+      { id: "museum", title: "Museu" },
+      { id: "arrival", title: "Chegada em Santiago", time: "13:30", description: "Transfer reservado", linkUrl: "https://exemplo.com/transfer", photoUrl: "https://exemplo.com/transfer.jpg" },
+    ]);
   });
 
   it("mantém os dias legados como um compromisso único ao abrir propostas já salvas", () => {

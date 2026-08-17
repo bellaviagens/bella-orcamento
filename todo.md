@@ -418,3 +418,8 @@
 - [x] Tornar mais evidente a ordenação manual dos compromissos no mesmo dia da Proposta de Passeios.
 - [x] Garantir que a sequência definida manualmente seja respeitada na prévia e no PDF, independentemente da ordem de importação.
 - [x] Validar a reordenação de passeios sem alterar os demais módulos do Roteiro.
+
+- [x] Permitir mover um passeio ou compromisso completo de um dia para outro na Proposta de Passeios.
+- [x] Preservar horário, descrição, links, foto e valores ao mover o compromisso para o dia de destino.
+- [x] Manter a ordem escolhida no dia de destino e refletir a movimentação na prévia e PDF.
+- [x] Cobrir a movimentação entre dias com testes sem alterar o Roteiro Final.

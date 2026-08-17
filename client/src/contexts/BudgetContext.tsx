@@ -26,6 +26,7 @@ interface BudgetContextType {
   updateItineraryActivity: (dayId: string, activityId: string, updates: Partial<ItineraryActivity>) => void;
   removeItineraryActivity: (dayId: string, activityId: string) => void;
   reorderItineraryActivities: (dayId: string, activities: ItineraryActivity[]) => void;
+  moveItineraryActivity: (sourceDayId: string, activityId: string, targetDayId: string) => void;
   updateTourProposal: (updates: Partial<TourProposal>) => void;
   resetTourProposal: () => void;
   replaceBudget: (budget: BudgetData) => void;
@@ -227,6 +228,36 @@ export function reorderItineraryActivitiesInBudget(budget: BudgetData, dayId: st
   return {
     ...budget,
     itinerary: budget.itinerary.map((day) => day.id === dayId ? { ...day, activities } : day),
+  };
+}
+
+export function moveItineraryActivityBetweenDaysInBudget(
+  budget: BudgetData,
+  sourceDayId: string,
+  activityId: string,
+  targetDayId: string,
+): BudgetData {
+  if (sourceDayId === targetDayId) return budget;
+
+  const sourceDay = budget.itinerary.find((day) => day.id === sourceDayId);
+  const targetDay = budget.itinerary.find((day) => day.id === targetDayId);
+  if (!sourceDay || !targetDay) return budget;
+
+  const sourceActivities = getItineraryDayActivities(sourceDay);
+  const activity = sourceActivities.find((item) => item.id === activityId);
+  if (!activity) return budget;
+
+  return {
+    ...budget,
+    itinerary: budget.itinerary.map((day) => {
+      if (day.id === sourceDayId) {
+        return { ...day, activities: sourceActivities.filter((item) => item.id !== activityId) };
+      }
+      if (day.id === targetDayId) {
+        return { ...day, activities: [...getItineraryDayActivities(day), activity] };
+      }
+      return day;
+    }),
   };
 }
 
@@ -555,6 +586,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     setBudget((prev) => reorderItineraryActivitiesInBudget(prev, dayId, activities));
   }, []);
 
+  const moveItineraryActivity = useCallback((sourceDayId: string, activityId: string, targetDayId: string) => {
+    setBudget((prev) => moveItineraryActivityBetweenDaysInBudget(prev, sourceDayId, activityId, targetDayId));
+  }, []);
+
   const updateTourProposal = useCallback((updates: Partial<TourProposal>) => {
     setBudget((prev) => ({
       ...prev,
@@ -711,6 +746,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         updateItineraryActivity,
         removeItineraryActivity,
         reorderItineraryActivities,
+        moveItineraryActivity,
         updateTourProposal,
         resetTourProposal,
         replaceBudget,
