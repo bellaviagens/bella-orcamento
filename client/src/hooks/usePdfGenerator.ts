@@ -119,6 +119,7 @@ export function usePdfGenerator() {
       // O cabeçalho de cada dia é incorporado somente ao primeiro compromisso:
       // isso permite aproveitar o restante da página com o próximo passeio, sem
       // separar título, agenda e conteúdo do primeiro bloco do dia.
+      const proposalDayBounds: Array<{ top: number; bottom: number; label: string }> = [];
       if (elementId === "itinerary-document") {
         const proposalHeader = clone.querySelector<HTMLElement>("[data-pdf-proposal-header='true']");
         const proposalDays = clone.querySelectorAll<HTMLElement>("[data-proposal-day='true']");
@@ -129,6 +130,11 @@ export function usePdfGenerator() {
           if (!firstActivity) return;
 
           const dayBounds = toCanvasBounds(day);
+          proposalDayBounds.push({
+            top: dayBounds.top,
+            bottom: dayBounds.bottom,
+            label: day.dataset.pdfDayLabel || "Dia da viagem",
+          });
           const activityBounds = toCanvasBounds(firstActivity);
           const activityBlock = protectedPositions.find(
             (block) => Math.abs(block.top - activityBounds.top) <= 2 && Math.abs(block.bottom - activityBounds.bottom) <= 2,
@@ -169,6 +175,14 @@ export function usePdfGenerator() {
         protectedPositions,
         manualBreakPoints,
       );
+
+      const continuationDayLabels = isTourProposal
+        ? segments.map((segment, pageIndex) => {
+          if (pageIndex === 0) return undefined;
+          const matchingDay = proposalDayBounds.find((day) => segment.start > day.top + 2 && segment.start < day.bottom - 2);
+          return matchingDay?.label;
+        })
+        : [];
 
       console.log("✓ Segments:", segments.length, segments);
 
@@ -217,6 +231,19 @@ export function usePdfGenerator() {
         pdf.addImage(seg.imgData, "PNG", seg.xOffsetMm, pageYOffsetsMm[i], seg.widthMm, seg.heightMm, undefined, "FAST");
       }
 
+      // Quando o conteúdo de um mesmo dia continua em uma nova página, o título
+      // reaparece discretamente na margem superior para manter o contexto.
+      if (isTourProposal) {
+        continuationDayLabels.forEach((dayLabel, pageIndex) => {
+          if (!dayLabel) return;
+          pdf.setPage(pageIndex + 1);
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(7.5);
+          pdf.setTextColor(26, 46, 74);
+          pdf.text(`${dayLabel} • continuação`, 7, 4.6);
+        });
+      }
+
       // Add clickable links for elements with data-pdf-link
       const linkElements = clone.querySelectorAll("[data-pdf-link]");
       const totalPages = segments.length;
@@ -255,6 +282,7 @@ export function usePdfGenerator() {
       if (isTourProposal) {
         for (let pageIndex = 0; pageIndex < totalPages; pageIndex += 1) {
           pdf.setPage(pageIndex + 1);
+          pdf.setFont("helvetica", "normal");
           pdf.setFontSize(8);
           pdf.setTextColor(100, 116, 139);
           pdf.text(`Página ${pageIndex + 1} de ${totalPages}`, pdfWidthMm / 2, pdfPageHeightMm - 3.5, { align: "center" });

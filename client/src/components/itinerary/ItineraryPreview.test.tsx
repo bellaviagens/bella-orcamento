@@ -85,6 +85,21 @@ describe("ItineraryPreview — agenda de dia extenso", () => {
     expect(markup).not.toContain("Duração: 2 dias");
   });
 
+  it("compacta a foto do passeio ao lado dos detalhes para aproveitar melhor a página", () => {
+    const data = {
+      tripInfo: { passengers: "2", destination: "Santiago" },
+      tours: [{ id: "tour-side-photo", name: "Passeio com foto", description: "DESCRIÇÃO\n- Texto do passeio", photosUrl: "https://example.com/passeio.jpg", pricingMode: "perPerson", pricePerPerson: 0 }],
+      itinerary: [{ id: "day-compact", day: 1, title: "Passeios", activities: [{ id: "activity-side-photo", kind: "tour", tourId: "tour-side-photo", title: "Passeio com foto" }] }],
+      tourProposal: { title: "Proposta de passeios", introMessage: "", paymentDetails: "" },
+    } as unknown as BudgetData;
+
+    const markup = renderToStaticMarkup(<ItineraryPreview data={data} />);
+
+    expect(markup).toContain("sm:grid-cols-[138px_minmax(0,1fr)]");
+    expect(markup).toContain("h-28 w-full");
+    expect(markup).toContain('data-pdf-day-label="Dia 1"');
+  });
+
   it("mantém todas as atividades e gastronomia no respectivo dia do resumo, com ícones por tipo", () => {
     const data = {
       tripInfo: { passengers: "2", destination: "Santiago" },

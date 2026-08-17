@@ -519,3 +519,7 @@
 - [x] Adicionar numeração discreta no rodapé de todas as páginas da Proposta de Passeios.
 - [x] Padronizar o aproveitamento das páginas, mantendo cada passeio inteiro e agrupando dois passeios somente quando ambos couberem.
 - [x] Validar o PDF enviado, a paginação multipágina, testes, tipagem, build e publicação sem alterar os demais módulos.
+
+- [x] Compactar os cartões de passeio no PDF com foto menor na lateral e conteúdo descritivo ao lado.
+- [x] Repetir a identificação do dia quando seus compromissos continuarem em uma nova página.
+- [x] Validar o PDF enviado, a paginação multipágina, testes, tipagem, build e publicação sem alterar os demais módulos.
