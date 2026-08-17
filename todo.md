@@ -523,3 +523,7 @@
 - [x] Compactar os cartões de passeio no PDF com foto menor na lateral e conteúdo descritivo ao lado.
 - [x] Repetir a identificação do dia quando seus compromissos continuarem em uma nova página.
 - [x] Validar o PDF enviado, a paginação multipágina, testes, tipagem, build e publicação sem alterar os demais módulos.
+
+- [x] Manter o voo e todos os passeios do Dia 1 na mesma página quando o bloco completo couber na área útil.
+- [x] Preservar a regra de continuação apenas para dias que realmente não couberem completos.
+- [x] Validar o PDF enviado, a paginação multipágina, testes, tipagem, build e publicação sem alterar os demais módulos.

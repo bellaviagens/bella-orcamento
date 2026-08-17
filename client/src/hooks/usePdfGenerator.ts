@@ -115,44 +115,57 @@ export function usePdfGenerator() {
         protectedPositions.push({ top: bounds.top, bottom: bounds.bottom });
       });
 
-      // Na Proposta de Passeios, cada compromisso é protegido individualmente.
-      // O cabeçalho de cada dia é incorporado somente ao primeiro compromisso:
-      // isso permite aproveitar o restante da página com o próximo passeio, sem
-      // separar título, agenda e conteúdo do primeiro bloco do dia.
+      // Na Proposta de Passeios, um dia completo permanece junto sempre que seu
+      // conjunto inteiro couber na área útil. Se não couber, os compromissos
+      // seguem protegidos individualmente para aproveitar cada página sem cortes.
       const proposalDayBounds: Array<{ top: number; bottom: number; label: string }> = [];
       if (elementId === "itinerary-document") {
         const proposalHeader = clone.querySelector<HTMLElement>("[data-pdf-proposal-header='true']");
         const proposalDays = clone.querySelectorAll<HTMLElement>("[data-proposal-day='true']");
-        let firstActivityBlock: { top: number; bottom: number } | undefined;
+        let firstDayBlock: { top: number; bottom: number } | undefined;
 
         proposalDays.forEach((day) => {
-          const firstActivity = day.querySelector<HTMLElement>("[data-proposal-activity='true']");
-          if (!firstActivity) return;
-
           const dayBounds = toCanvasBounds(day);
+          const activityBlocks = Array.from(day.querySelectorAll<HTMLElement>("[data-proposal-activity='true']"))
+            .map((activity) => {
+              const activityBounds = toCanvasBounds(activity);
+              return protectedPositions.find(
+                (block) => Math.abs(block.top - activityBounds.top) <= 2 && Math.abs(block.bottom - activityBounds.bottom) <= 2,
+              );
+            })
+            .filter((block): block is { top: number; bottom: number } => Boolean(block));
+
+          if (activityBlocks.length === 0) return;
+
           proposalDayBounds.push({
             top: dayBounds.top,
             bottom: dayBounds.bottom,
             label: day.dataset.pdfDayLabel || "Dia da viagem",
           });
-          const activityBounds = toCanvasBounds(firstActivity);
-          const activityBlock = protectedPositions.find(
-            (block) => Math.abs(block.top - activityBounds.top) <= 2 && Math.abs(block.bottom - activityBounds.bottom) <= 2,
-          );
-          if (!activityBlock) return;
 
-          activityBlock.top = dayBounds.top;
-          firstActivityBlock ??= activityBlock;
+          if (dayBounds.height <= pageHeightPx) {
+            activityBlocks.forEach((block) => {
+              const position = protectedPositions.indexOf(block);
+              if (position >= 0) protectedPositions.splice(position, 1);
+            });
+            const completeDayBlock = { top: dayBounds.top, bottom: dayBounds.bottom };
+            protectedPositions.push(completeDayBlock);
+            firstDayBlock ??= completeDayBlock;
+            return;
+          }
+
+          const firstActivityBlock = activityBlocks[0];
+          firstActivityBlock.top = dayBounds.top;
+          firstDayBlock ??= firstActivityBlock;
         });
 
-        // A capa só acompanha o primeiro compromisso quando o conjunto inteiro
-        // realmente cabe na área útil, evitando uma página inicial parcialmente
-        // preenchida seguida por um corte no começo do Dia 1.
-        if (proposalHeader && firstActivityBlock) {
+        // A capa só acompanha o primeiro dia quando o conjunto inteiro realmente
+        // cabe na área útil, evitando uma página inicial parcialmente preenchida.
+        if (proposalHeader && firstDayBlock) {
           const headerBounds = toCanvasBounds(proposalHeader);
-          const combinedHeight = firstActivityBlock.bottom - headerBounds.top;
+          const combinedHeight = firstDayBlock.bottom - headerBounds.top;
           if (combinedHeight <= pageHeightPx) {
-            firstActivityBlock.top = headerBounds.top;
+            firstDayBlock.top = headerBounds.top;
           }
         }
       }

@@ -38,6 +38,14 @@ describe("buildPdfSegments", () => {
     ]);
   });
 
+  it("move o Dia 1 inteiro para a próxima página quando o conjunto cabe junto, mas não no espaço restante", () => {
+    expect(buildPdfSegments(2200, 1000, [{ top: 650, bottom: 1300 }], [])).toEqual([
+      { start: 0, end: 650 },
+      { start: 650, end: 1650 },
+      { start: 1650, end: 2200 },
+    ]);
+  });
+
   it("mantém um bloco maior que a página no mesmo segmento para escala de exportação", () => {
     expect(buildPdfSegments(2200, 1000, [{ top: 0, bottom: 1250 }], [])).toEqual([
       { start: 0, end: 1250 },
