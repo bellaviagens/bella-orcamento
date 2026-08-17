@@ -466,3 +466,10 @@
 - [x] Adicionar um resumo diário das atividades na capa do Roteiro Final.
 - [x] Criar opção de capa compacta ou detalhada no formulário do Roteiro Final.
 - [x] Validar os dois modos de capa no preview e no PDF sem alterar a paginação existente.
+
+- [x] Organizar o resumo diário por compromisso, com horário e tipo de atividade em linhas claras.
+- [x] Exibir o localizador nos eventos de voo de ida e retorno do Roteiro Final.
+- [x] Igualar as margens úteis das páginas internas às da capa e remover o espaço/linha inicial ociosa.
+- [x] Impedir que o início de uma linha do tempo diária seja separado de seus compromissos no PDF.
+- [x] Destacar no evento de voo o vínculo de cartão de embarque por passageiro e manter o salvamento completo em rascunho.
+- [x] Validar a paginação e a apresentação final do roteiro após os refinamentos.

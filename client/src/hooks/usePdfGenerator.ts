@@ -69,8 +69,9 @@ export function usePdfGenerator() {
       // A4 dimensions: 210mm wide, 297mm tall
       const pdfWidthMm = 210;
       const pdfPageHeightMm = 297;
-      const isItineraryPdf = elementId === "itinerary-document" || elementId === "final-itinerary-document";
-      const continuedPageTopMarginMm = 8;
+      // O Roteiro Final já possui margem interna no próprio documento. Nas páginas
+      // continuadas, uma margem adicional criava uma faixa vazia antes do conteúdo.
+      const continuedPageTopMarginMm = elementId === "final-itinerary-document" ? 0 : 8;
       const pageContentHeightMm = pdfPageHeightMm - continuedPageTopMarginMm;
       // pixels per mm based on canvas width
       const pxPerMm = canvas.width / pdfWidthMm;
@@ -174,13 +175,7 @@ export function usePdfGenerator() {
         format: "a4",
       });
 
-      // Cada trecho continuado começa sempre abaixo da margem superior. Assim,
-      // a segunda página e as seguintes não ficam com conteúdo deslocado para
-      // baixo ou iniciado fora da área útil do PDF.
-      const pageYOffsetsMm = segmentData.map((segment, index) => {
-        if (index === 0 || isItineraryPdf) return index === 0 ? 0 : continuedPageTopMarginMm;
-        return continuedPageTopMarginMm;
-      });
+      const pageYOffsetsMm = segmentData.map((_, index) => index === 0 ? 0 : continuedPageTopMarginMm);
 
       // Add each segment as a page with A4 height
       for (let i = 0; i < segmentData.length; i++) {

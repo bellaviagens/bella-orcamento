@@ -56,4 +56,46 @@ describe("FinalItineraryPreview — capa institucional", () => {
     expect(markup).toContain("Tour panorâmico");
     expect(markup).toContain("https://example.com/santiago.jpg");
   });
+
+  it("organiza o resumo por horário e tipo, mostra o localizador e preserva cada dia como bloco de PDF", () => {
+    const data = {
+      tripInfo: { destination: "Santiago", period: "10/09/2026 a 17/09/2026", passengers: "2 viajantes" },
+      finalItinerary: {
+        title: "Roteiro Santiago",
+        introMessage: "",
+        passengers: [{ id: "passenger-1", name: "Ana" }],
+        usefulLinks: [],
+        events: [
+          {
+            id: "flight-1",
+            day: 1,
+            time: "14:00",
+            kind: "flight",
+            title: "Chegada em Santiago",
+            description: "",
+            linkUrl: "",
+            flightAirline: "LATAM",
+            flightNumber: "LA 700",
+            flightLocator: "ABC123",
+            flightDate: "2026-09-10",
+            attachments: [{ id: "boarding-pass", name: "Cartão Ana", url: "https://example.com/cartao.pdf", size: 1024, passengerId: "passenger-1" }],
+          },
+          { id: "hotel-1", day: 1, time: "15:00", kind: "hotel", title: "Hospedagem Hotel Bella", description: "", linkUrl: "" },
+          { id: "tour-1", day: 1, time: "16:00", kind: "tour", title: "Passeio panorâmico", description: "", linkUrl: "" },
+        ],
+      },
+    } as unknown as BudgetData;
+
+    const markup = renderToStaticMarkup(<FinalItineraryPreview data={data} />);
+
+    expect(markup).toContain("14:00");
+    expect(markup).toContain("Voo de ida");
+    expect(markup).toContain("Hospedagem");
+    expect(markup).toContain("Localizador");
+    expect(markup).toContain("ABC123");
+    expect(markup).toContain("Cartões de embarque e documentos deste voo");
+    expect(markup).toContain("Abrir cartão de embarque: Cartão Ana");
+    expect(markup).toContain("data-pdf-keep-together=\"true\"");
+    expect(markup).toContain("break-inside:avoid");
+  });
 });

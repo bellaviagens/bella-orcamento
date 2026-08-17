@@ -137,7 +137,12 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
   const dailySummary = Array.from(eventsByDay.entries()).map(([day, dayEvents]) => ({
     day,
     date: dayEvents.map((event) => event.flightDate || event.hotelCheckIn || event.hotelCheckOut).find(Boolean),
-    activities: dayEvents.map((event) => event.title || EVENT_LABELS[event.kind]).filter(Boolean),
+    activities: dayEvents.map((event) => ({
+      id: event.id,
+      time: event.time || ((event.kind === "flight" || event.kind === "return") ? event.flightDepartureTime || "" : ""),
+      type: EVENT_LABELS[event.kind],
+      title: event.title || EVENT_LABELS[event.kind],
+    })),
   }));
 
   return (
@@ -164,7 +169,7 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
           {finalItinerary.coverImageUrl && coverMode === "detailed" && <img src={finalItinerary.coverImageUrl} alt={`Destino: ${data.tripInfo.destination || "viagem"}`} className="h-full min-h-36 w-full rounded-lg border border-white/15 object-cover" />}
         </div>
         {finalItinerary.coverImageUrl && coverMode === "compact" && <img src={finalItinerary.coverImageUrl} alt={`Destino: ${data.tripInfo.destination || "viagem"}`} className="mt-4 h-24 w-full rounded-lg border border-white/15 object-cover" />}
-        {dailySummary.length > 0 && <section className={`mt-4 rounded-lg border border-white/15 bg-white/10 ${coverMode === "detailed" ? "p-3" : "p-2.5"}`}><div className="flex items-center justify-between gap-2"><p className="text-[10px] font-bold uppercase tracking-[0.13em] text-amber-300">Resumo diário</p><span className="text-[10px] font-medium text-slate-200">{dailySummary.length} {dailySummary.length === 1 ? "dia planejado" : "dias planejados"}</span></div><div className={`mt-2 grid gap-2 ${coverMode === "detailed" ? "sm:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-3"}`}>{dailySummary.map((summary) => <div key={summary.day} className="rounded-md border border-white/10 bg-[#10233d]/55 px-2.5 py-2"><div className="flex items-baseline justify-between gap-2"><p className="text-[10px] font-bold uppercase tracking-[0.1em] text-amber-300">Dia {summary.day}</p>{summary.date && <p className="text-[10px] text-slate-300">{formatDate(summary.date)}</p>}</div><p className="mt-1 text-xs font-medium leading-relaxed text-white">{summary.activities.slice(0, coverMode === "detailed" ? 3 : 2).join(" • ")}{summary.activities.length > (coverMode === "detailed" ? 3 : 2) ? " • …" : ""}</p></div>)}</div></section>}
+        {dailySummary.length > 0 && <section className={`mt-4 rounded-lg border border-white/15 bg-white/10 ${coverMode === "detailed" ? "p-3" : "p-2.5"}`}><div className="flex items-center justify-between gap-2"><p className="text-[10px] font-bold uppercase tracking-[0.13em] text-amber-300">Resumo diário</p><span className="text-[10px] font-medium text-slate-200">{dailySummary.length} {dailySummary.length === 1 ? "dia planejado" : "dias planejados"}</span></div><div className={`mt-2 grid gap-2 ${coverMode === "detailed" ? "sm:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-3"}`}>{dailySummary.map((summary) => { const visibleActivities = summary.activities.slice(0, coverMode === "detailed" ? 3 : 2); return <div key={summary.day} className="rounded-md border border-white/10 bg-[#10233d]/55 px-2.5 py-2"><div className="flex items-baseline justify-between gap-2"><p className="text-[10px] font-bold uppercase tracking-[0.1em] text-amber-300">Dia {summary.day}</p>{summary.date && <p className="text-[10px] text-slate-300">{formatDate(summary.date)}</p>}</div><div className="mt-1.5 space-y-1">{visibleActivities.map((activity) => <p key={activity.id} className="flex items-start gap-1.5 text-[11px] leading-snug text-white"><span className="shrink-0 font-bold text-amber-300">{activity.time || "—"}</span><span className="font-semibold">{activity.type}</span>{activity.title !== activity.type && <span className="min-w-0 text-slate-200">{activity.title}</span>}</p>)}</div>{summary.activities.length > visibleActivities.length && <p className="mt-1 text-[10px] font-medium text-slate-300">+ {summary.activities.length - visibleActivities.length} {summary.activities.length - visibleActivities.length === 1 ? "compromisso" : "compromissos"}</p>}</div>; })}</div></section>}
         {(finalItinerary.essentialInfo || finalItinerary.emergencyContacts) && <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {finalItinerary.essentialInfo && <section className="rounded-lg border border-blue-100 bg-white p-3 text-[#1a2e4a]"><div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em]"><ShieldAlert className="h-3.5 w-3.5" />Informações essenciais</div><p className="mt-1.5 whitespace-pre-line text-xs leading-relaxed text-slate-600">{finalItinerary.essentialInfo}</p></section>}
           {finalItinerary.emergencyContacts && <section className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-[#1a2e4a]"><div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em]"><Phone className="h-3.5 w-3.5" />Contatos de emergência</div><p className="mt-1.5 whitespace-pre-line text-xs leading-relaxed text-slate-600">{finalItinerary.emergencyContacts}</p></section>}
@@ -174,13 +179,13 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
 
       {events.length === 0 ? <div className="py-12 text-center text-sm text-slate-500">Inclua chegada, transfers, hospedagem, voos e passeios na aba <strong>Roteiro Final</strong> para gerar o documento pós-aprovação.</div> : <div className="mt-5 border-t-2 border-amber-400 pt-4"><div className="mb-4 flex items-center gap-2"><Clock3 className="h-5 w-5 text-[#1a2e4a]" /><h3 className="text-sm font-bold uppercase tracking-[0.16em] text-[#1a2e4a]">Linha do tempo diária</h3></div><div className="space-y-5">{Array.from(eventsByDay.entries()).map(([day, dayEvents]) => {
         const dayDate = dayEvents.map((event) => event.flightDate || event.hotelCheckIn || event.hotelCheckOut).find(Boolean);
-        return <section key={day}>
+        return <section key={day} data-pdf-keep-together="true" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
           <div className="mb-3 flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day}</span><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-600">Dia {day}</p>{dayDate && <p className="mt-0.5 text-[11px] font-medium text-slate-500">{formatDate(dayDate)}</p>}</div><div className="h-px flex-1 bg-amber-200" /></div>
           <div className="relative ml-4 space-y-3 border-l-2 border-[#1a2e4a]/15 pb-1 pl-5">{dayEvents.map((event) => {
         const Icon = EVENT_ICONS[event.kind];
         const isFlight = event.kind === "flight" || event.kind === "return";
         const isHotel = event.kind === "hotel";
-        const hasFlightDetails = isFlight && [event.flightAirline, event.flightNumber, event.flightDate, event.flightDepartureAirport, event.flightDepartureTime, event.flightArrivalAirport, event.flightArrivalTime, event.flightDepartureTerminal, event.flightArrivalTerminal].some(Boolean);
+        const hasFlightDetails = isFlight && [event.flightAirline, event.flightNumber, event.flightLocator, event.flightDate, event.flightDepartureAirport, event.flightDepartureTime, event.flightArrivalAirport, event.flightArrivalTime, event.flightDepartureTerminal, event.flightArrivalTerminal].some(Boolean);
         const alert = getUpcomingAlert(event);
         const attachmentGroups = groupAttachmentsByPassenger(event.attachments || [], finalItinerary.passengers || []);
 
@@ -193,9 +198,10 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
                 <h3 className="mt-1 text-base font-bold">{event.title}</h3>
 
                 {hasFlightDetails && <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50/70 p-2.5">
-                  <div className="grid gap-2 sm:grid-cols-3">
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                     <DetailCell label="Companhia" value={event.flightAirline} />
                     <DetailCell label="Voo" value={event.flightNumber} />
+                    <DetailCell label="Localizador" value={event.flightLocator} />
                     <DetailCell label="Data" value={formatDate(event.flightDate)} />
                   </div>
                   <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -210,7 +216,7 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
                   {event.hotelMapUrl && <a data-pdf-link={event.hotelMapUrl} href={event.hotelMapUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#1a2e4a] hover:text-amber-600"><MapPin className="h-3.5 w-3.5" />Abrir localização no Google Maps</a>}
                 </div>}
 
-                {attachmentGroups.length > 0 && <div className="mt-3 rounded-lg border border-blue-100 bg-white p-2.5"><p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1a2e4a]">Documentos anexados</p><div className="space-y-2.5">{attachmentGroups.map((group) => <section key={group.label}><p className="mb-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-slate-500"><UserRound className="h-3 w-3" />{group.label}</p><div className="flex flex-wrap gap-2">{group.attachments.map((attachment) => <a key={attachment.id} data-pdf-link={attachment.url} href={attachment.url} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-semibold text-[#1a2e4a] hover:border-amber-300 hover:text-amber-700"><FileText className="h-3.5 w-3.5 shrink-0" /><span className="max-w-52 truncate">{attachment.name}</span><ExternalLink className="h-3 w-3 shrink-0" /></a>)}</div></section>)}</div></div>}
+                {attachmentGroups.length > 0 && <div className="mt-3 rounded-lg border border-blue-100 bg-white p-2.5"><p className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1a2e4a]">{isFlight && <Plane className="h-3.5 w-3.5" />}{isFlight ? "Cartões de embarque e documentos deste voo" : "Documentos anexados"}</p><div className="space-y-2.5">{attachmentGroups.map((group) => <section key={group.label}><p className="mb-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-slate-500"><UserRound className="h-3 w-3" />{group.label}</p><div className="flex flex-wrap gap-2">{group.attachments.map((attachment) => <a key={attachment.id} data-pdf-link={attachment.url} href={attachment.url} target="_blank" rel="noreferrer" className={isFlight ? "inline-flex max-w-full items-center gap-1.5 rounded-md border border-[#1a2e4a] bg-[#1a2e4a] px-2.5 py-2 text-xs font-bold text-white" : "inline-flex max-w-full items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-semibold text-[#1a2e4a] hover:border-amber-300 hover:text-amber-700"}><FileText className="h-3.5 w-3.5 shrink-0" /><span className="max-w-52 truncate">{isFlight ? `Abrir cartão de embarque: ${attachment.name}` : attachment.name}</span><ExternalLink className="h-3 w-3 shrink-0" /></a>)}</div></section>)}</div></div>}
 
                 {event.photoUrl && <a href={event.photoUrl} target="_blank" rel="noreferrer" className="mt-3 block" aria-label={`Abrir foto de ${event.title}`}><img src={event.photoUrl} alt={`Foto de ${event.title}`} crossOrigin="anonymous" onError={(nativeEvent) => nativeEvent.currentTarget.remove()} className="h-32 w-full rounded-lg border border-slate-200 object-cover" /></a>}
                 {event.description && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">{event.description}</p>}

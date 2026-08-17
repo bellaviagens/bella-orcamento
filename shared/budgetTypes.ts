@@ -170,6 +170,7 @@ export interface FinalItineraryEvent {
   hotelCheckOut?: string;
   flightAirline?: string;
   flightNumber?: string;
+  flightLocator?: string;
   flightDate?: string;
   flightDepartureAirport?: string;
   flightDepartureTime?: string;
