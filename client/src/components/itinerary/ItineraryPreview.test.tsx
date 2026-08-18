@@ -184,4 +184,20 @@ describe("ItineraryPreview — agenda de dia extenso", () => {
     expect(coverMarkup).not.toContain("Não aparece na capa");
     expect(markup).toContain('data-cover-summary-font="large"');
   });
+
+  it("mostra entrada, saldo parcelado e a forma de pagamento selecionada", () => {
+    const data = {
+      tripInfo: { passengers: "2", destination: "Santiago" },
+      tours: [{ id: "tour-payment", name: "City tour", pricingMode: "total", totalPrice: 1200, pricePerPerson: 0 }],
+      itinerary: [{ id: "day-payment", day: 1, title: "Passeios", activities: [{ id: "activity-payment", kind: "tour", tourId: "tour-payment", title: "City tour" }] }],
+      tourProposal: { title: "Proposta de passeios", introMessage: "", paymentDetails: "Vencimento combinado", paymentMethod: "pix", hasEntry: true, entryAmount: 200, installments: 2 },
+    } as unknown as BudgetData;
+
+    const markup = renderToStaticMarkup(<ItineraryPreview data={data} />);
+
+    expect(markup).toContain("Entrada: R$ 200,00");
+    expect(markup).toContain("2x de R$ 500,00");
+    expect(markup).toContain("PIX");
+    expect(markup).toContain("Vencimento combinado");
+  });
 });

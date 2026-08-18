@@ -7,6 +7,14 @@ function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 }
 
+export function getTourProposalPaymentMethodLabel(method?: "card" | "cash" | "pix" | "other", otherLabel?: string) {
+  if (method === "card") return "Cartão";
+  if (method === "cash") return "Dinheiro";
+  if (method === "pix") return "PIX";
+  if (method === "other") return otherLabel?.trim() || "Outro";
+  return "";
+}
+
 function formatDateWithWeekday(date?: string) {
   if (!date) return "";
   const parsed = new Date(`${date}T12:00:00`);
@@ -60,7 +68,10 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
   const defaultTravelerCount = Math.max(1, Number.parseInt(data.tripInfo.passengers, 10) || 1);
   const totalTours = data.tours.reduce((total, tour) => total + calculateTourTotal(tour, defaultTravelerCount), 0);
   const proposal = data.tourProposal || { title: "Proposta de passeios", introMessage: "", paymentDetails: "", coverSummaryFontSize: "medium" as const };
-  const installment = calculateTourProposalInstallment(totalTours, proposal.installments);
+  const entryAmount = proposal.hasEntry ? Math.min(Math.max(0, proposal.entryAmount || 0), totalTours) : 0;
+  const balanceAfterEntry = Math.max(0, totalTours - entryAmount);
+  const installment = calculateTourProposalInstallment(balanceAfterEntry, proposal.installments);
+  const paymentMethodLabel = getTourProposalPaymentMethodLabel(proposal.paymentMethod, proposal.paymentMethodOtherLabel);
   const coverSummaryDays = days.map((day) => ({
     id: day.id,
     day: day.day,
@@ -170,7 +181,14 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
         </section>;
       })}</div>}
 
-      {days.length > 0 && <section data-pdf-keep-together="true" className="mx-3 mb-5 rounded-xl border-2 border-[#1a2e4a] bg-[#1a2e4a] p-4 text-white"><p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-300">Investimento da proposta</p><div className="mt-1 flex flex-wrap items-end justify-between gap-3"><div><h3 className="text-lg font-bold">Total dos passeios</h3><p className="mt-1 text-xs text-slate-200">{data.tours.length} passeio(s) na proposta</p></div><strong className="text-2xl">{formatCurrency(totalTours)}</strong></div><div className="mt-3 grid gap-3 border-t border-white/20 pt-3 sm:grid-cols-2"><div><p className="text-xs font-bold uppercase tracking-wide text-amber-300">Parcelamento</p><p className="mt-1 text-sm font-bold text-white">{installment.count === 1 ? `À vista: ${formatCurrency(totalTours)}` : `${installment.count}x de ${formatCurrency(installment.value)}`}</p></div>{proposal.paymentDetails && <div><p className="text-xs font-bold uppercase tracking-wide text-amber-300">Forma de pagamento</p><p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-white">{proposal.paymentDetails}</p></div>}</div></section>}
+      {days.length > 0 && <section data-pdf-keep-together="true" className="mx-3 mb-5 rounded-xl border-2 border-[#1a2e4a] bg-[#1a2e4a] p-4 text-white">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-300">Investimento da proposta</p>
+        <div className="mt-1 flex flex-wrap items-end justify-between gap-3"><div><h3 className="text-lg font-bold">Total dos passeios</h3><p className="mt-1 text-xs text-slate-200">{data.tours.length} passeio(s) na proposta</p></div><strong className="text-2xl">{formatCurrency(totalTours)}</strong></div>
+        <div className="mt-3 grid gap-3 border-t border-white/20 pt-3 sm:grid-cols-2">
+          <div><p className="text-xs font-bold uppercase tracking-wide text-amber-300">Parcelamento</p>{entryAmount > 0 && <p className="mt-1 text-sm font-bold text-white">Entrada: {formatCurrency(entryAmount)}</p>}<p className={`${entryAmount > 0 ? "mt-0.5" : "mt-1"} text-sm font-bold text-white`}>{installment.count === 1 ? `À vista: ${formatCurrency(balanceAfterEntry)}` : `${installment.count}x de ${formatCurrency(installment.value)}`}</p>{entryAmount > 0 && <p className="mt-0.5 text-xs text-slate-200">Saldo após entrada: {formatCurrency(balanceAfterEntry)}</p>}</div>
+          {(paymentMethodLabel || proposal.paymentDetails) && <div><p className="text-xs font-bold uppercase tracking-wide text-amber-300">Forma de pagamento</p>{paymentMethodLabel && <p className="mt-1 text-sm font-bold text-white">{paymentMethodLabel}</p>}{proposal.paymentDetails && <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-white">{proposal.paymentDetails}</p>}</div>}
+        </div>
+      </section>}
     </div>
   );
 }

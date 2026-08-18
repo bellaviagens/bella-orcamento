@@ -269,6 +269,15 @@ export async function updateTourProposalStatus(ownerOpenId: string, id: string, 
   return result[0]?.affectedRows ?? 0;
 }
 
+export async function deleteTourProposal(ownerOpenId: string, id: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para excluir a proposta.");
+
+  const result = await db.delete(savedTourProposals)
+    .where(and(eq(savedTourProposals.id, id), eq(savedTourProposals.ownerOpenId, ownerOpenId)));
+  return (result[0]?.affectedRows ?? 0) > 0;
+}
+
 export async function createSharedItinerary(input: { ownerOpenId: string; token: string; snapshot: string; expiresAt?: Date | null }) {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível para compartilhar o roteiro.");

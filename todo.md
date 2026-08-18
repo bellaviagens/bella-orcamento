@@ -618,3 +618,11 @@
 - [x] Adicionar botão Abrir/Recolher em Dicas e Links Úteis do Roteiro Final
 - [x] Ampliar a área de toque dos controles Abrir/Recolher para celular sem alterar cores ou conteúdo
 - [x] Validar responsividade móvel, tipagem, testes, build e prévia
+- [x] Definir mensagem inicial padrão para novas propostas de passeios
+- [x] Estruturar condições de pagamento com tipo, identificação livre e entrada opcional
+- [x] Ocultar a lista de propostas após seleção e permitir excluir propostas de passeios com confirmação
+- [x] Adicionar controle Abrir/Recolher na lista de opções gastronômicas validadas
+- [x] Revisar a base atual de favoritos para planejar pastas de restaurantes, hotéis, passeios e transfers
+- [x] Validar tipagem, testes, build e fluxos atualizados de propostas de passeios
+- [ ] Implementar uma Biblioteca de Viagem persistente por pastas para hotéis, passeios e transfers, com reaproveitamento nos orçamentos
+- [ ] Redesenhar a navegação com uma área lateral de cadastros, preservando as abas e fluxos atuais

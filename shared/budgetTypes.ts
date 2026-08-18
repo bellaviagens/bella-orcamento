@@ -108,6 +108,14 @@ export interface TourProposal {
   paymentDetails: string;
   clientName?: string;
   installments?: number;
+  /** Meio de pagamento selecionado para a proposta de passeios. */
+  paymentMethod?: "card" | "cash" | "pix" | "other";
+  /** Identificação livre usada quando a forma é Outra, como pagamento direto com agência. */
+  paymentMethodOtherLabel?: string;
+  /** Indica se a proposta considera uma entrada antes do saldo parcelado. */
+  hasEntry?: boolean;
+  /** Valor opcional da entrada da proposta de passeios. */
+  entryAmount?: number;
   /** Densidade tipográfica escolhida para os cartões do resumo na capa. */
   coverSummaryFontSize?: "small" | "medium" | "large";
   /** Dias escolhidos manualmente para o resumo da capa; ausente mantém os seis primeiros dias. */
@@ -321,6 +329,8 @@ export const DEFAULT_FINAL_ITINERARY_WELCOME_TEMPLATES: FinalItineraryWelcomeMes
   { id: "welcome-family", name: "Viagem em família", message: "Olá, família! Preparamos este roteiro para que todos aproveitem a viagem com conforto, organização e momentos inesquecíveis juntos." },
 ];
 
+export const DEFAULT_TOUR_PROPOSAL_INTRO_MESSAGE = "Olá! Preparamos estas opções de passeios para a sua viagem. Confira os detalhes e conte conosco para personalizar cada experiência.";
+
 export const defaultBudgetData: BudgetData = {
   tripInfo: {
     destination: "Santiago, Chile",
@@ -423,8 +433,12 @@ export const defaultBudgetData: BudgetData = {
   itinerary: [],
   tourProposal: {
     title: "Proposta de passeios",
-    introMessage: "",
+    introMessage: DEFAULT_TOUR_PROPOSAL_INTRO_MESSAGE,
     paymentDetails: "",
+    paymentMethod: undefined,
+    paymentMethodOtherLabel: "",
+    hasEntry: false,
+    entryAmount: 0,
     coverSummaryFontSize: "medium",
   },
   finalItinerary: {

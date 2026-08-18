@@ -4,7 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { buildImportDocumentContent } from "./importDocument";
-import { createSharedFavoriteList, createSharedItinerary, deleteBudgetDraft, deleteFavoriteRestaurant, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, updateFavoriteRestaurantDetails, updateFavoriteRestaurantTags, updateTourProposalStatus } from "./db";
+import { createSharedFavoriteList, createSharedItinerary, deleteBudgetDraft, deleteFavoriteRestaurant, deleteTourProposal, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, updateFavoriteRestaurantDetails, updateFavoriteRestaurantTags, updateTourProposalStatus } from "./db";
 import { storagePut } from "./storage";
 import { fetchPlacePhoto, makeRequest, type PlacesSearchResult } from "./_core/map";
 import { TRPCError } from "@trpc/server";
@@ -397,7 +397,14 @@ export const appRouter = router({
         const updated = await updateTourProposalStatus(ctx.user.openId, input.id, input.status);
         if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Proposta não encontrada." });
         return { success: true };
-    }),
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .mutation(async ({ ctx, input }) => {
+        const deleted = await deleteTourProposal(ctx.user.openId, input.id);
+        if (!deleted) throw new TRPCError({ code: "NOT_FOUND", message: "Proposta não encontrada." });
+        return { success: true };
+      }),
   }),
   budgetDrafts: router({
     save: protectedProcedure

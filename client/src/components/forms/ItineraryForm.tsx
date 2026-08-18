@@ -29,6 +29,7 @@ export function ItineraryForm() {
   const saveProposalMutation = trpc.tourProposals.save.useMutation();
   const duplicateProposalMutation = trpc.tourProposals.duplicate.useMutation();
   const updateProposalStatusMutation = trpc.tourProposals.updateStatus.useMutation();
+  const deleteProposalMutation = trpc.tourProposals.delete.useMutation();
   const [savedProposalSearch, setSavedProposalSearch] = useState("");
   const savedProposalQueryInput = useMemo(
     () => ({ search: savedProposalSearch.trim() || undefined }),
@@ -36,6 +37,8 @@ export function ItineraryForm() {
   );
   const savedProposalsQuery = trpc.tourProposals.list.useQuery(savedProposalQueryInput);
   const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
+  const [showSavedProposals, setShowSavedProposals] = useState(true);
+  const [proposalToDelete, setProposalToDelete] = useState<{ id: string; clientName: string } | null>(null);
   const [gastronomyName, setGastronomyName] = useState("");
   const [gastronomyLocation, setGastronomyLocation] = useState("");
   const [gastronomyTargetDays, setGastronomyTargetDays] = useState<Record<string, string>>({});
@@ -59,6 +62,7 @@ export function ItineraryForm() {
   const [favoritePriceRangeDrafts, setFavoritePriceRangeDrafts] = useState<Record<string, string>>({});
   const [favoritePersonalNoteDrafts, setFavoritePersonalNoteDrafts] = useState<Record<string, string>>({});
   const [sharedFavoritesUrl, setSharedFavoritesUrl] = useState("");
+  const [gastronomyOptionsCollapsed, setGastronomyOptionsCollapsed] = useState(false);
   const selectedProposalQuery = trpc.tourProposals.get.useQuery(
     { id: selectedProposalId || "00000000-0000-0000-0000-000000000000" },
     { enabled: Boolean(selectedProposalId) },
@@ -234,7 +238,10 @@ export function ItineraryForm() {
     }
   };
 
-  const handleLoadProposal = (id: string) => setSelectedProposalId(id);
+  const handleLoadProposal = (id: string) => {
+    setSelectedProposalId(id);
+    setShowSavedProposals(false);
+  };
 
   const handleDuplicateProposal = async (id: string) => {
     try {
@@ -256,6 +263,19 @@ export function ItineraryForm() {
     } catch (error) {
       console.error("Update proposal status error:", error);
       toast.error(error instanceof Error ? error.message : "Não foi possível atualizar o status.");
+    }
+  };
+
+  const handleDeleteProposal = async () => {
+    if (!proposalToDelete) return;
+    try {
+      await deleteProposalMutation.mutateAsync({ id: proposalToDelete.id });
+      await utils.tourProposals.list.invalidate();
+      toast.success(`Proposta de ${proposalToDelete.clientName} excluída.`);
+      setProposalToDelete(null);
+    } catch (error) {
+      console.error("Delete tour proposal error:", error);
+      toast.error(error instanceof Error ? error.message : "Não foi possível excluir a proposta.");
     }
   };
 
@@ -391,9 +411,13 @@ export function ItineraryForm() {
         <div className="grid gap-3 sm:grid-cols-2">
           <div><Label htmlFor="proposal-client">Cliente</Label><Input id="proposal-client" value={budget.tourProposal.clientName || ""} onChange={(event) => updateTourProposal({ clientName: event.target.value })} placeholder="Ex.: Suelen Vieira" className="mt-1 bg-white" /></div>
           <div><Label htmlFor="proposal-title">Título da proposta</Label><Input id="proposal-title" value={budget.tourProposal.title} onChange={(event) => updateTourProposal({ title: event.target.value })} placeholder="Ex.: Passeios em Santiago" className="mt-1 bg-white" /></div>
-          <div className="sm:col-span-2"><Label htmlFor="proposal-intro">Mensagem inicial</Label><Textarea id="proposal-intro" value={budget.tourProposal.introMessage} onChange={(event) => updateTourProposal({ introMessage: event.target.value })} placeholder="Ex.: Olá, Suelen! Preparamos estas opções de passeios para a sua viagem..." className="mt-1 min-h-16 bg-white" /></div>
+          <div className="sm:col-span-2"><Label htmlFor="proposal-intro">Mensagem inicial</Label><Textarea id="proposal-intro" value={budget.tourProposal.introMessage} onChange={(event) => updateTourProposal({ introMessage: event.target.value })} placeholder="Olá! Preparamos estas opções de passeios para a sua viagem..." className="mt-1 min-h-16 bg-white" /></div>
 	          <div><Label htmlFor="proposal-installments">Parcelamento</Label><Select value={String(budget.tourProposal.installments || 1)} onValueChange={(value) => updateTourProposal({ installments: Number(value) })}><SelectTrigger id="proposal-installments" className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="1">À vista</SelectItem><SelectItem value="2">2x</SelectItem><SelectItem value="3">3x</SelectItem><SelectItem value="4">4x</SelectItem><SelectItem value="5">5x</SelectItem><SelectItem value="6">6x</SelectItem><SelectItem value="8">8x</SelectItem><SelectItem value="10">10x</SelectItem><SelectItem value="12">12x</SelectItem></SelectContent></Select></div>
-	          <div><Label htmlFor="proposal-payment">Forma de pagamento</Label><Textarea id="proposal-payment" value={budget.tourProposal.paymentDetails} onChange={(event) => updateTourProposal({ paymentDetails: event.target.value })} placeholder="Ex.: PIX, cartão ou condições combinadas" className="mt-1 min-h-16 bg-white" /></div>
+          <div><Label htmlFor="proposal-payment-method">Forma de pagamento</Label><Select value={budget.tourProposal.paymentMethod || "none"} onValueChange={(value) => updateTourProposal({ paymentMethod: value === "none" ? undefined : value as "card" | "cash" | "pix" | "other" })}><SelectTrigger id="proposal-payment-method" className="mt-1 bg-white"><SelectValue placeholder="Selecionar forma" /></SelectTrigger><SelectContent><SelectItem value="none">Selecionar forma</SelectItem><SelectItem value="card">Cartão</SelectItem><SelectItem value="cash">Dinheiro</SelectItem><SelectItem value="pix">PIX</SelectItem><SelectItem value="other">Outro</SelectItem></SelectContent></Select></div>
+          <div><Label htmlFor="proposal-entry">Possui entrada?</Label><Select value={budget.tourProposal.hasEntry ? "yes" : "no"} onValueChange={(value) => updateTourProposal({ hasEntry: value === "yes", entryAmount: value === "yes" ? budget.tourProposal.entryAmount || 0 : 0 })}><SelectTrigger id="proposal-entry" className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="no">Não</SelectItem><SelectItem value="yes">Sim</SelectItem></SelectContent></Select></div>
+          {budget.tourProposal.hasEntry && <div><Label htmlFor="proposal-entry-amount">Valor da entrada</Label><Input id="proposal-entry-amount" type="number" min="0" step="0.01" value={budget.tourProposal.entryAmount || ""} onChange={(event) => updateTourProposal({ entryAmount: Math.max(0, Number(event.target.value) || 0) })} placeholder="R$ 0,00" className="mt-1 bg-white" /></div>}
+          {budget.tourProposal.paymentMethod === "other" && <div className="sm:col-span-2"><Label htmlFor="proposal-payment-other">Identificação da forma de pagamento</Label><Input id="proposal-payment-other" value={budget.tourProposal.paymentMethodOtherLabel || ""} onChange={(event) => updateTourProposal({ paymentMethodOtherLabel: event.target.value })} placeholder="Ex.: Direto com agência" className="mt-1 bg-white" /></div>}
+          <div className="sm:col-span-2"><Label htmlFor="proposal-payment">Detalhes da condição de pagamento</Label><Textarea id="proposal-payment" value={budget.tourProposal.paymentDetails} onChange={(event) => updateTourProposal({ paymentDetails: event.target.value })} placeholder="Ex.: Taxa inclusa, vencimento ou condições combinadas" className="mt-1 min-h-16 bg-white" /></div>
 	          <div><Label htmlFor="proposal-summary-font">Fonte do resumo da capa</Label><Select value={budget.tourProposal.coverSummaryFontSize || "medium"} onValueChange={(value) => updateTourProposal({ coverSummaryFontSize: value as "small" | "medium" | "large" })}><SelectTrigger id="proposal-summary-font" className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="small">Compacta</SelectItem><SelectItem value="medium">Padrão</SelectItem><SelectItem value="large">Maior</SelectItem></SelectContent></Select></div>
 	          {itinerary.length > 6 && (() => {
 	            const defaultDayIds = itinerary.slice(0, 6).map((day) => day.id);
@@ -424,29 +448,22 @@ export function ItineraryForm() {
               <SelectContent>{(savedProposalsQuery.data || []).map((saved) => <SelectItem key={saved.id} value={saved.id}>{saved.clientName} — {saved.proposalTitle}</SelectItem>)}</SelectContent>
             </Select>
             </div>
-            <div className="relative mt-2">
+            {!showSavedProposals && <div className="mt-2 flex justify-end"><Button type="button" variant="outline" size="sm" onClick={() => setShowSavedProposals(true)} className="h-9 bg-white text-xs font-semibold"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Ver propostas salvas</Button></div>}
+            {showSavedProposals && <><div className="relative mt-2">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input value={savedProposalSearch} onChange={(event) => setSavedProposalSearch(event.target.value)} placeholder="Buscar proposta pelo nome do cliente" className="h-9 bg-slate-50 pl-8 text-sm" />
             </div>
             <div className="mt-2 max-h-44 space-y-1 overflow-y-auto pr-1">
               {(savedProposalsQuery.data || []).map((saved) => (
                 <div key={saved.id} className="flex flex-col gap-2 rounded-md border border-slate-100 px-2.5 py-2 sm:flex-row sm:items-center">
-                  <button type="button" onClick={() => handleLoadProposal(saved.id)} className="min-w-0 flex-1 text-left" title="Abrir proposta">
-                    <span className="block truncate text-xs font-bold text-[#1a2e4a]">{saved.clientName}</span>
-                    <span className="block truncate text-[11px] text-slate-500">{saved.proposalTitle}</span>
-                  </button>
-                  <div className="flex items-center gap-1.5">
-                    <Select value={saved.status} onValueChange={(status: "pending" | "sent" | "approved") => handleProposalStatus(saved.id, status)} disabled={updateProposalStatusMutation.isPending}>
-                      <SelectTrigger className="h-8 w-28 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent><SelectItem value="pending">Pendente</SelectItem><SelectItem value="sent">Enviada</SelectItem><SelectItem value="approved">Aprovada</SelectItem></SelectContent>
-                    </Select>
-                    <Button type="button" variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={() => handleDuplicateProposal(saved.id)} disabled={duplicateProposalMutation.isPending} title="Duplicar proposta"><Copy className="mr-1 h-3.5 w-3.5" />Duplicar</Button>
-                  </div>
+                  <button type="button" onClick={() => handleLoadProposal(saved.id)} className="min-w-0 flex-1 text-left" title="Abrir proposta"><span className="block truncate text-xs font-bold text-[#1a2e4a]">{saved.clientName}</span><span className="block truncate text-[11px] text-slate-500">{saved.proposalTitle}</span></button>
+                  <div className="flex items-center gap-1.5"><Select value={saved.status} onValueChange={(status: "pending" | "sent" | "approved") => handleProposalStatus(saved.id, status)} disabled={updateProposalStatusMutation.isPending}><SelectTrigger className="h-8 w-28 text-xs"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="pending">Pendente</SelectItem><SelectItem value="sent">Enviada</SelectItem><SelectItem value="approved">Aprovada</SelectItem></SelectContent></Select><Button type="button" variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={() => handleDuplicateProposal(saved.id)} disabled={duplicateProposalMutation.isPending} title="Duplicar proposta"><Copy className="mr-1 h-3.5 w-3.5" />Duplicar</Button><Button type="button" variant="outline" size="sm" className="h-8 border-red-200 bg-red-50 px-2 text-xs font-semibold text-red-600 hover:bg-red-100 hover:text-red-700" onClick={() => setProposalToDelete({ id: saved.id, clientName: saved.clientName })} disabled={deleteProposalMutation.isPending} title="Excluir proposta"><Trash2 className="h-3.5 w-3.5" /></Button></div>
                 </div>
               ))}
               {!savedProposalsQuery.isLoading && (savedProposalsQuery.data || []).length === 0 && <p className="px-1 py-2 text-xs text-slate-500">Nenhuma proposta encontrada.</p>}
-            </div>
+            </div></>}
           </div>
+          <AlertDialog open={Boolean(proposalToDelete)} onOpenChange={(open) => { if (!open) setProposalToDelete(null); }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Excluir proposta de passeios?</AlertDialogTitle><AlertDialogDescription>{proposalToDelete ? `A proposta de ${proposalToDelete.clientName} será removida permanentemente. Essa ação não altera o orçamento que está aberto agora.` : ""}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => void handleDeleteProposal()} className="bg-red-600 hover:bg-red-700">Excluir proposta</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
         </div>
       </div>
 
@@ -515,12 +532,12 @@ export function ItineraryForm() {
         </div>
 
         {(budget.gastronomyOptions || []).length ? <div className="mt-3 border-t border-amber-200 pt-3">
-          <p className="mb-2 text-xs font-semibold text-[#1a2e4a]">Opções validadas</p>
-          <div className="space-y-2">{(budget.gastronomyOptions || []).map((option) => <div key={option.id} className="rounded-md border border-amber-100 bg-white p-2.5">
+          <div className="mb-2 flex items-center justify-between gap-2"><p className="text-xs font-semibold text-[#1a2e4a]">Opções validadas</p><Button type="button" variant="ghost" size="sm" onClick={() => setGastronomyOptionsCollapsed((current) => !current)} aria-expanded={!gastronomyOptionsCollapsed} className="h-10 min-w-24 px-3 text-xs text-slate-600 hover:bg-white hover:text-[#1a2e4a]"><ChevronDown className={`mr-1.5 h-4 w-4 transition-transform ${gastronomyOptionsCollapsed ? "" : "rotate-180"}`} />{gastronomyOptionsCollapsed ? "Abrir" : "Recolher"}</Button></div>
+          {!gastronomyOptionsCollapsed && <div className="space-y-2">{(budget.gastronomyOptions || []).map((option) => <div key={option.id} className="rounded-md border border-amber-100 bg-white p-2.5">
             {option.photoUrl && <img src={option.photoUrl} alt={`Foto de ${option.name}`} className="mb-2 h-24 w-full rounded-md border border-slate-100 object-cover sm:hidden" />}
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><p className="text-sm font-bold text-[#1a2e4a]">{option.name}</p><p className="text-xs text-slate-600">{option.description || option.address}</p></div><div className="flex flex-wrap items-center gap-1"><Button type="button" variant="outline" size="sm" asChild className="h-8 bg-white px-2 text-xs"><a href={option.mapsUrl} target="_blank" rel="noreferrer">Ver endereço</a></Button>{option.website && <Button type="button" variant="outline" size="sm" asChild className="h-8 bg-white px-2 text-xs"><a href={option.website} target="_blank" rel="noreferrer">Site / fotos</a></Button>}<Button type="button" variant="outline" size="sm" className="h-8 border-red-200 bg-red-50 px-2 text-xs font-semibold text-red-600 hover:bg-red-100 hover:text-red-700" onClick={() => removeGastronomyOption(option.id)} title={`Excluir ${option.name}`} aria-label={`Excluir restaurante ${option.name}`}><Trash2 className="mr-1 h-3.5 w-3.5" />Excluir</Button></div></div>
             <div className="mt-2 flex flex-col gap-2 sm:flex-row"><Select value={gastronomyTargetDays[option.id] || "none"} onValueChange={(dayId) => setGastronomyTargetDays((current) => ({ ...current, [option.id]: dayId }))}><SelectTrigger className="h-8 flex-1 bg-slate-50 text-xs"><SelectValue placeholder="Escolher dia para incluir" /></SelectTrigger><SelectContent><SelectItem value="none">Escolher dia para incluir</SelectItem>{itinerary.map((day) => <SelectItem key={day.id} value={day.id}>Dia {day.day} — {day.title || "Dia livre"}</SelectItem>)}</SelectContent></Select><Button type="button" variant="outline" size="sm" disabled={!gastronomyTargetDays[option.id] || gastronomyTargetDays[option.id] === "none"} onClick={() => { addGastronomyToDay(gastronomyTargetDays[option.id], option.id); toast.success(`${option.name} foi incluído na agenda do dia.`); }} className="h-8 bg-white text-xs font-semibold">Incluir no dia</Button><Button type="button" variant="outline" size="sm" onClick={() => { addGastronomyToUsefulTips(option.id); toast.success(`${option.name} foi incluído nas Dicas e Links Úteis.`); }} className="h-8 bg-white text-xs font-semibold">Enviar para dicas</Button></div>
-          </div>)}</div>
+          </div>)}</div>}
         </div> : null}
       </div>
 
