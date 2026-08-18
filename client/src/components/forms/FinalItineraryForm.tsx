@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Building2, CalendarDays, CarFront, Copy, ExternalLink, FileText, GripVertical, Hotel, Link2, Luggage, Mail, MessageCircle, Phone, Plane, Plus, QrCode, Share2, Trash2, Upload, UserRound, Users, X } from "lucide-react";
+import { Building2, CalendarDays, CarFront, ChevronDown, Copy, ExternalLink, FileText, GripVertical, Hotel, Link2, Luggage, Mail, MessageCircle, Phone, Plane, Plus, QrCode, Share2, Trash2, Upload, UserRound, Users, X } from "lucide-react";
 import { DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE, DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE } from "@shared/budgetTypes";
 import type { FinalItineraryAttachment, FinalItineraryEvent, FinalItineraryEventKind } from "@shared/budgetTypes";
 import { boardingPassAttachmentUpdates, boardingPassUpdates } from "./finalItineraryBoardingPass";
@@ -53,6 +53,13 @@ export function passengerFlightDocuments(events: FinalItineraryEvent[], passenge
     : []);
 }
 
+export function toggleCollapsedSection(current: Set<string>, sectionId: string) {
+  const next = new Set(current);
+  if (next.has(sectionId)) next.delete(sectionId);
+  else next.add(sectionId);
+  return next;
+}
+
 export function FinalItineraryForm() {
   const {
     budget,
@@ -86,6 +93,7 @@ export function FinalItineraryForm() {
   const [showSharePreview, setShowSharePreview] = useState(false);
   const [selectedWelcomeTemplateId, setSelectedWelcomeTemplateId] = useState("");
   const [newWelcomeTemplateName, setNewWelcomeTemplateName] = useState("");
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(() => new Set());
   const attachmentInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const eventVisualInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const coverImageInput = useRef<HTMLInputElement | null>(null);
@@ -107,6 +115,7 @@ export function FinalItineraryForm() {
   const emailShareUrl = shareMessage
     ? `mailto:?subject=${encodeURIComponent(`Roteiro de viagem — ${finalItinerary.title || "Bella Viagens e Milhas"}`)}&body=${encodeURIComponent(shareMessage)}`
     : "";
+  const toggleSection = (sectionId: string) => setCollapsedSections((current) => toggleCollapsedSection(current, sectionId));
 
   const handleClearFinalItinerary = () => {
     clearFinalItinerary();
@@ -122,6 +131,7 @@ export function FinalItineraryForm() {
     setShowSharePreview(false);
     setSelectedWelcomeTemplateId("");
     setNewWelcomeTemplateName("");
+    setCollapsedSections(new Set());
   };
 
   const handleCoverImageSelection = (file?: File) => {
@@ -394,8 +404,11 @@ export function FinalItineraryForm() {
       </div>
 
       <div className="rounded-lg border border-[#1a2e4a]/15 bg-blue-50/60 p-3">
-        <div className="mb-3 flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><CalendarDays className="h-4 w-4" />Capa e informações essenciais</div>
-        <div className="grid gap-3">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><CalendarDays className="h-4 w-4" />Capa e informações essenciais</div>
+          <Button type="button" variant="ghost" size="sm" onClick={() => toggleSection("cover")} aria-expanded={!collapsedSections.has("cover")} className="h-7 px-2 text-xs text-slate-500 hover:bg-white hover:text-[#1a2e4a]"><ChevronDown className={`mr-1 h-4 w-4 transition-transform ${collapsedSections.has("cover") ? "" : "rotate-180"}`} />{collapsedSections.has("cover") ? "Abrir" : "Recolher"}</Button>
+        </div>
+        {!collapsedSections.has("cover") && <div className="grid gap-3">
           <div><Label htmlFor="final-title">Título</Label><Input id="final-title" value={finalItinerary.title} onChange={(event) => updateFinalItinerary({ title: event.target.value, enabled: true })} className="mt-1 bg-white" /></div>
           <div><div className="flex flex-wrap items-center justify-between gap-2"><Label htmlFor="final-intro">Mensagem de boas-vindas <span className="font-normal text-slate-500">(editável)</span></Label><Button type="button" variant="ghost" size="sm" onClick={() => updateFinalItinerary({ introMessage: DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE, enabled: true })} className="h-7 px-2 text-[11px] font-semibold text-[#1a2e4a] hover:bg-white">Restaurar mensagem padrão</Button></div><Textarea id="final-intro" value={finalItinerary.introMessage} onChange={(event) => updateFinalItinerary({ introMessage: event.target.value, enabled: true })} placeholder="Ex.: Olá, Suelen! Abaixo está o seu roteiro completo, com horários e contatos importantes." className="mt-1 min-h-20 bg-white" /><div className="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]"><Select value={selectedWelcomeTemplateId} onValueChange={setSelectedWelcomeTemplateId}><SelectTrigger className="h-9 bg-white text-xs"><SelectValue placeholder="Escolha um modelo salvo" /></SelectTrigger><SelectContent>{welcomeTemplates.map((template) => <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>)}</SelectContent></Select><Button type="button" variant="outline" size="sm" onClick={applyWelcomeTemplate} disabled={!selectedWelcomeTemplateId} className="h-9 bg-white text-xs">Aplicar modelo</Button><Button type="button" variant="ghost" size="sm" onClick={removeWelcomeTemplate} disabled={!selectedWelcomeTemplateId} className="h-9 px-2 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"><Trash2 className="mr-1 h-3.5 w-3.5" />Excluir</Button></div><div className="mt-2 flex gap-2"><Input value={newWelcomeTemplateName} onChange={(event) => setNewWelcomeTemplateName(event.target.value)} placeholder="Nome para salvar este modelo" className="h-9 bg-white text-xs" /><Button type="button" variant="outline" size="sm" onClick={saveWelcomeTemplate} disabled={!newWelcomeTemplateName.trim() || !finalItinerary.introMessage.trim()} className="h-9 shrink-0 bg-white text-xs"><Plus className="mr-1 h-3.5 w-3.5" />Salvar modelo</Button></div><p className="mt-1.5 text-[11px] text-slate-500">Os modelos ficam salvos no rascunho para você alternar rapidamente entre mensagens como Lua de mel e Viagem em família.</p></div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -406,11 +419,15 @@ export function FinalItineraryForm() {
             <div><Label htmlFor="final-essential-info">Informações essenciais</Label><Textarea id="final-essential-info" value={finalItinerary.essentialInfo || ""} onChange={(event) => updateFinalItinerary({ essentialInfo: event.target.value, enabled: true })} placeholder="Ex.: Levar passaporte, chegar ao aeroporto com 3 horas de antecedência..." className="mt-1 min-h-24 bg-white" /></div>
             <div><Label htmlFor="final-emergency-contacts">Contatos de emergência</Label><Textarea id="final-emergency-contacts" value={finalItinerary.emergencyContacts || ""} onChange={(event) => updateFinalItinerary({ emergencyContacts: event.target.value, enabled: true })} placeholder="Ex.: Agência: +55...&#10;Transfer: +56...&#10;Seguro: +55..." className="mt-1 min-h-24 bg-white" /></div>
           </div>
-        </div>
+        </div>}
       </div>
 
       <section className="rounded-lg border border-amber-200 bg-amber-50/70 p-3">
-        <div className="mb-1 flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><Share2 className="h-4 w-4" />Acesso rápido pelo celular</div>
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><Share2 className="h-4 w-4" />Acesso rápido pelo celular</div>
+          <Button type="button" variant="ghost" size="sm" onClick={() => toggleSection("share")} aria-expanded={!collapsedSections.has("share")} className="h-7 px-2 text-xs text-slate-500 hover:bg-white hover:text-[#1a2e4a]"><ChevronDown className={`mr-1 h-4 w-4 transition-transform ${collapsedSections.has("share") ? "" : "rotate-180"}`} />{collapsedSections.has("share") ? "Abrir" : "Recolher"}</Button>
+        </div>
+        {!collapsedSections.has("share") && <div>
         <p className="text-xs leading-relaxed text-slate-600">Crie um link público com uma cópia deste roteiro. O cliente poderá abrir a versão compartilhada no celular pelo link ou QR Code. Depois de alterar o roteiro, gere um novo link para enviar a versão atualizada.</p>
         <div className="mt-3 grid gap-2 sm:grid-cols-[minmax(0,220px)_1fr]"><div><Label htmlFor="share-expiry" className="text-[11px]">Expira em <span className="font-normal text-slate-500">(opcional)</span></Label><Input id="share-expiry" type="date" value={shareExpiryDate} onChange={(event) => setShareExpiryDate(event.target.value)} min={new Date().toISOString().slice(0, 10)} className="mt-1 h-9 bg-white text-xs" /></div><p className="self-end pb-1 text-[11px] leading-relaxed text-slate-500">Sem uma data, o acesso permanece ativo até ser revogado. A expiração será aplicada ao próximo link gerado.</p></div>
         <div className="mt-3"><div className="flex flex-wrap items-center justify-between gap-2"><Label htmlFor="share-message" className="text-[11px]">Mensagem que acompanha o link <span className="font-normal text-slate-500">(editável)</span></Label><Button type="button" variant="outline" size="sm" onClick={() => setShowSharePreview((current) => !current)} className="h-7 bg-white px-2 text-[11px]"><FileText className="mr-1 h-3.5 w-3.5" />{showSharePreview ? "Ocultar prévia" : "Pré-visualizar mensagem"}</Button></div><Textarea id="share-message" value={finalItinerary.shareMessage ?? DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE} onChange={(event) => updateFinalItinerary({ shareMessage: event.target.value, enabled: true })} placeholder="Ex.: Olá! Preparamos seu roteiro com todos os horários e contatos." className="mt-1 min-h-18 bg-white text-xs" /><p className="mt-1 text-[11px] text-slate-500">O link do roteiro é incluído automaticamente no final da mensagem de WhatsApp e e-mail.</p>{showSharePreview && <div className="mt-3 grid gap-3 rounded-lg border border-amber-200 bg-white p-3 sm:grid-cols-2"><div><p className="flex items-center gap-1.5 text-[11px] font-bold text-[#1a2e4a]"><MessageCircle className="h-3.5 w-3.5 text-emerald-600" />Como ficará no WhatsApp</p><div className="mt-2 rounded-lg rounded-tl-sm bg-emerald-50 px-3 py-2.5 text-xs leading-relaxed text-slate-700 whitespace-pre-line">{sharePreviewMessage}</div></div><div><p className="flex items-center gap-1.5 text-[11px] font-bold text-[#1a2e4a]"><Mail className="h-3.5 w-3.5 text-[#1a2e4a]" />Como ficará no e-mail</p><div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-700"><p className="font-semibold text-[#1a2e4a]">Assunto: Roteiro de viagem — {finalItinerary.title || "Bella Viagens e Milhas"}</p><p className="mt-2 whitespace-pre-line leading-relaxed">{sharePreviewMessage}</p></div></div></div>}</div>
@@ -418,10 +435,15 @@ export function FinalItineraryForm() {
         {finalItinerary.shareToken && <p className="mt-2 text-[11px] text-slate-500">{finalItinerary.shareExpiresAt ? `Acesso ativo até ${new Date(`${finalItinerary.shareExpiresAt.slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR")}.` : "Acesso ativo sem data de expiração."}</p>}
         {shareUrl && <div className="mt-3 flex flex-col gap-3 rounded-lg border border-amber-200 bg-white p-3 sm:flex-row sm:items-center"><div className="min-w-0 flex-1"><Label htmlFor="shared-itinerary-url" className="text-[11px]">Link compartilhável</Label><Input id="shared-itinerary-url" value={shareUrl} readOnly onFocus={(event) => event.currentTarget.select()} className="mt-1 h-9 bg-slate-50 text-xs" /><a href={shareUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#1a2e4a] hover:text-amber-700"><ExternalLink className="h-3.5 w-3.5" />Abrir versão compartilhada</a><div className="mt-3 flex flex-wrap gap-2"><Button type="button" size="sm" asChild className="bg-[#1a2e4a] text-xs hover:bg-[#264566]"><a href={whatsappShareUrl} target="_blank" rel="noreferrer"><MessageCircle className="mr-1.5 h-3.5 w-3.5" />Enviar pelo WhatsApp</a></Button><Button type="button" size="sm" variant="outline" asChild className="bg-white text-xs"><a href={emailShareUrl}><Mail className="mr-1.5 h-3.5 w-3.5" />Enviar por e-mail</a></Button></div><p className="mt-2 text-[11px] text-slate-500">Escolha o passageiro no WhatsApp ou informe os destinatários na mensagem de e-mail.</p></div>{qrCodeUrl && <img src={qrCodeUrl} alt="QR Code do roteiro compartilhável" className="h-28 w-28 self-center rounded-md border border-slate-200 bg-white p-1" />}</div>}
         {shareError && <p className="mt-2 text-xs font-medium text-red-600">{shareError}</p>}
+        </div>}
       </section>
 
       <section className="rounded-lg border border-[#1a2e4a]/15 bg-white p-3">
-        <div className="mb-3 flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><Users className="h-4 w-4" />Passageiros e documentos de voo</div>
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><Users className="h-4 w-4" />Passageiros e documentos de voo</div>
+          <Button type="button" variant="ghost" size="sm" onClick={() => toggleSection("passengers")} aria-expanded={!collapsedSections.has("passengers")} className="h-7 px-2 text-xs text-slate-500 hover:bg-slate-50 hover:text-[#1a2e4a]"><ChevronDown className={`mr-1 h-4 w-4 transition-transform ${collapsedSections.has("passengers") ? "" : "rotate-180"}`} />{collapsedSections.has("passengers") ? "Abrir" : "Recolher"}</Button>
+        </div>
+        {!collapsedSections.has("passengers") && <div>
         <div className="flex gap-2"><Input value={newPassengerName} onChange={(event) => setNewPassengerName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); addPassenger(); } }} placeholder="Nome do passageiro" className="bg-white" /><Button type="button" variant="outline" onClick={addPassenger} className="shrink-0 bg-white text-xs"><Plus className="mr-1 h-3.5 w-3.5" />Adicionar</Button></div>
         <div className="mt-3 rounded-md border border-amber-200 bg-amber-50/60 p-2.5"><Label htmlFor="final-baggage-rules" className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#1a2e4a]"><Luggage className="h-3.5 w-3.5" />Regras de bagagem da companhia aérea</Label><Input id="final-baggage-rules" value={finalItinerary.baggageRulesUrl || ""} onChange={(event) => updateFinalItinerary({ enabled: true, baggageRulesUrl: event.target.value })} placeholder="Cole aqui o link da companhia para itens permitidos e franquia de bagagem" className="mt-1.5 h-9 bg-white text-xs" />{finalItinerary.baggageRulesUrl && <a href={finalItinerary.baggageRulesUrl} target="_blank" rel="noreferrer" className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-[#1a2e4a] hover:text-amber-700 hover:underline"><ExternalLink className="h-3.5 w-3.5" />Abrir regras da companhia</a>}</div>
         {(finalItinerary.passengers || []).length > 0 ? <div className="mt-3 space-y-2">{finalItinerary.passengers?.map((passenger) => {
@@ -429,6 +451,7 @@ export function FinalItineraryForm() {
           const passengerDocuments = passengerFlightDocuments(events, passenger.id, passenger.name);
           return <section key={passenger.id} className="rounded-lg border border-blue-100 bg-blue-50/50 p-3"><div className="flex items-center justify-between gap-2"><div className="flex min-w-0 items-center gap-2"><p className="inline-flex min-w-0 items-center gap-1.5 truncate text-xs font-bold text-[#1a2e4a]"><UserRound className="h-3.5 w-3.5 shrink-0" />{passenger.name}</p><span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${checkedIn ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500"}`}>{checkedIn ? "Documento anexado" : "Aguardando documento"}</span></div><button type="button" onClick={() => removePassenger(passenger.id)} className="inline-flex shrink-0 items-center gap-1 text-xs text-slate-400 hover:text-red-600" title={`Remover ${passenger.name}`}><X className="h-3.5 w-3.5" />Remover</button></div><div className="mt-2 rounded-md border border-white bg-white p-2.5"><p className="text-[11px] font-bold uppercase tracking-wide text-[#1a2e4a]">Documentos deste passageiro</p>{passengerDocuments.length > 0 ? <div className="mt-2 space-y-1.5">{passengerDocuments.map(({ attachment, flightEvent }) => <div key={attachment.id} className="flex min-w-0 items-center gap-2 rounded border border-slate-100 px-2 py-1.5"><FileText className="h-3.5 w-3.5 shrink-0 text-[#1a2e4a]" /><a href={attachment.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-xs font-semibold text-[#1a2e4a] hover:text-amber-700 hover:underline">{attachment.name}</a><span className="hidden shrink-0 text-[10px] text-slate-500 sm:inline">{flightEvent.title || EVENT_LABELS[flightEvent.kind]}</span>{attachment.seat && <span className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">Assento {attachment.seat}</span>}</div>)}</div> : <p className="mt-1 text-xs text-slate-500">O documento aparecerá aqui assim que for anexado no respectivo voo.</p>}</div></section>;
         })}</div> : <p className="mt-2 text-xs text-slate-500">Cadastre os passageiros para vincular cartões, bilhetes e itinerários a cada pessoa.</p>}
+        </div>}
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-3">
@@ -441,8 +464,18 @@ export function FinalItineraryForm() {
       </section>
 
       {events.length > 1 && <p className="rounded-md border border-dashed border-slate-200 bg-white px-3 py-2 text-xs leading-relaxed text-slate-500"><GripVertical className="mr-1 inline h-3.5 w-3.5 text-[#1a2e4a]" />Arraste as atividades para reorganizá-las <strong className="font-semibold text-[#1a2e4a]">dentro do mesmo dia</strong>. Essa sequência será usada na capa, no roteiro e no PDF.</p>}
-      {events.map((event) => (
-        <article
+      {events.map((event, index) => {
+        const previousEvent = events[index - 1];
+        const isFirstEventOfDay = !previousEvent || previousEvent.day !== event.day;
+        const daySectionId = `day-${event.day}`;
+        const eventSectionId = `event-${event.id}`;
+        const isDayCollapsed = collapsedSections.has(daySectionId);
+        const isEventCollapsed = collapsedSections.has(eventSectionId);
+
+        return (
+          <div key={event.id} className="space-y-2">
+            {isFirstEventOfDay && <section className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#1a2e4a]/15 bg-blue-50/60 px-3 py-2"><div className="flex items-center gap-2"><span className="rounded-full bg-[#1a2e4a] px-2 py-1 text-xs font-bold text-white">Dia {event.day}</span><span className="text-xs font-bold text-[#1a2e4a]">Compromissos do dia</span></div><Button type="button" variant="ghost" size="sm" onClick={() => toggleSection(daySectionId)} aria-expanded={!isDayCollapsed} className="h-7 px-2 text-xs text-slate-500 hover:bg-white hover:text-[#1a2e4a]"><ChevronDown className={`mr-1 h-4 w-4 transition-transform ${isDayCollapsed ? "" : "rotate-180"}`} />{isDayCollapsed ? "Abrir dia" : "Recolher dia"}</Button></section>}
+            {!isDayCollapsed && <article
           key={event.id}
           onDragOver={(nativeEvent) => { if (!canReorderAt(event.id)) return; nativeEvent.preventDefault(); setDragOverEventId(event.id); }}
           onDragLeave={() => dragOverEventId === event.id && setDragOverEventId(null)}
@@ -450,10 +483,10 @@ export function FinalItineraryForm() {
           className={`rounded-lg border p-3 ${dragOverEventId === event.id ? "border-[#1a2e4a] bg-blue-50" : "border-slate-200 bg-slate-50"}`}
         >
           <div className="mb-3 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2"><button type="button" draggable onDragStart={(nativeEvent) => { nativeEvent.dataTransfer.effectAllowed = "move"; setDraggedEventId(event.id); }} onDragEnd={() => { setDraggedEventId(null); setDragOverEventId(null); }} className="cursor-grab text-slate-400 hover:text-[#1a2e4a]" title={`Arraste para reordenar dentro do Dia ${event.day}`}><GripVertical className="h-5 w-5" /></button><span className="rounded-full bg-[#1a2e4a] px-2 py-1 text-xs font-bold text-white">Dia {event.day}</span><span className="text-sm font-bold text-[#1a2e4a]">{EVENT_LABELS[event.kind]}</span></div>
-            <Button type="button" variant="ghost" size="sm" onClick={() => removeFinalItineraryEvent(event.id)} className="h-8 w-8 p-0 text-red-500 hover:text-red-700" title="Remover item"><Trash2 className="h-4 w-4" /></Button>
+            <div className="flex min-w-0 items-center gap-2"><button type="button" draggable onDragStart={(nativeEvent) => { nativeEvent.dataTransfer.effectAllowed = "move"; setDraggedEventId(event.id); }} onDragEnd={() => { setDraggedEventId(null); setDragOverEventId(null); }} className="cursor-grab text-slate-400 hover:text-[#1a2e4a]" title={`Arraste para reordenar dentro do Dia ${event.day}`}><GripVertical className="h-5 w-5" /></button><span className="rounded-full bg-[#1a2e4a] px-2 py-1 text-xs font-bold text-white">Dia {event.day}</span><span className="shrink-0 text-sm font-bold text-[#1a2e4a]">{EVENT_LABELS[event.kind]}</span>{isEventCollapsed && <span className="truncate text-xs font-semibold text-slate-600">{event.title || "Sem título"}</span>}{isEventCollapsed && event.time && <span className="shrink-0 rounded bg-white px-1.5 py-0.5 text-[11px] font-semibold text-[#1a2e4a]">{event.time}</span>}</div>
+            <div className="flex shrink-0 items-center gap-1"><Button type="button" variant="ghost" size="sm" onClick={() => toggleSection(eventSectionId)} aria-expanded={!isEventCollapsed} className="h-7 px-2 text-xs text-slate-500 hover:bg-white hover:text-[#1a2e4a]"><ChevronDown className={`mr-1 h-4 w-4 transition-transform ${isEventCollapsed ? "" : "rotate-180"}`} />{isEventCollapsed ? "Abrir" : "Recolher"}</Button><Button type="button" variant="ghost" size="sm" onClick={() => removeFinalItineraryEvent(event.id)} className="h-8 w-8 p-0 text-red-500 hover:text-red-700" title="Remover item"><Trash2 className="h-4 w-4" /></Button></div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          {!isEventCollapsed && <div className="grid gap-3 sm:grid-cols-2">
             <div><Label>Tipo</Label><Select value={event.kind} onValueChange={(value) => updateFinalItineraryEvent(event.id, { kind: value as FinalItineraryEventKind })}><SelectTrigger className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent>{Object.entries(EVENT_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></div>
             <div className="grid grid-cols-2 gap-2"><div><Label>Dia</Label><Input type="number" min="1" value={event.day} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { day: Math.max(1, Number(nativeEvent.target.value) || 1) })} className="mt-1 bg-white" /></div><div><Label>Horário</Label><Input value={event.time} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { time: nativeEvent.target.value })} placeholder="Ex.: 09:30" className="mt-1 bg-white" /></div></div>
             <div className="sm:col-span-2"><Label>Título</Label><Input value={event.title} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { title: nativeEvent.target.value })} placeholder="Ex.: Transfer irá buscar você no aeroporto" className="mt-1 bg-white" /></div>
@@ -500,9 +533,11 @@ export function FinalItineraryForm() {
             <div><Label>Link útil (WhatsApp, empresa ou cartão de embarque)</Label><Input type="url" value={event.linkUrl} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { linkUrl: nativeEvent.target.value })} placeholder="https://..." className="mt-1 bg-white" /></div>
             <div><Label>Link do endereço (Google Maps)</Label><Input type="url" value={event.addressUrl || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { addressUrl: nativeEvent.target.value })} placeholder="https://maps.google.com/..." className="mt-1 bg-white" /></div>
             <div><Label>Link da foto</Label><Input type="url" value={event.photoUrl} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { photoUrl: nativeEvent.target.value })} placeholder="https://..." className="mt-1 bg-white" /></div>
+          </div>}
+        </article>}
           </div>
-        </article>
-      ))}
+        );
+      })}
 
       {events.length === 0 && <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500"><CarFront className="mx-auto mb-2 h-5 w-5 text-slate-400" />Adicione o primeiro compromisso prático ou reutilize os dados que já estão no orçamento.</div>}
       <section className="rounded-xl border border-amber-200 bg-amber-50/70 p-4">

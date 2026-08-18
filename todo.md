@@ -610,3 +610,8 @@
 - [x] Remover checklist de bagagem individual por passageiro e incluir um link único da companhia aérea para consulta
 - [x] Agrupar cada passageiro com a seleção e o anexo de seu documento de voo no editor
 - [x] Preservar a apresentação atual dos documentos no PDF e validar edição, testes, build e prévia
+
+- [x] Adicionar botão Abrir/Recolher na seção Capa e informações essenciais
+- [x] Adicionar botão Abrir/Recolher na seção Acesso rápido pelo celular
+- [x] Adicionar controles individuais Abrir/Recolher em dados de passageiro, compromissos e dias do Roteiro Final
+- [x] Validar interação, tipagem, testes, build, prévia e preservação do PDF

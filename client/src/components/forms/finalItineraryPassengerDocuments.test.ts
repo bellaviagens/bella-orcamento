@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FinalItineraryEvent } from "@shared/budgetTypes";
-import { passengerFlightDocuments } from "./FinalItineraryForm";
+import { passengerFlightDocuments, toggleCollapsedSection } from "./FinalItineraryForm";
 
 describe("passengerFlightDocuments", () => {
   it("mantém junto ao passageiro apenas os documentos dos voos a ele vinculados", () => {
@@ -16,5 +16,17 @@ describe("passengerFlightDocuments", () => {
 
     expect(passengerFlightDocuments(events, "p-anderson", "Anderson").map(({ attachment }) => attachment.id)).toEqual(["doc-anderson"]);
     expect(passengerFlightDocuments(events, "p-maria", "Maria").map(({ attachment }) => attachment.id)).toEqual(["doc-maria"]);
+  });
+});
+
+describe("toggleCollapsedSection", () => {
+  it("alterna apenas a seção solicitada sem mutar o estado anterior", () => {
+    const initial = new Set(["cover", "event-1"]);
+    const openedCover = toggleCollapsedSection(initial, "cover");
+    const collapsedShare = toggleCollapsedSection(openedCover, "share");
+
+    expect(initial).toEqual(new Set(["cover", "event-1"]));
+    expect(openedCover).toEqual(new Set(["event-1"]));
+    expect(collapsedShare).toEqual(new Set(["event-1", "share"]));
   });
 });
