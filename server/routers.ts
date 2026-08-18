@@ -475,6 +475,67 @@ export const appRouter = router({
         };
       }),
   }),
+  parseBoardingPass: protectedProcedure
+    .input(z.object({ documentBase64: z.string().min(32).max(11_200_000) }))
+    .mutation(async ({ input }) => {
+      const boardingPassSchema = {
+        type: "object",
+        properties: {
+          airline: { type: "string" },
+          flightNumber: { type: "string" },
+          locator: { type: "string" },
+          date: { type: "string" },
+          departureAirport: { type: "string" },
+          departureTime: { type: "string" },
+          departureTerminal: { type: "string" },
+          arrivalAirport: { type: "string" },
+          arrivalTime: { type: "string" },
+          arrivalTerminal: { type: "string" },
+        },
+        required: ["airline", "flightNumber", "locator", "date", "departureAirport", "departureTime", "departureTerminal", "arrivalAirport", "arrivalTime", "arrivalTerminal"],
+      };
+
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: "You extract data from airline boarding passes and e-tickets. Return only data that is explicitly visible in the document. For missing values, return an empty string. Use IATA airport codes where shown. Dates must use YYYY-MM-DD and times must use HH:MM. Always respond in Portuguese.",
+          },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Read this boarding pass or airline ticket and extract the airline, flight number, booking locator (PNR), flight date, departure and arrival airports, departure and arrival times, and both terminals when visible. Do not infer information that is not on the document." },
+              buildImportDocumentContent(input.documentBase64),
+            ],
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: { name: "boarding_pass_data", strict: true, schema: boardingPassSchema as Record<string, unknown> },
+        },
+      });
+
+      const content = response.choices[0]?.message?.content;
+      if (typeof content !== "string") {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Resposta inválida ao ler o cartão de embarque." });
+      }
+      try {
+        return JSON.parse(content) as {
+          airline: string;
+          flightNumber: string;
+          locator: string;
+          date: string;
+          departureAirport: string;
+          departureTime: string;
+          departureTerminal: string;
+          arrivalAirport: string;
+          arrivalTime: string;
+          arrivalTerminal: string;
+        };
+      } catch {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Não foi possível extrair os dados do cartão de embarque." });
+      }
+    }),
   sharedFavoriteLists: router({
     get: publicProcedure
       .input(z.object({ token: z.string().regex(/^[a-f0-9]{32}$/i) }))

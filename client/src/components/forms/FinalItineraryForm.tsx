@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Building2, CalendarDays, CarFront, Copy, ExternalLink, FileText, GripVertical, Hotel, Link2, Luggage, Mail, MessageCircle, Phone, Plane, Plus, QrCode, Share2, Trash2, Upload, UserRound, Users, X } from "lucide-react";
 import { DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE, DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE } from "@shared/budgetTypes";
 import type { FinalItineraryBaggageItem, FinalItineraryEventKind } from "@shared/budgetTypes";
+import { boardingPassUpdates } from "./finalItineraryBoardingPass";
 import QRCode from "qrcode";
 
 const EVENT_LABELS: Record<FinalItineraryEventKind, string> = {
@@ -56,6 +57,7 @@ export function FinalItineraryForm() {
   const [dragOverEventId, setDragOverEventId] = useState<string | null>(null);
   const [uploadingEventId, setUploadingEventId] = useState<string | null>(null);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [boardingPassMessageByEvent, setBoardingPassMessageByEvent] = useState<Record<string, string>>({});
   const [uploadingCoverImage, setUploadingCoverImage] = useState(false);
   const [coverImageError, setCoverImageError] = useState<string | null>(null);
   const [uploadingEventVisualId, setUploadingEventVisualId] = useState<string | null>(null);
@@ -76,6 +78,7 @@ export function FinalItineraryForm() {
   const eventVisualInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const coverImageInput = useRef<HTMLInputElement | null>(null);
   const uploadAttachment = trpc.itineraryAttachments.upload.useMutation();
+  const parseBoardingPass = trpc.parseBoardingPass.useMutation();
   const createSharedItinerary = trpc.sharedItineraries.create.useMutation();
   const revokeSharedItinerary = trpc.sharedItineraries.revoke.useMutation();
   const finalItinerary = budget.finalItinerary;
@@ -313,6 +316,7 @@ export function FinalItineraryForm() {
   const handleAttachmentSelection = (eventId: string, file: File | undefined) => {
     if (!file) return;
     setAttachmentError(null);
+    setBoardingPassMessageByEvent((current) => ({ ...current, [eventId]: "" }));
 
     if (!ACCEPTED_ATTACHMENT_TYPES.includes(file.type)) {
       setAttachmentError("Selecione um arquivo PDF, JPG, PNG ou WEBP.");
@@ -335,15 +339,25 @@ export function FinalItineraryForm() {
 
       setUploadingEventId(eventId);
       try {
+        const targetEvent = finalItinerary.events.find((item) => item.id === eventId);
+        if (!targetEvent) return;
         const attachment = await uploadAttachment.mutateAsync({
           fileName: file.name,
           contentType: file.type as "application/pdf" | "image/jpeg" | "image/png" | "image/webp",
           dataBase64,
         });
-        const targetEvent = finalItinerary.events.find((item) => item.id === eventId);
-        if (!targetEvent) return;
         const passengerId = attachmentPassengerByEvent[eventId];
         updateFinalItineraryEvent(eventId, { attachments: [...(targetEvent.attachments || []), { ...attachment, passengerId: passengerId || undefined }] });
+
+        if (targetEvent.kind === "flight" || targetEvent.kind === "return") {
+          try {
+            const parsed = await parseBoardingPass.mutateAsync({ documentBase64: result });
+            updateFinalItineraryEvent(eventId, boardingPassUpdates(targetEvent, parsed));
+            setBoardingPassMessageByEvent((current) => ({ ...current, [eventId]: "Dados do voo preenchidos automaticamente a partir do anexo. Confira antes de enviar o roteiro." }));
+          } catch {
+            setBoardingPassMessageByEvent((current) => ({ ...current, [eventId]: "O arquivo foi anexado, mas não foi possível ler os dados automaticamente. Você pode preenchê-los manualmente." }));
+          }
+        }
       } catch (error) {
         setAttachmentError(error instanceof Error ? error.message : "Não foi possível enviar o anexo.");
       } finally {
@@ -465,13 +479,14 @@ export function FinalItineraryForm() {
                 onChange={(nativeEvent) => handleAttachmentSelection(event.id, nativeEvent.target.files?.[0])}
               />
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div><p className="text-xs font-bold text-[#1a2e4a]">{event.kind === "hotel" ? "Reserva e comprovantes da hospedagem" : "Cartões de embarque e comprovantes do voo"}</p><p className="mt-0.5 text-[11px] text-slate-500">{event.kind === "hotel" ? "Anexe PDF, JPG, PNG ou WEBP de até 8 MB." : "Escolha o passageiro abaixo e anexe o cartão de embarque em PDF ou imagem."}</p></div>
-                <Button type="button" variant="outline" size="sm" disabled={uploadingEventId === event.id} onClick={() => attachmentInputs.current[event.id]?.click()} className="bg-white text-xs"><Upload className="mr-1.5 h-3.5 w-3.5" />{uploadingEventId === event.id ? "Enviando..." : event.kind === "hotel" ? "Anexar arquivo" : "Anexar cartão de embarque"}</Button>
+                <div><p className="text-xs font-bold text-[#1a2e4a]">{event.kind === "hotel" ? "Reserva e comprovantes da hospedagem" : "Cartões de embarque e comprovantes do voo"}</p><p className="mt-0.5 text-[11px] text-slate-500">{event.kind === "hotel" ? "Anexe PDF, JPG, PNG ou WEBP de até 8 MB." : "Anexe o cartão de embarque ou bilhete em PDF ou imagem para preencher os dados do voo automaticamente."}</p></div>
+                <Button type="button" variant="outline" size="sm" disabled={uploadingEventId === event.id} onClick={() => attachmentInputs.current[event.id]?.click()} className="bg-white text-xs"><Upload className="mr-1.5 h-3.5 w-3.5" />{uploadingEventId === event.id ? "Lendo arquivo..." : event.kind === "hotel" ? "Anexar arquivo" : "Anexar cartão ou bilhete"}</Button>
               </div>
               {(finalItinerary.passengers || []).length > 0 && <div className="mt-3 max-w-xs"><Label className="text-[11px]">{event.kind === "hotel" ? "Vincular o próximo anexo a" : "Passageiro do cartão de embarque"}</Label><Select value={attachmentPassengerByEvent[event.id] || "general"} onValueChange={(value) => setAttachmentPassengerByEvent((current) => ({ ...current, [event.id]: value === "general" ? "" : value }))}><SelectTrigger className="mt-1 h-9 bg-white text-xs"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="general">Documento geral</SelectItem>{finalItinerary.passengers?.map((passenger) => <SelectItem key={passenger.id} value={passenger.id}>{passenger.name}</SelectItem>)}</SelectContent></Select></div>}
               {(event.attachments || []).length > 0 && <div className="mt-3 space-y-2">
                 {(event.attachments || []).map((attachment) => { const passengerName = finalItinerary.passengers?.find((passenger) => passenger.id === attachment.passengerId)?.name; return <div key={attachment.id} className="flex min-w-0 items-center gap-2 rounded-md border border-blue-100 bg-white px-2.5 py-2"><FileText className="h-4 w-4 shrink-0 text-[#1a2e4a]" /><a href={attachment.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-xs font-semibold text-[#1a2e4a] hover:text-amber-700 hover:underline">{attachment.name}</a>{passengerName && <span className="hidden shrink-0 rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-[#1a2e4a] sm:inline">{passengerName}</span>}<span className="shrink-0 text-[10px] text-slate-400">{formatFileSize(attachment.size)}</span><a href={attachment.url} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-[#1a2e4a]" title="Abrir anexo"><ExternalLink className="h-3.5 w-3.5" /></a><button type="button" onClick={() => updateFinalItineraryEvent(event.id, { attachments: (event.attachments || []).filter((attachmentItem) => attachmentItem.id !== attachment.id) })} className="text-slate-400 hover:text-red-600" title="Remover anexo"><X className="h-4 w-4" /></button></div>; })}
               </div>}
+              {boardingPassMessageByEvent[event.id] && <p className="mt-2 text-xs font-medium text-[#1a2e4a]">{boardingPassMessageByEvent[event.id]}</p>}
               {attachmentError && <p className="mt-2 text-xs font-medium text-red-600">{attachmentError}</p>}
             </div>}
             <div className="sm:col-span-2"><Label>Detalhes e observações</Label><Textarea value={event.description} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { description: nativeEvent.target.value })} placeholder="Escreva as orientações, contato, ponto de encontro ou qualquer informação importante." className="mt-1 min-h-20 bg-white" /></div>

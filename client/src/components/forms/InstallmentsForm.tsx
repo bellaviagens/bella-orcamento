@@ -1,6 +1,7 @@
 import { useBudget } from "@/contexts/BudgetContext";
 import { useState, type ReactNode } from "react";
 import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -690,8 +691,11 @@ export function InstallmentsForm() {
                             </div>
                             <div className="grid grid-cols-[1.2fr_0.8fr_0.8fr] gap-2">
                               <div>
-                                <Label className="text-[10px] text-slate-500">Valor (R$)</Label>
-                                <Input type="number" min="0" step="0.01" value={step.amount || ""} onChange={(event) => updateStep(step.id, { amount: Number(event.target.value) || 0 })} className="mt-1 h-8 text-xs" placeholder="Ex: 4000" />
+                                <Label className="text-[10px] text-slate-500">Valor</Label>
+                                <InputGroup className="mt-1 h-8">
+                                  <InputGroupAddon><InputGroupText>R$</InputGroupText></InputGroupAddon>
+                                  <InputGroupInput type="number" min="0" step="0.01" value={step.amount || ""} onChange={(event) => updateStep(step.id, { amount: Number(event.target.value) || 0 })} className="h-8 text-xs" placeholder="Ex.: 4.000,00" />
+                                </InputGroup>
                               </div>
                               <div>
                                 <Label className="text-[10px] text-slate-500">Parcelas</Label>

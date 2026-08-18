@@ -50,6 +50,11 @@ describe("appRouter", () => {
     expect(caller.itineraryAttachments.upload).toBeDefined();
   });
 
+  it("has boarding pass parser procedure", () => {
+    const caller = appRouter.createCaller(createMockContext());
+    expect(caller.parseBoardingPass).toBeDefined();
+  });
+
   it("has shared itinerary and weather procedures", () => {
     const caller = appRouter.createCaller(createMockContext());
     expect(caller.sharedItineraries.create).toBeDefined();

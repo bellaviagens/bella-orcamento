@@ -593,3 +593,7 @@
 - [x] Adicionar ação segura para limpar somente os dados do Roteiro Final
 - [x] Remover espaço e linha desnecessários antes do conteúdo nas páginas internas do Roteiro Final
 - [x] Validar foto, limpeza, PDF, testes, build e prévia visual sem alterar os demais módulos
+
+- [x] Exibir o prefixo R$ nos campos de valor das formas de pagamento sem alterar os cálculos
+- [x] Ler cartão de embarque ou bilhete anexado e preencher automaticamente os dados do voo no Roteiro Final
+- [x] Validar leitura automática, preenchimento, tipagem, testes, build e prévia visual
