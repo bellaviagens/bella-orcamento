@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Star, MapPin, Upload, Loader2, Building2, Edit2, ExternalLink, Copy, GripVertical } from "lucide-react";
+import { Plus, Trash2, Star, MapPin, Upload, Loader2, Building2, Edit2, ExternalLink, Copy, FolderPlus, GripVertical } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Hotel } from "@shared/budgetTypes";
 import { nanoid } from "nanoid";
@@ -121,6 +121,7 @@ export function HotelForm() {
   const [prices, setPrices] = useState<Record<string, { total: number; perPerson: number }>>({});
 
   const parseHotelMutation = trpc.parseHotelScreenshot.useMutation();
+  const saveToLibraryMutation = trpc.travelLibrary.create.useMutation();
 
   const resetForm = () => {
     setName("");
@@ -163,6 +164,25 @@ export function HotelForm() {
     setPaymentNotes(values.paymentNotes);
     setPrices(values.prices);
     setShowForm(true);
+  };
+
+  const saveHotelToLibrary = async (hotel: Hotel) => {
+    const destination = budget.tripInfo.destination.trim();
+    try {
+      await saveToLibraryMutation.mutateAsync({
+        category: "hotel",
+        folderName: destination || "Hotéis gerais",
+        destination: destination || undefined,
+        name: hotel.name || "Hotel sem nome",
+        contactName: hotel.address || undefined,
+        linkUrl: /^https?:\/\//i.test(hotel.hotelUrl || "") ? hotel.hotelUrl : undefined,
+        imageUrl: /^https?:\/\//i.test(hotel.photoUrl || "") ? hotel.photoUrl : undefined,
+        notes: [hotel.description, hotel.paymentNotes, hotel.amenities?.length ? `Comodidades: ${hotel.amenities.join(", ")}` : ""].filter(Boolean).join("\n"),
+      });
+      toast.success(`${hotel.name || "Hotel"} salvo na Biblioteca de Viagem.`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível salvar este hotel na Biblioteca.");
+    }
   };
 
   const handleSave = () => {
@@ -388,6 +408,17 @@ export function HotelForm() {
                 {hotel.rating.toFixed(1)} / 10
               </div>
             )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => saveHotelToLibrary(hotel)}
+              disabled={saveToLibraryMutation.isPending}
+              className="h-9 w-9 p-0 text-[#1a2e4a] hover:bg-amber-50 hover:text-[#1a2e4a]"
+              title="Salvar na Biblioteca de Viagem"
+              aria-label={`Salvar ${hotel.name} na Biblioteca de Viagem`}
+            >
+              <FolderPlus className="h-4 w-4" />
+            </Button>
             <Button
               variant="ghost"
               size="sm"

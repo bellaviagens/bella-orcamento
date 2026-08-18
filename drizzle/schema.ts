@@ -91,12 +91,14 @@ export type InsertFavoriteRestaurant = typeof favoriteRestaurants.$inferInsert;
 export const travelLibraryItems = mysqlTable("travel_library_items", {
   id: varchar("id", { length: 36 }).primaryKey(),
   ownerOpenId: varchar("ownerOpenId", { length: 64 }).notNull(),
-  category: mysqlEnum("category", ["hotel", "tour", "transfer"]).notNull(),
+  category: mysqlEnum("category", ["hotel", "tour", "restaurant", "transfer"]).notNull(),
   folderName: varchar("folderName", { length: 120 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   destination: varchar("destination", { length: 255 }),
   contactName: varchar("contactName", { length: 255 }),
   phone: varchar("phone", { length: 80 }),
+  responsibleName: varchar("responsibleName", { length: 255 }),
+  whatsapp: varchar("whatsapp", { length: 80 }),
   linkUrl: varchar("linkUrl", { length: 2048 }),
   imageUrl: varchar("imageUrl", { length: 2048 }),
   notes: text("notes"),
@@ -106,6 +108,21 @@ export const travelLibraryItems = mysqlTable("travel_library_items", {
 
 export type TravelLibraryItem = typeof travelLibraryItems.$inferSelect;
 export type InsertTravelLibraryItem = typeof travelLibraryItems.$inferInsert;
+
+export const travelClients = mysqlTable("travel_clients", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  ownerOpenId: varchar("ownerOpenId", { length: 64 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  whatsapp: varchar("whatsapp", { length: 80 }),
+  email: varchar("email", { length: 320 }),
+  document: varchar("document", { length: 40 }),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TravelClient = typeof travelClients.$inferSelect;
+export type InsertTravelClient = typeof travelClients.$inferInsert;
 
 export const sharedFavoriteLists = mysqlTable("shared_favorite_lists", {
   id: varchar("id", { length: 36 }).primaryKey(),

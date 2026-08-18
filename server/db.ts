@@ -1,6 +1,6 @@
 import { and, desc, eq, isNull, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { favoriteRestaurants, InsertUser, savedBudgetDrafts, savedTourProposals, sharedFavoriteLists, sharedItineraries, travelLibraryItems, users } from "../drizzle/schema";
+import { favoriteRestaurants, InsertUser, savedBudgetDrafts, savedTourProposals, sharedFavoriteLists, sharedItineraries, travelClients, travelLibraryItems, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -434,7 +434,7 @@ export async function deleteFavoriteRestaurant(ownerOpenId: string, id: string) 
   return (result[0]?.affectedRows ?? 0) > 0;
 }
 
-export type TravelLibraryCategory = "hotel" | "tour" | "transfer";
+export type TravelLibraryCategory = "hotel" | "tour" | "restaurant" | "transfer";
 
 export interface TravelLibraryItemInput {
   ownerOpenId: string;
@@ -444,6 +444,8 @@ export interface TravelLibraryItemInput {
   destination?: string;
   contactName?: string;
   phone?: string;
+  responsibleName?: string;
+  whatsapp?: string;
   linkUrl?: string;
   imageUrl?: string;
   notes?: string;
@@ -463,6 +465,8 @@ export async function createTravelLibraryItem(input: TravelLibraryItemInput) {
     destination: input.destination?.trim() || null,
     contactName: input.contactName?.trim() || null,
     phone: input.phone?.trim() || null,
+    responsibleName: input.responsibleName?.trim() || null,
+    whatsapp: input.whatsapp?.trim() || null,
     linkUrl: input.linkUrl?.trim() || null,
     imageUrl: input.imageUrl?.trim() || null,
     notes: input.notes?.trim() || null,
@@ -487,6 +491,64 @@ export async function deleteTravelLibraryItem(ownerOpenId: string, id: string) {
   const result = await db.delete(travelLibraryItems)
     .where(and(eq(travelLibraryItems.id, id), eq(travelLibraryItems.ownerOpenId, ownerOpenId)));
   return (result[0]?.affectedRows ?? 0) > 0;
+}
+
+export interface TravelClientInput {
+  ownerOpenId: string;
+  name: string;
+  whatsapp?: string;
+  email?: string;
+  document?: string;
+  notes?: string;
+}
+
+export async function createTravelClient(input: TravelClientInput) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para salvar o cliente.");
+  const id = crypto.randomUUID();
+  await db.insert(travelClients).values({
+    id,
+    ownerOpenId: input.ownerOpenId,
+    name: input.name.trim(),
+    whatsapp: input.whatsapp?.trim() || null,
+    email: input.email?.trim() || null,
+    document: input.document?.trim() || null,
+    notes: input.notes?.trim() || null,
+  });
+  return id;
+}
+
+export async function listTravelClients(ownerOpenId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(travelClients).where(eq(travelClients.ownerOpenId, ownerOpenId)).orderBy(desc(travelClients.updatedAt));
+}
+
+export async function deleteTravelClient(ownerOpenId: string, id: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para excluir o cliente.");
+  const result = await db.delete(travelClients).where(and(eq(travelClients.id, id), eq(travelClients.ownerOpenId, ownerOpenId)));
+  return (result[0]?.affectedRows ?? 0) > 0;
+}
+
+export async function getTravelClientHistory(ownerOpenId: string, clientName: string) {
+  const db = await getDb();
+  if (!db) return { proposals: [], drafts: [] };
+  const normalizedName = clientName.trim().toLocaleLowerCase("pt-BR");
+  const sameClient = (name: unknown) => typeof name === "string" && name.trim().toLocaleLowerCase("pt-BR") === normalizedName;
+  const proposals = await db.select().from(savedTourProposals).where(eq(savedTourProposals.ownerOpenId, ownerOpenId)).orderBy(desc(savedTourProposals.updatedAt));
+  const drafts = await db.select().from(savedBudgetDrafts).where(eq(savedBudgetDrafts.ownerOpenId, ownerOpenId)).orderBy(desc(savedBudgetDrafts.updatedAt));
+  return {
+    proposals: proposals.filter((proposal) => sameClient(proposal.clientName)),
+    drafts: drafts.filter((draft) => {
+      try {
+        const snapshot = JSON.parse(draft.snapshot) as { tourProposal?: { clientName?: string } };
+        return sameClient(snapshot.tourProposal?.clientName);
+      } catch {
+        return false;
+      }
+    }).map(({ snapshot: _snapshot, ...draft }) => draft),
+  };
 }
 
 export async function createSharedFavoriteList(input: { ownerOpenId: string; token: string; snapshot: string }) {

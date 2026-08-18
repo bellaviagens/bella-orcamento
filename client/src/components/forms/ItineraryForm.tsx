@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarDays, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, GripVertical, Heart, Link2, Loader2, Plus, Save, Search, Share2, Tag, Trash2, UtensilsCrossed, X } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, FolderPlus, GripVertical, Heart, Link2, Loader2, Plus, Save, Search, Share2, Tag, Trash2, UtensilsCrossed, X } from "lucide-react";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
 import { createEmptyGastronomySearchDraft, createProposalTourFromActivity, favoriteRestaurantToGastronomyOption, filterRestaurantFavorites, sortRestaurantFavorites, type FavoriteRestaurantSort } from "./itineraryFormState";
@@ -31,6 +31,7 @@ export function ItineraryForm() {
   const duplicateProposalMutation = trpc.tourProposals.duplicate.useMutation();
   const updateProposalStatusMutation = trpc.tourProposals.updateStatus.useMutation();
   const deleteProposalMutation = trpc.tourProposals.delete.useMutation();
+  const saveToLibraryMutation = trpc.travelLibrary.create.useMutation();
   const [savedProposalSearch, setSavedProposalSearch] = useState("");
   const savedProposalQueryInput = useMemo(
     () => ({ search: savedProposalSearch.trim() || undefined }),
@@ -102,11 +103,21 @@ export function ItineraryForm() {
         website: restaurant.website,
         photoUrl: restaurant.photoUrl,
       });
+      await saveToLibraryMutation.mutateAsync({
+        category: "restaurant",
+        folderName: budget.tripInfo.destination.trim() || restaurant.location.trim() || "Restaurantes favoritos",
+        destination: budget.tripInfo.destination.trim() || restaurant.location.trim() || undefined,
+        name: restaurant.name,
+        linkUrl: restaurant.website || restaurant.mapsUrl || undefined,
+        imageUrl: restaurant.photoUrl || undefined,
+        notes: [restaurant.address, restaurant.description, restaurant.rating ? `Avaliação: ${restaurant.rating}` : ""].filter(Boolean).join("\n"),
+      });
       await utils.favoriteRestaurants.list.invalidate();
-      toast.success(`${restaurant.name} foi salvo nos restaurantes favoritos.`);
+      await utils.travelLibrary.list.invalidate();
+      toast.success(`${restaurant.name} foi salvo nos favoritos e na Biblioteca de Viagem.`);
     } catch (error) {
       console.error("Save favorite restaurant error:", error);
-      toast.error(error instanceof Error ? error.message : "Não foi possível salvar este restaurante nos favoritos.");
+      toast.error(error instanceof Error ? error.message : "Não foi possível salvar este restaurante nos favoritos e na Biblioteca.");
     }
   };
 
@@ -379,6 +390,29 @@ export function ItineraryForm() {
     updateItineraryActivity(dayId, activity.id, { tourId });
   };
 
+  const saveCurrentToursToLibrary = async () => {
+    if (!budget.tours.length) {
+      toast.message("Cadastre ao menos um passeio completo para salvá-lo na Biblioteca.");
+      return;
+    }
+    const destination = budget.tripInfo.destination.trim();
+    try {
+      await Promise.all(budget.tours.map((tour) => saveToLibraryMutation.mutateAsync({
+        category: "tour",
+        folderName: destination || "Passeios gerais",
+        destination: destination || undefined,
+        name: tour.name || "Passeio sem nome",
+        contactName: tour.location || undefined,
+        linkUrl: /^https?:\/\//i.test(tour.pageUrl || "") ? tour.pageUrl : undefined,
+        imageUrl: /^https?:\/\//i.test(tour.photosUrl || "") ? tour.photosUrl : undefined,
+        notes: [tour.description, tour.duration ? `Duração: ${tour.duration}` : ""].filter(Boolean).join("\n"),
+      })));
+      toast.success(`${budget.tours.length} passeio${budget.tours.length === 1 ? "" : "s"} salvo${budget.tours.length === 1 ? "" : "s"} na Biblioteca de Viagem.`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível salvar os passeios na Biblioteca.");
+    }
+  };
+
   return (
     <div className="space-y-3">
       <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-[#1a2e4a]">
@@ -391,23 +425,26 @@ export function ItineraryForm() {
             <h4 className="text-sm font-bold text-[#1a2e4a]">Abertura e pagamento da proposta</h4>
             <p className="mt-1 text-xs text-slate-500">Essas informações aparecem antes e depois dos passeios no documento de aprovação.</p>
           </div>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button type="button" variant="outline" className="h-9 shrink-0 bg-white text-xs font-bold"><FilePlus2 className="mr-1.5 h-4 w-4" />Nova proposta</Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="border-amber-200 bg-white">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-[#1a2e4a]">Iniciar uma nova proposta?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Os passeios, dias, dados do cliente, opções gastronômicas e resultados de busca desta proposta serão limpos. O Roteiro Final, as propostas salvas e seus restaurantes favoritos permanecerão preservados.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleNewProposal} className="bg-[#1a2e4a] text-white hover:bg-[#12243d]">Limpar e iniciar nova proposta</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" onClick={() => void saveCurrentToursToLibrary()} disabled={saveToLibraryMutation.isPending || budget.tours.length === 0} className="h-9 shrink-0 bg-white text-xs font-bold"><FolderPlus className="mr-1.5 h-4 w-4" />Salvar passeios na Biblioteca</Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button type="button" variant="outline" className="h-9 shrink-0 bg-white text-xs font-bold"><FilePlus2 className="mr-1.5 h-4 w-4" />Nova proposta</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="border-amber-200 bg-white">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-[#1a2e4a]">Iniciar uma nova proposta?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Os passeios, dias, dados do cliente, opções gastronômicas e resultados de busca desta proposta serão limpos. O Roteiro Final, as propostas salvas e seus restaurantes favoritos permanecerão preservados.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleNewProposal} className="bg-[#1a2e4a] text-white hover:bg-[#12243d]">Limpar e iniciar nova proposta</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div><Label htmlFor="proposal-client">Cliente</Label><Input id="proposal-client" value={budget.tourProposal.clientName || ""} onChange={(event) => updateTourProposal({ clientName: event.target.value })} placeholder="Ex.: Suelen Vieira" className="mt-1 bg-white" /></div>

@@ -71,6 +71,13 @@
       "when": 1787071358559,
       "tag": "0009_purple_vulture",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1787072709892,
+      "tag": "0010_young_red_wolf",
+      "breakpoints": true
     }
   ]
 }

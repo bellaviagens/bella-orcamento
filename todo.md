@@ -626,3 +626,9 @@
 - [x] Validar tipagem, testes, build e fluxos atualizados de propostas de passeios
 - [x] Implementar uma Biblioteca de Viagem persistente por pastas para hotéis, passeios e transfers, com reaproveitamento nos orçamentos
 - [x] Redesenhar a navegação com uma área lateral de cadastros, preservando as abas e fluxos atuais
+- [x] Salvar hotéis e passeios do orçamento atual diretamente na Biblioteca de Viagem
+- [x] Estruturar a Biblioteca por destino e subgrupos de hotéis, passeios, restaurantes e transfers
+- [x] Criar cadastro detalhado de clientes e exibir seu histórico de orçamentos
+- [x] Incluir nome do responsável e WhatsApp no cadastro de transfers da Biblioteca
+- [x] Direcionar favoritos da proposta para a Biblioteca correspondente por destino
+- [x] Validar migração, reaproveitamento de itens, histórico de clientes, tipagem, testes, build e responsividade
