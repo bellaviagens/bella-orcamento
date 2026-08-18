@@ -322,7 +322,9 @@ function BuilderContent() {
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
                       Hotéis
                     </h3>
-                    <HotelForm key={`hotels-${budgetLoadKey}`} />
+                    <div className="h-[calc(100dvh-16rem)] min-h-[32rem] overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]">
+                      <HotelForm key={`hotels-${budgetLoadKey}`} />
+                    </div>
                   </div>
                 </TabsContent>
 

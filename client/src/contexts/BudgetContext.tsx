@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
 import { defaultBudgetData, type BudgetData, type FinalItinerary, type FinalItineraryEvent, type FinalItineraryEventKind, type Flight, type GastronomyOption, type Hotel, type FareTier, type ItineraryActivity, type ItineraryDay, type QuotationActivity, type Tour, type TourProposal } from "@shared/budgetTypes";
 import type { CombinedPaymentCondition, CombinedPaymentStep } from "@shared/combinedPaymentPlan";
 import { reconcileFareBenefits } from "@shared/fareBenefits";
@@ -90,6 +90,21 @@ export function rehydrateBudgetDraft(snapshot: Partial<BudgetData>): BudgetData 
     installments: { ...defaultBudgetData.installments, ...snapshot.installments },
     pageBreaks: snapshot.pageBreaks ? { ...snapshot.pageBreaks } : undefined,
   };
+}
+
+export const LAST_BUDGET_STORAGE_KEY = "bella-viagens-last-budget-v1";
+
+/** Recupera com segurança o último orçamento local, inclusive snapshots de versões anteriores. */
+export function restoreLastBudgetFromStorage(serializedBudget: string | null): BudgetData {
+  if (!serializedBudget) return defaultBudgetData;
+
+  try {
+    const parsed = JSON.parse(serializedBudget);
+    if (!parsed || typeof parsed !== "object") return defaultBudgetData;
+    return rehydrateBudgetDraft(parsed as Partial<BudgetData>);
+  } catch {
+    return defaultBudgetData;
+  }
 }
 
 function calculateBenefits(tier: FareTier): string[] {
@@ -577,7 +592,18 @@ export function addTourToFinalItineraryInBudget(budget: BudgetData, tourId: stri
 }
 
 export function BudgetProvider({ children }: { children: ReactNode }) {
-  const [budget, setBudget] = useState<BudgetData>(defaultBudgetData);
+  const [budget, setBudget] = useState<BudgetData>(() => {
+    if (typeof window === "undefined") return defaultBudgetData;
+    return restoreLastBudgetFromStorage(window.localStorage.getItem(LAST_BUDGET_STORAGE_KEY));
+  });
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(LAST_BUDGET_STORAGE_KEY, JSON.stringify(budget));
+    } catch {
+      // A edição continua disponível mesmo se o navegador bloquear o armazenamento local.
+    }
+  }, [budget]);
 
   const updateTripInfo = useCallback((field: string, value: string) => {
     setBudget((prev) => ({

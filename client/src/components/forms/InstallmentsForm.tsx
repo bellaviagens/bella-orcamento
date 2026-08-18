@@ -77,8 +77,10 @@ function PaymentSection({
 export function InstallmentsForm() {
   const { budget, updateInstallments, updatePaymentMethods, updateHotelPaymentMethods, updatePageBreaks } = useBudget();
   const { installments, pageBreaks } = budget;
-  const [collapsedPaymentConditions, setCollapsedPaymentConditions] = useState<string[]>([]);
-  const [collapsedPaymentSections, setCollapsedPaymentSections] = useState<string[]>([]);
+  const [collapsedPaymentConditions, setCollapsedPaymentConditions] = useState<string[]>(() => (
+    normalizeCombinedPaymentConditions(budget.installments?.combinedPaymentSteps ?? []).map((condition) => condition.id)
+  ));
+  const [collapsedPaymentSections, setCollapsedPaymentSections] = useState<string[]>(["flight-cash", "flight-rate", "hotel"]);
 
   const isPaymentSectionCollapsed = (sectionId: string) => collapsedPaymentSections.includes(sectionId);
   const togglePaymentSection = (sectionId: string) => setCollapsedPaymentSections((current) => toggleCollapsedPaymentSection(current, sectionId));

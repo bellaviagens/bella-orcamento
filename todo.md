@@ -579,3 +579,8 @@
 - [x] Adicionar controle individual de recolher e abrir em cada compromisso da agenda diária
 - [x] Permitir levar os passeios da proposta aprovada para o Roteiro Final sem redigitar informações
 - [x] Validar a conversão dos passeios, testes, build e prévia visual sem alterar os demais módulos
+
+- [x] Restaurar automaticamente o último orçamento em edição ao reabrir a aplicação
+- [x] Iniciar todos os blocos da aba Parcelamento recolhidos
+- [x] Ampliar novamente a área de rolagem do editor de hotéis para aproveitar mais a tela
+- [x] Validar persistência, comportamento visual, testes e build sem alterar cálculos ou PDF
