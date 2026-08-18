@@ -9,8 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Building2, CalendarDays, CarFront, Copy, ExternalLink, FileText, GripVertical, Hotel, Link2, Luggage, Mail, MessageCircle, Phone, Plane, Plus, QrCode, Share2, Trash2, Upload, UserRound, Users, X } from "lucide-react";
 import { DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE, DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE } from "@shared/budgetTypes";
-import type { FinalItineraryBaggageItem, FinalItineraryEventKind } from "@shared/budgetTypes";
-import { boardingPassUpdates } from "./finalItineraryBoardingPass";
+import type { FinalItineraryAttachment, FinalItineraryBaggageItem, FinalItineraryEventKind } from "@shared/budgetTypes";
+import { boardingPassAttachmentUpdates, boardingPassUpdates } from "./finalItineraryBoardingPass";
 import QRCode from "qrcode";
 
 const EVENT_LABELS: Record<FinalItineraryEventKind, string> = {
@@ -347,16 +347,21 @@ export function FinalItineraryForm() {
           dataBase64,
         });
         const passengerId = attachmentPassengerByEvent[eventId];
-        updateFinalItineraryEvent(eventId, { attachments: [...(targetEvent.attachments || []), { ...attachment, passengerId: passengerId || undefined }] });
+        let attachmentWithDetails: FinalItineraryAttachment = { ...attachment, passengerId: passengerId || undefined };
 
         if (targetEvent.kind === "flight" || targetEvent.kind === "return") {
           try {
             const parsed = await parseBoardingPass.mutateAsync({ documentBase64: result });
-            updateFinalItineraryEvent(eventId, boardingPassUpdates(targetEvent, parsed));
-            setBoardingPassMessageByEvent((current) => ({ ...current, [eventId]: "Dados do voo preenchidos automaticamente a partir do anexo. Confira antes de enviar o roteiro." }));
+            attachmentWithDetails = boardingPassAttachmentUpdates(attachmentWithDetails, finalItinerary.passengers || [], passengerId, parsed);
+            updateFinalItineraryEvent(eventId, { ...boardingPassUpdates(targetEvent, parsed), attachments: [...(targetEvent.attachments || []), attachmentWithDetails] });
+            const passengerAndSeat = [attachmentWithDetails.passengerName && `passageiro ${attachmentWithDetails.passengerName}`, attachmentWithDetails.seat && `assento ${attachmentWithDetails.seat}`].filter(Boolean).join(" • ");
+            setBoardingPassMessageByEvent((current) => ({ ...current, [eventId]: `Dados do voo preenchidos automaticamente a partir do anexo${passengerAndSeat ? `, incluindo ${passengerAndSeat}` : ""}. Confira antes de enviar o roteiro.` }));
           } catch {
+            updateFinalItineraryEvent(eventId, { attachments: [...(targetEvent.attachments || []), attachmentWithDetails] });
             setBoardingPassMessageByEvent((current) => ({ ...current, [eventId]: "O arquivo foi anexado, mas não foi possível ler os dados automaticamente. Você pode preenchê-los manualmente." }));
           }
+        } else {
+          updateFinalItineraryEvent(eventId, { attachments: [...(targetEvent.attachments || []), attachmentWithDetails] });
         }
       } catch (error) {
         setAttachmentError(error instanceof Error ? error.message : "Não foi possível enviar o anexo.");
@@ -484,7 +489,7 @@ export function FinalItineraryForm() {
               </div>
               {(finalItinerary.passengers || []).length > 0 && <div className="mt-3 max-w-xs"><Label className="text-[11px]">{event.kind === "hotel" ? "Vincular o próximo anexo a" : "Passageiro do cartão de embarque"}</Label><Select value={attachmentPassengerByEvent[event.id] || "general"} onValueChange={(value) => setAttachmentPassengerByEvent((current) => ({ ...current, [event.id]: value === "general" ? "" : value }))}><SelectTrigger className="mt-1 h-9 bg-white text-xs"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="general">Documento geral</SelectItem>{finalItinerary.passengers?.map((passenger) => <SelectItem key={passenger.id} value={passenger.id}>{passenger.name}</SelectItem>)}</SelectContent></Select></div>}
               {(event.attachments || []).length > 0 && <div className="mt-3 space-y-2">
-                {(event.attachments || []).map((attachment) => { const passengerName = finalItinerary.passengers?.find((passenger) => passenger.id === attachment.passengerId)?.name; return <div key={attachment.id} className="flex min-w-0 items-center gap-2 rounded-md border border-blue-100 bg-white px-2.5 py-2"><FileText className="h-4 w-4 shrink-0 text-[#1a2e4a]" /><a href={attachment.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-xs font-semibold text-[#1a2e4a] hover:text-amber-700 hover:underline">{attachment.name}</a>{passengerName && <span className="hidden shrink-0 rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-[#1a2e4a] sm:inline">{passengerName}</span>}<span className="shrink-0 text-[10px] text-slate-400">{formatFileSize(attachment.size)}</span><a href={attachment.url} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-[#1a2e4a]" title="Abrir anexo"><ExternalLink className="h-3.5 w-3.5" /></a><button type="button" onClick={() => updateFinalItineraryEvent(event.id, { attachments: (event.attachments || []).filter((attachmentItem) => attachmentItem.id !== attachment.id) })} className="text-slate-400 hover:text-red-600" title="Remover anexo"><X className="h-4 w-4" /></button></div>; })}
+                {(event.attachments || []).map((attachment) => { const passengerName = finalItinerary.passengers?.find((passenger) => passenger.id === attachment.passengerId)?.name || attachment.passengerName; return <div key={attachment.id} className="flex min-w-0 items-center gap-2 rounded-md border border-blue-100 bg-white px-2.5 py-2"><FileText className="h-4 w-4 shrink-0 text-[#1a2e4a]" /><a href={attachment.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-xs font-semibold text-[#1a2e4a] hover:text-amber-700 hover:underline">{attachment.name}</a>{passengerName && <span className="hidden shrink-0 rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-[#1a2e4a] sm:inline">{passengerName}</span>}{attachment.seat && <span className="hidden shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800 sm:inline">Assento {attachment.seat}</span>}<span className="shrink-0 text-[10px] text-slate-400">{formatFileSize(attachment.size)}</span><a href={attachment.url} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-[#1a2e4a]" title="Abrir anexo"><ExternalLink className="h-3.5 w-3.5" /></a><button type="button" onClick={() => updateFinalItineraryEvent(event.id, { attachments: (event.attachments || []).filter((attachmentItem) => attachmentItem.id !== attachment.id) })} className="text-slate-400 hover:text-red-600" title="Remover anexo"><X className="h-4 w-4" /></button></div>; })}
               </div>}
               {boardingPassMessageByEvent[event.id] && <p className="mt-2 text-xs font-medium text-[#1a2e4a]">{boardingPassMessageByEvent[event.id]}</p>}
               {attachmentError && <p className="mt-2 text-xs font-medium text-red-600">{attachmentError}</p>}

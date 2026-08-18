@@ -597,3 +597,7 @@
 - [x] Exibir o prefixo R$ nos campos de valor das formas de pagamento sem alterar os cálculos
 - [x] Ler cartão de embarque ou bilhete anexado e preencher automaticamente os dados do voo no Roteiro Final
 - [x] Validar leitura automática, preenchimento, tipagem, testes, build e prévia visual
+
+- [x] Extrair automaticamente nome do passageiro e assento ao anexar cartão de embarque
+- [x] Preencher o passageiro vinculado e apresentar o assento identificado no Roteiro Final
+- [x] Validar extração ampliada, testes, build e prévia visual

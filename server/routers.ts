@@ -491,20 +491,22 @@ export const appRouter = router({
           arrivalAirport: { type: "string" },
           arrivalTime: { type: "string" },
           arrivalTerminal: { type: "string" },
+          passengerName: { type: "string" },
+          seat: { type: "string" },
         },
-        required: ["airline", "flightNumber", "locator", "date", "departureAirport", "departureTime", "departureTerminal", "arrivalAirport", "arrivalTime", "arrivalTerminal"],
+        required: ["airline", "flightNumber", "locator", "date", "departureAirport", "departureTime", "departureTerminal", "arrivalAirport", "arrivalTime", "arrivalTerminal", "passengerName", "seat"],
       };
 
       const response = await invokeLLM({
         messages: [
           {
             role: "system",
-            content: "You extract data from airline boarding passes and e-tickets. Return only data that is explicitly visible in the document. For missing values, return an empty string. Use IATA airport codes where shown. Dates must use YYYY-MM-DD and times must use HH:MM. Always respond in Portuguese.",
+            content: "You extract data from airline boarding passes and e-tickets. Return only data that is explicitly visible in the document. For missing values, return an empty string. Use IATA airport codes where shown. Dates must use YYYY-MM-DD and times must use HH:MM. Preserve the passenger name exactly as printed and extract the assigned seat when it is visible. Always respond in Portuguese.",
           },
           {
             role: "user",
             content: [
-              { type: "text", text: "Read this boarding pass or airline ticket and extract the airline, flight number, booking locator (PNR), flight date, departure and arrival airports, departure and arrival times, and both terminals when visible. Do not infer information that is not on the document." },
+              { type: "text", text: "Read this boarding pass or airline ticket and extract the airline, flight number, booking locator (PNR), flight date, departure and arrival airports, departure and arrival times, both terminals, passenger name, and assigned seat when visible. Do not infer information that is not on the document." },
               buildImportDocumentContent(input.documentBase64),
             ],
           },
@@ -531,6 +533,8 @@ export const appRouter = router({
           arrivalAirport: string;
           arrivalTime: string;
           arrivalTerminal: string;
+          passengerName: string;
+          seat: string;
         };
       } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Não foi possível extrair os dados do cartão de embarque." });

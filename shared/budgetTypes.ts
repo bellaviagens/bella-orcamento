@@ -136,6 +136,10 @@ export interface FinalItineraryAttachment {
   contentType: string;
   size: number;
   passengerId?: string;
+  /** Nome identificado diretamente no cartão de embarque, quando disponível. */
+  passengerName?: string;
+  /** Assento identificado diretamente no cartão de embarque, quando disponível. */
+  seat?: string;
 }
 
 export interface FinalItineraryBaggageItem {

@@ -1,4 +1,4 @@
-import type { FinalItineraryEvent } from "@shared/budgetTypes";
+import type { FinalItineraryAttachment, FinalItineraryEvent, FinalItineraryPassenger } from "@shared/budgetTypes";
 
 export type BoardingPassData = {
   airline: string;
@@ -11,10 +11,44 @@ export type BoardingPassData = {
   arrivalAirport: string;
   arrivalTime: string;
   arrivalTerminal: string;
+  passengerName: string;
+  seat: string;
 };
 
 function keepExistingValue(parsedValue: string, currentValue?: string) {
   return parsedValue.trim() || currentValue || "";
+}
+
+function normalizePassengerName(value: string) {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z ]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+export function findPassengerIdByBoardingPassName(passengers: FinalItineraryPassenger[], boardingPassName: string) {
+  const documentTokens = normalizePassengerName(boardingPassName).split(" ").filter((token) => token.length > 1);
+  if (documentTokens.length < 2) return undefined;
+
+  return passengers.find((passenger) => {
+    const passengerTokens = normalizePassengerName(passenger.name).split(" ").filter((token) => token.length > 1);
+    return documentTokens.every((token) => passengerTokens.includes(token)) || passengerTokens.every((token) => documentTokens.includes(token));
+  })?.id;
+}
+
+export function boardingPassAttachmentUpdates(
+  attachment: FinalItineraryAttachment,
+  passengers: FinalItineraryPassenger[],
+  selectedPassengerId: string | undefined,
+  parsed: BoardingPassData,
+): FinalItineraryAttachment {
+  const detectedPassengerId = findPassengerIdByBoardingPassName(passengers, parsed.passengerName);
+  const passengerId = selectedPassengerId || detectedPassengerId || attachment.passengerId;
+  const selectedPassenger = passengers.find((passenger) => passenger.id === passengerId);
+
+  return {
+    ...attachment,
+    passengerId,
+    passengerName: parsed.passengerName.trim() || selectedPassenger?.name || attachment.passengerName,
+    seat: parsed.seat.trim() || attachment.seat,
+  };
 }
 
 export function boardingPassUpdates(event: FinalItineraryEvent, parsed: BoardingPassData): Partial<FinalItineraryEvent> {

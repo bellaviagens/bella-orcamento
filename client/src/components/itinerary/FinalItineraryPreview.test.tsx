@@ -78,7 +78,7 @@ describe("FinalItineraryPreview — capa institucional", () => {
             flightNumber: "LA 700",
             flightLocator: "ABC123",
             flightDate: "2026-09-10",
-            attachments: [{ id: "boarding-pass", name: "Cartão Ana", url: "https://example.com/cartao.pdf", size: 1024, passengerId: "passenger-1" }],
+            attachments: [{ id: "boarding-pass", name: "Cartão Ana", url: "https://example.com/cartao.pdf", size: 1024, passengerId: "passenger-1", passengerName: "Ana", seat: "12A" }],
           },
           { id: "hotel-1", day: 1, time: "15:00", kind: "hotel", title: "Hospedagem Hotel Bella", description: "", linkUrl: "" },
           { id: "tour-1", day: 1, time: "16:00", kind: "tour", title: "Passeio panorâmico", description: "", linkUrl: "" },
@@ -95,6 +95,7 @@ describe("FinalItineraryPreview — capa institucional", () => {
     expect(markup).toContain("ABC123");
     expect(markup).toContain("Cartões de embarque e documentos deste voo");
     expect(markup).toContain("Abrir cartão de embarque: Cartão Ana");
+    expect(markup).toContain("Assento 12A");
     expect(markup).toContain("data-pdf-keep-together=\"true\"");
     expect(markup).toContain("break-inside:avoid");
   });
