@@ -672,3 +672,4 @@
 - [x] Corrigir a sobreposição entre Modelo da capa e Imagem do destino no editor do Roteiro Final
 - [x] Mover as regras de bagagem para dentro do cartão de cada voo, junto aos passageiros e documentos
 - [x] Permitir escolher qual proposta de passeios salva será importada para o Roteiro Final
+- [x] Iniciar recolhidos todos os dias, compromissos e seções com controle Abrir/Recolher no Roteiro Final

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FinalItineraryEvent } from "@shared/budgetTypes";
-import { passengerFlightDocuments, toggleCollapsedSection } from "./FinalItineraryForm";
+import { initialCollapsedSections, passengerFlightDocuments, toggleCollapsedSection } from "./FinalItineraryForm";
 
 describe("passengerFlightDocuments", () => {
   it("mantém junto ao passageiro apenas os documentos dos voos a ele vinculados", () => {
@@ -30,5 +30,24 @@ describe("toggleCollapsedSection", () => {
     expect(openedCover).toEqual(new Set(["event-1"]));
     expect(collapsedShare).toEqual(new Set(["event-1", "share"]));
     expect(collapsedUsefulLinks).toEqual(new Set(["event-1", "share", "useful-links"]));
+  });
+});
+
+describe("initialCollapsedSections", () => {
+  it("inicia as seções gerais, os dias e os compromissos recolhidos", () => {
+    const sections = initialCollapsedSections([
+      { id: "flight-1", kind: "flight", day: 1, title: "Ida", time: "10:00" },
+      { id: "tour-1", kind: "tour", day: 2, title: "Passeio", time: "14:00" },
+    ]);
+
+    expect(sections).toEqual(new Set([
+      "cover",
+      "share",
+      "useful-links",
+      "day-1",
+      "event-flight-1",
+      "day-2",
+      "event-tour-1",
+    ]));
   });
 });

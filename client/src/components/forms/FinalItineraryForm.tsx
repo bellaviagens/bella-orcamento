@@ -63,6 +63,15 @@ export function toggleCollapsedSection(current: Set<string>, sectionId: string) 
   return next;
 }
 
+export function initialCollapsedSections(events: FinalItineraryEvent[]) {
+  return new Set([
+    "cover",
+    "share",
+    "useful-links",
+    ...events.flatMap((event) => [`day-${event.day}`, `event-${event.id}`]),
+  ]);
+}
+
 export function FinalItineraryForm() {
   const {
     budget,
@@ -99,7 +108,8 @@ export function FinalItineraryForm() {
   const [showSavedProposalPicker, setShowSavedProposalPicker] = useState(false);
   const [selectedSavedProposalId, setSelectedSavedProposalId] = useState("");
   const [savedProposalImportMessage, setSavedProposalImportMessage] = useState("");
-  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(() => new Set());
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(() => initialCollapsedSections(budget.finalItinerary.events));
+  const knownCollapsedSectionIds = useRef<Set<string>>(new Set(initialCollapsedSections(budget.finalItinerary.events)));
   const [savedLibraryEventIds, setSavedLibraryEventIds] = useState<Set<string>>(() => new Set());
   const attachmentInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const eventVisualInputs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -119,6 +129,13 @@ export function FinalItineraryForm() {
   const events = [...finalItinerary.events].sort((first, second) => first.day - second.day);
   const usefulLinks = finalItinerary.usefulLinks || [];
   const welcomeTemplates = finalItinerary.welcomeMessageTemplates || [];
+  useEffect(() => {
+    const nextSectionIds = Array.from(initialCollapsedSections(finalItinerary.events));
+    const newSectionIds = nextSectionIds.filter((sectionId) => !knownCollapsedSectionIds.current.has(sectionId));
+    if (!newSectionIds.length) return;
+    newSectionIds.forEach((sectionId) => knownCollapsedSectionIds.current.add(sectionId));
+    setCollapsedSections((current) => new Set(Array.from(current).concat(newSectionIds)));
+  }, [finalItinerary.events]);
   const passengerHasFlightDocument = (passengerId: string) => finalItinerary.events.some((event) => (event.kind === "flight" || event.kind === "return") && (event.attachments || []).some((attachment) => attachment.passengerId === passengerId));
   const shareMessageBody = finalItinerary.shareMessage?.trim() || DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE;
   const shareMessage = shareUrl
@@ -158,7 +175,9 @@ export function FinalItineraryForm() {
     setShowSharePreview(false);
     setSelectedWelcomeTemplateId("");
     setNewWelcomeTemplateName("");
-    setCollapsedSections(new Set());
+    const defaultCollapsedSections = initialCollapsedSections([]);
+    setCollapsedSections(defaultCollapsedSections);
+    knownCollapsedSectionIds.current = new Set(defaultCollapsedSections);
   };
 
   const handleCoverImageSelection = (file?: File) => {
