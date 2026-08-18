@@ -9,10 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Building2, CalendarDays, CarFront, ChevronDown, Copy, ExternalLink, FileText, FolderPlus, GripVertical, Hotel, Link2, Luggage, Mail, MessageCircle, Phone, Plane, Plus, QrCode, Share2, Trash2, Upload, UserRound, Users, X } from "lucide-react";
 import { DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE, DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE } from "@shared/budgetTypes";
-import type { FinalItineraryAttachment, FinalItineraryEvent, FinalItineraryEventKind } from "@shared/budgetTypes";
+import type { BudgetData, FinalItineraryAttachment, FinalItineraryEvent, FinalItineraryEventKind } from "@shared/budgetTypes";
 import { boardingPassAttachmentUpdates, boardingPassUpdates } from "./finalItineraryBoardingPass";
 import { hotelVoucherUpdates } from "./finalItineraryHotelVoucher";
 import { finalItineraryEventToLibraryInput } from "./finalItineraryLibraryItem";
+import { savedProposalTourEvents } from "./savedProposalTourImport";
 import QRCode from "qrcode";
 
 const EVENT_LABELS: Record<FinalItineraryEventKind, string> = {
@@ -95,6 +96,9 @@ export function FinalItineraryForm() {
   const [showSharePreview, setShowSharePreview] = useState(false);
   const [selectedWelcomeTemplateId, setSelectedWelcomeTemplateId] = useState("");
   const [newWelcomeTemplateName, setNewWelcomeTemplateName] = useState("");
+  const [showSavedProposalPicker, setShowSavedProposalPicker] = useState(false);
+  const [selectedSavedProposalId, setSelectedSavedProposalId] = useState("");
+  const [savedProposalImportMessage, setSavedProposalImportMessage] = useState("");
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(() => new Set());
   const [savedLibraryEventIds, setSavedLibraryEventIds] = useState<Set<string>>(() => new Set());
   const attachmentInputs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -106,6 +110,11 @@ export function FinalItineraryForm() {
   const saveEventToLibraryMutation = trpc.travelLibrary.create.useMutation();
   const createSharedItinerary = trpc.sharedItineraries.create.useMutation();
   const revokeSharedItinerary = trpc.sharedItineraries.revoke.useMutation();
+  const savedTourProposalsQuery = trpc.tourProposals.list.useQuery();
+  const selectedSavedTourProposalQuery = trpc.tourProposals.get.useQuery(
+    { id: selectedSavedProposalId || "00000000-0000-0000-0000-000000000000" },
+    { enabled: Boolean(selectedSavedProposalId) },
+  );
   const finalItinerary = budget.finalItinerary;
   const events = [...finalItinerary.events].sort((first, second) => first.day - second.day);
   const usefulLinks = finalItinerary.usefulLinks || [];
@@ -279,6 +288,24 @@ export function FinalItineraryForm() {
       }
     });
     updateFinalItinerary({ passengers: (finalItinerary.passengers || []).filter((passenger) => passenger.id !== passengerId) });
+  };
+
+  const importSelectedSavedProposal = () => {
+    const savedProposal = selectedSavedTourProposalQuery.data;
+    if (!savedProposal || !selectedSavedProposalId) return;
+    try {
+      const sourceBudget = JSON.parse(savedProposal.snapshot) as BudgetData;
+      const importedEvents = savedProposalTourEvents(sourceBudget, selectedSavedProposalId, finalItinerary.events);
+      if (importedEvents.length === 0) {
+        setSavedProposalImportMessage("Os passeios desta proposta já estão no Roteiro Final.");
+        return;
+      }
+      updateFinalItinerary({ enabled: true, events: [...finalItinerary.events, ...importedEvents] });
+      setSavedProposalImportMessage(`${importedEvents.length} ${importedEvents.length === 1 ? "passeio importado" : "passeios importados"} da proposta selecionada.`);
+      setShowSavedProposalPicker(false);
+    } catch {
+      setSavedProposalImportMessage("Não foi possível ler esta proposta salva. Abra a proposta e salve novamente antes de importar.");
+    }
   };
 
   const createShareLink = async () => {
@@ -473,7 +500,29 @@ export function FinalItineraryForm() {
         <div className="space-y-3">
           {budget.flights.length > 0 && <div><p className="mb-1.5 text-xs font-bold text-slate-600">Voos</p><div className="flex flex-wrap gap-2">{budget.flights.map((flight) => <Button key={flight.id} type="button" variant="outline" size="sm" onClick={() => addFlightToFinalItinerary(flight.id)} className="bg-white text-xs"><Plane className="mr-1.5 h-3.5 w-3.5" />{flight.type === "ida" ? "Adicionar voo de ida" : "Adicionar voo de retorno"}</Button>)}</div></div>}
           {budget.hotels.length > 0 && <div><p className="mb-1.5 text-xs font-bold text-slate-600">Hospedagem</p><div className="flex flex-wrap gap-2">{budget.hotels.map((hotel) => <Button key={hotel.id} type="button" variant="outline" size="sm" onClick={() => addHotelToFinalItinerary(hotel.id)} className="max-w-full bg-white text-xs"><Hotel className="mr-1.5 h-3.5 w-3.5" /><span className="truncate">{hotel.name}</span></Button>)}</div></div>}
-          {budget.tours.length > 0 && <div><div className="mb-1.5 flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-bold text-slate-600">Passeios salvos na proposta</p><Button type="button" variant="outline" size="sm" onClick={() => budget.tours.forEach((tour) => addTourToFinalItinerary(tour.id))} className="h-8 bg-white text-xs font-semibold"><Plus className="mr-1 h-3.5 w-3.5" />Puxar passeios salvos</Button></div><p className="mb-2 text-[11px] leading-relaxed text-slate-500">Clique em <strong>Puxar passeios salvos</strong> para trazer toda a proposta para o roteiro, ou selecione somente os passeios desejados abaixo.</p><div className="flex flex-wrap gap-2">{budget.tours.map((tour) => <Button key={tour.id} type="button" variant="outline" size="sm" onClick={() => addTourToFinalItinerary(tour.id)} className="max-w-full bg-white text-xs"><Building2 className="mr-1.5 h-3.5 w-3.5" /><span className="truncate">{tour.name}</span></Button>)}</div></div>}
+          {(budget.tours.length > 0 || savedTourProposalsQuery.isLoading || (savedTourProposalsQuery.data?.length || 0) > 0) && <div>
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-bold text-slate-600">Passeios salvos na proposta</p>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => { setShowSavedProposalPicker((current) => !current); setSavedProposalImportMessage(""); }} className="h-8 bg-white text-xs font-semibold"><Plus className="mr-1 h-3.5 w-3.5" />{showSavedProposalPicker ? "Fechar seleção" : "Escolher proposta salva"}</Button>
+                {budget.tours.length > 0 && <Button type="button" variant="outline" size="sm" onClick={() => budget.tours.forEach((tour) => addTourToFinalItinerary(tour.id))} className="h-8 bg-white text-xs"><Plus className="mr-1 h-3.5 w-3.5" />Puxar deste orçamento</Button>}
+              </div>
+            </div>
+            <p className="mb-2 text-[11px] leading-relaxed text-slate-500">Escolha uma proposta já salva para reaproveitar seus passeios em outro cliente. Também é possível puxar somente os passeios deste orçamento ou selecionar um por um abaixo.</p>
+            {showSavedProposalPicker && <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50/60 p-3">
+              <Label htmlFor="saved-tour-proposal" className="text-xs font-bold text-[#1a2e4a]">Qual proposta você deseja puxar?</Label>
+              <div className="mt-1.5 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                <Select value={selectedSavedProposalId} onValueChange={(value) => { setSelectedSavedProposalId(value); setSavedProposalImportMessage(""); }}>
+                  <SelectTrigger id="saved-tour-proposal" className="w-full bg-white text-xs"><SelectValue placeholder={savedTourProposalsQuery.isLoading ? "Carregando propostas salvas..." : "Selecione uma proposta salva"} /></SelectTrigger>
+                  <SelectContent>{savedTourProposalsQuery.data?.map((proposal) => <SelectItem key={proposal.id} value={proposal.id}>{proposal.clientName}{proposal.proposalTitle ? ` — ${proposal.proposalTitle}` : ""}</SelectItem>)}</SelectContent>
+                </Select>
+                <Button type="button" size="sm" onClick={importSelectedSavedProposal} disabled={!selectedSavedProposalId || selectedSavedTourProposalQuery.isFetching} className="bg-[#1a2e4a] text-xs hover:bg-[#264566]"><Plus className="mr-1.5 h-3.5 w-3.5" />{selectedSavedTourProposalQuery.isFetching ? "Abrindo proposta..." : "Puxar passeios"}</Button>
+              </div>
+              {!savedTourProposalsQuery.isLoading && (savedTourProposalsQuery.data?.length || 0) === 0 && <p className="mt-2 text-[11px] text-slate-500">Ainda não há propostas de passeios salvas para escolher.</p>}
+              {savedProposalImportMessage && <p className="mt-2 text-[11px] font-medium text-[#1a2e4a]">{savedProposalImportMessage}</p>}
+            </div>}
+            <div className="flex flex-wrap gap-2">{budget.tours.map((tour) => <Button key={tour.id} type="button" variant="outline" size="sm" onClick={() => addTourToFinalItinerary(tour.id)} className="max-w-full bg-white text-xs"><Building2 className="mr-1.5 h-3.5 w-3.5" /><span className="truncate">{tour.name}</span></Button>)}</div>
+          </div>}
         </div>
       </section>
 
