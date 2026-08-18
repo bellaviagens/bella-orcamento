@@ -442,12 +442,15 @@ export interface TravelLibraryItemInput {
   folderName: string;
   name: string;
   destination?: string;
+  country?: string;
+  city?: string;
   contactName?: string;
   phone?: string;
   responsibleName?: string;
   whatsapp?: string;
   linkUrl?: string;
   imageUrl?: string;
+  documentUrl?: string;
   notes?: string;
 }
 
@@ -463,12 +466,15 @@ export async function createTravelLibraryItem(input: TravelLibraryItemInput) {
     folderName: input.folderName.trim(),
     name: input.name.trim(),
     destination: input.destination?.trim() || null,
+    country: input.country?.trim() || null,
+    city: input.city?.trim() || null,
     contactName: input.contactName?.trim() || null,
     phone: input.phone?.trim() || null,
     responsibleName: input.responsibleName?.trim() || null,
     whatsapp: input.whatsapp?.trim() || null,
     linkUrl: input.linkUrl?.trim() || null,
     imageUrl: input.imageUrl?.trim() || null,
+    documentUrl: input.documentUrl?.trim() || null,
     notes: input.notes?.trim() || null,
   });
   return id;

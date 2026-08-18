@@ -368,12 +368,15 @@ export const appRouter = router({
         folderName: z.string().trim().min(1, "Informe uma pasta.").max(120),
         name: z.string().trim().min(1, "Informe o nome.").max(255),
         destination: z.string().trim().max(255).optional(),
+        country: z.string().trim().max(120).optional(),
+        city: z.string().trim().max(120).optional(),
         contactName: z.string().trim().max(255).optional(),
         phone: z.string().trim().max(80).optional(),
         responsibleName: z.string().trim().max(255).optional(),
         whatsapp: z.string().trim().max(80).optional(),
         linkUrl: z.string().url().max(2048).optional(),
-        imageUrl: z.string().url().max(2048).optional(),
+        imageUrl: z.string().max(2048).refine((url) => url.startsWith("/manus-storage/") || /^https:\/\//.test(url), "Informe um link HTTPS válido.").optional(),
+        documentUrl: z.string().max(2048).refine((url) => url.startsWith("/manus-storage/") || /^https:\/\//.test(url), "Informe um link HTTPS válido.").optional(),
         notes: z.string().trim().max(4000).optional(),
       }))
       .mutation(async ({ ctx, input }) => ({ id: await createTravelLibraryItem({ ...input, ownerOpenId: ctx.user.openId }) })),
@@ -592,6 +595,61 @@ export const appRouter = router({
         };
       } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Não foi possível extrair os dados do cartão de embarque." });
+      }
+    }),
+  parseHotelVoucher: protectedProcedure
+    .input(z.object({ documentBase64: z.string().min(32).max(11_200_000) }))
+    .mutation(async ({ input }) => {
+      const hotelVoucherSchema = {
+        type: "object",
+        properties: {
+          hotelName: { type: "string" },
+          checkIn: { type: "string" },
+          checkOut: { type: "string" },
+          address: { type: "string" },
+          phone: { type: "string" },
+          locatorCode: { type: "string" },
+          guestName: { type: "string" },
+        },
+        required: ["hotelName", "checkIn", "checkOut", "address", "phone", "locatorCode", "guestName"],
+      };
+
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: "You extract data from hotel vouchers and reservation confirmations. Return only information explicitly visible in the document. Missing values must be empty strings. Dates must use YYYY-MM-DD. Do not infer or invent values. Always respond in Portuguese.",
+          },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Read this hotel voucher or reservation document. Extract the hotel name, check-in date, check-out date, complete address, phone or WhatsApp, booking locator/code and main guest name, only when visible." },
+              buildImportDocumentContent(input.documentBase64),
+            ],
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: { name: "hotel_voucher_data", strict: true, schema: hotelVoucherSchema as Record<string, unknown> },
+        },
+      });
+
+      const content = response.choices[0]?.message?.content;
+      if (typeof content !== "string") {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Resposta inválida ao ler o voucher de hospedagem." });
+      }
+      try {
+        return JSON.parse(content) as {
+          hotelName: string;
+          checkIn: string;
+          checkOut: string;
+          address: string;
+          phone: string;
+          locatorCode: string;
+          guestName: string;
+        };
+      } catch {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Não foi possível extrair os dados do voucher de hospedagem." });
       }
     }),
   sharedFavoriteLists: router({

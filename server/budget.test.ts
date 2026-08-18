@@ -537,6 +537,29 @@ describe("addTourToFinalItineraryInBudget", () => {
     expect(updated.finalItinerary.events[0].description).toContain("Chegar 15 minutos antes.");
     expect(updated.finalItinerary.events[0].description).toContain("https://fornecedor.example/ingresso");
   });
+
+  it("mantém o dia e o horário da atividade correta quando há vários passeios no mesmo dia", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const budget = {
+      ...defaultBudgetData,
+      tours: [
+        { id: "tour-1", name: "Passeio da manhã", location: "Santiago", duration: "4 horas", description: "", totalPrice: 100 },
+        { id: "tour-2", name: "Jantar especial", location: "Santiago", duration: "2 horas", description: "", totalPrice: 200 },
+      ],
+      itinerary: [{
+        id: "dia-6", day: 6, title: "Dia seis", notes: "", activities: [
+          { id: "activity-1", kind: "tour" as const, title: "Passeio da manhã", time: "08:00", description: "", linkUrl: "", photoUrl: "", tourId: "tour-1" },
+          { id: "activity-2", kind: "tour" as const, title: "Jantar especial", time: "20:30", description: "Jantar reservado", linkUrl: "", photoUrl: "", tourId: "tour-2" },
+        ],
+      }],
+      finalItinerary: { ...defaultBudgetData.finalItinerary, events: [] },
+    };
+
+    const updated = addTourToFinalItineraryInBudget(budget, "tour-2");
+
+    expect(updated.finalItinerary.events[0]).toMatchObject({ day: 6, time: "20:30", title: "Jantar especial" });
+    expect(updated.finalItinerary.events[0].description).toContain("Jantar reservado");
+  });
 });
 
 describe("clearFinalItineraryInBudget", () => {

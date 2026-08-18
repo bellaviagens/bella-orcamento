@@ -632,3 +632,10 @@
 - [x] Incluir nome do responsável e WhatsApp no cadastro de transfers da Biblioteca
 - [x] Direcionar favoritos da proposta para a Biblioteca correspondente por destino
 - [x] Validar migração, reaproveitamento de itens, histórico de clientes, tipagem, testes, build e responsividade
+- [x] Extrair voucher de hotel para preencher automaticamente endereço, contato, check-in/check-out e demais dados visíveis
+- [x] Associar voucher e foto de hotel ao evento de hospedagem do Roteiro Final
+- [x] Importar passeios da proposta aprovada para o Roteiro Final com dias e horários preservados
+- [x] Importar itens da Biblioteca diretamente para o orçamento atual com um clique
+- [x] Permitir anexar documentos e fotos aos fornecedores cadastrados na Biblioteca
+- [x] Adicionar filtros avançados de país, cidade e tipo de serviço à Biblioteca
+- [x] Validar extração, importação, anexos, filtros, tipagem, testes, build e responsividade

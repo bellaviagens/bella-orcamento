@@ -527,6 +527,9 @@ export function addFinalItineraryEventToBudget(budget: BudgetData, event: Partia
     hotelMapUrl: event.hotelMapUrl || "",
     hotelCheckIn: event.hotelCheckIn || "",
     hotelCheckOut: event.hotelCheckOut || "",
+    hotelPhone: event.hotelPhone || "",
+    hotelLocator: event.hotelLocator || "",
+    hotelGuestName: event.hotelGuestName || "",
     flightAirline: event.flightAirline || "",
     flightNumber: event.flightNumber || "",
     flightDate: event.flightDate || "",
@@ -589,12 +592,15 @@ export function addHotelToFinalItineraryInBudget(budget: BudgetData, hotelId: st
 export function addTourToFinalItineraryInBudget(budget: BudgetData, tourId: string): BudgetData {
   const tour = budget.tours.find((item) => item.id === tourId);
   if (!tour || budget.finalItinerary.events.some((event) => event.sourceTourId === tourId)) return budget;
-  const itineraryDay = budget.itinerary.find((day) =>
-    day.tourId === tourId || getItineraryDayActivities(day).some((activity) => activity.tourId === tourId),
-  );
-  const sourceActivity = itineraryDay
-    ? getItineraryDayActivities(itineraryDay).find((activity) => activity.tourId === tourId)
-    : undefined;
+  const itineraryMatch = budget.itinerary
+    .map((day) => ({ day, activity: getItineraryDayActivities(day).find((activity) => activity.tourId === tourId) }))
+    .find((match) => Boolean(match.activity))
+    || budget.itinerary
+      .filter((day) => day.tourId === tourId)
+      .map((day) => ({ day, activity: getItineraryDayActivities(day)[0] }))
+      .at(0);
+  const itineraryDay = itineraryMatch?.day;
+  const sourceActivity = itineraryMatch?.activity;
   const description = [
     tour.description,
     sourceActivity?.description && sourceActivity.description !== tour.description ? sourceActivity.description : "",

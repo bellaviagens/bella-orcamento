@@ -11,6 +11,7 @@ import { Building2, CalendarDays, CarFront, ChevronDown, Copy, ExternalLink, Fil
 import { DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE, DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE } from "@shared/budgetTypes";
 import type { FinalItineraryAttachment, FinalItineraryEvent, FinalItineraryEventKind } from "@shared/budgetTypes";
 import { boardingPassAttachmentUpdates, boardingPassUpdates } from "./finalItineraryBoardingPass";
+import { hotelVoucherUpdates } from "./finalItineraryHotelVoucher";
 import QRCode from "qrcode";
 
 const EVENT_LABELS: Record<FinalItineraryEventKind, string> = {
@@ -99,6 +100,7 @@ export function FinalItineraryForm() {
   const coverImageInput = useRef<HTMLInputElement | null>(null);
   const uploadAttachment = trpc.itineraryAttachments.upload.useMutation();
   const parseBoardingPass = trpc.parseBoardingPass.useMutation();
+  const parseHotelVoucher = trpc.parseHotelVoucher.useMutation();
   const createSharedItinerary = trpc.sharedItineraries.create.useMutation();
   const revokeSharedItinerary = trpc.sharedItineraries.revoke.useMutation();
   const finalItinerary = budget.finalItinerary;
@@ -366,6 +368,18 @@ export function FinalItineraryForm() {
             updateFinalItineraryEvent(eventId, { attachments: [...(targetEvent.attachments || []), attachmentWithDetails] });
             setBoardingPassMessageByEvent((current) => ({ ...current, [eventId]: "O arquivo foi anexado, mas não foi possível ler os dados automaticamente. Você pode preenchê-los manualmente." }));
           }
+        } else if (targetEvent.kind === "hotel") {
+          try {
+            const parsed = await parseHotelVoucher.mutateAsync({ documentBase64: result });
+            const voucherUpdates = hotelVoucherUpdates(targetEvent, parsed);
+            const imageFromVoucher = file.type.startsWith("image/") && !targetEvent.photoUrl.trim() ? { photoUrl: attachment.url } : {};
+            updateFinalItineraryEvent(eventId, { ...voucherUpdates, ...imageFromVoucher, attachments: [...(targetEvent.attachments || []), attachmentWithDetails] });
+            const extractedDetails = [parsed.hotelName, parsed.checkIn && `check-in ${parsed.checkIn}`, parsed.checkOut && `check-out ${parsed.checkOut}`, parsed.address && "endereço", parsed.phone && "contato"].filter(Boolean).join(" • ");
+            setBoardingPassMessageByEvent((current) => ({ ...current, [eventId]: `Dados do voucher preenchidos automaticamente${extractedDetails ? `: ${extractedDetails}` : ""}. Confira antes de enviar o roteiro.` }));
+          } catch {
+            updateFinalItineraryEvent(eventId, { attachments: [...(targetEvent.attachments || []), attachmentWithDetails] });
+            setBoardingPassMessageByEvent((current) => ({ ...current, [eventId]: "O voucher foi anexado, mas não foi possível ler os dados automaticamente. Você pode preenchê-los manualmente." }));
+          }
         } else {
           updateFinalItineraryEvent(eventId, { attachments: [...(targetEvent.attachments || []), attachmentWithDetails] });
         }
@@ -495,6 +509,9 @@ export function FinalItineraryForm() {
               <div className="sm:col-span-2"><Label>Endereço da hospedagem</Label><Input value={event.hotelAddress || ""} onChange={(nativeEvent) => { const hotelAddress = nativeEvent.target.value; updateFinalItineraryEvent(event.id, { hotelAddress, hotelMapUrl: buildGoogleMapsUrl(hotelAddress) }); }} placeholder="Rua, número, bairro, cidade e país" className="mt-1 bg-white" /></div>
               <div><Label>Check-in</Label><Input type="date" value={event.hotelCheckIn || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { hotelCheckIn: nativeEvent.target.value })} className="mt-1 bg-white" /></div>
               <div><Label>Check-out</Label><Input type="date" value={event.hotelCheckOut || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { hotelCheckOut: nativeEvent.target.value })} className="mt-1 bg-white" /></div>
+              <div><Label>Telefone / WhatsApp</Label><Input value={event.hotelPhone || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { hotelPhone: nativeEvent.target.value })} placeholder="Contato da hospedagem" className="mt-1 bg-white" /></div>
+              <div><Label>Localizador da reserva</Label><Input value={event.hotelLocator || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { hotelLocator: nativeEvent.target.value })} placeholder="Ex.: ABC123" className="mt-1 bg-white" /></div>
+              <div className="sm:col-span-2"><Label>Hóspede principal</Label><Input value={event.hotelGuestName || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { hotelGuestName: nativeEvent.target.value })} placeholder="Nome identificado no voucher" className="mt-1 bg-white" /></div>
               {event.hotelMapUrl && <div className="sm:col-span-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-[#1a2e4a]"><span className="font-semibold">GPS do hotel pronto: </span><a href={event.hotelMapUrl} target="_blank" rel="noreferrer" className="underline hover:text-amber-700">abrir no Google Maps</a></div>}
             </>}
             {(event.kind === "flight" || event.kind === "return") && <>
