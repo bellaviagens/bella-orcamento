@@ -466,10 +466,10 @@ export function HotelForm() {
 
       {/* Hotel form */}
       {showForm && (
-        <div
-          data-hotel-editor="true"
-          className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3 min-h-[25rem] max-h-[calc(100dvh-17rem)] overflow-y-auto"
-        >
+          <div
+            data-hotel-editor="true"
+            className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3 min-h-[25rem] max-h-[calc(100dvh-10rem)] overflow-y-auto"
+          >
           <div className="flex items-center justify-between sticky top-0 bg-slate-50 pb-2">
             <h4 className="text-sm font-bold text-[#1a2e4a]">
               {editingId ? "Editar Hotel" : "Novo Hotel"}

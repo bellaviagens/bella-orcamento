@@ -1,5 +1,5 @@
 import { useBudget } from "@/contexts/BudgetContext";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,10 +25,63 @@ function getPaymentConditionColor(condition: CombinedPaymentCondition, index: nu
   return condition.color || PAYMENT_CONDITION_COLORS[index % PAYMENT_CONDITION_COLORS.length];
 }
 
+export function toggleCollapsedPaymentSection(current: string[], sectionId: string): string[] {
+  return current.includes(sectionId)
+    ? current.filter((id) => id !== sectionId)
+    : [...current, sectionId];
+}
+
+function PaymentSection({
+  id,
+  title,
+  titleClassName,
+  containerClassName,
+  buttonClassName,
+  collapsed,
+  onToggle,
+  summary,
+  children,
+}: {
+  id: string;
+  title: string;
+  titleClassName: string;
+  containerClassName: string;
+  buttonClassName: string;
+  collapsed: boolean;
+  onToggle: () => void;
+  summary?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className={containerClassName}>
+      <div className="flex items-center justify-between gap-3">
+        <Label className={`text-[11px] font-semibold uppercase ${titleClassName}`}>{title}</Label>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className={buttonClassName}
+          onClick={onToggle}
+          aria-expanded={!collapsed}
+          aria-controls={`${id}-payment-details`}
+        >
+          {collapsed ? <ChevronDown className="mr-1 h-3.5 w-3.5" /> : <ChevronUp className="mr-1 h-3.5 w-3.5" />}
+          {collapsed ? "Abrir" : "Recolher"}
+        </Button>
+      </div>
+      {collapsed ? summary : <div id={`${id}-payment-details`}>{children}</div>}
+    </div>
+  );
+}
+
 export function InstallmentsForm() {
   const { budget, updateInstallments, updatePaymentMethods, updateHotelPaymentMethods, updatePageBreaks } = useBudget();
   const { installments, pageBreaks } = budget;
   const [collapsedPaymentConditions, setCollapsedPaymentConditions] = useState<string[]>([]);
+  const [collapsedPaymentSections, setCollapsedPaymentSections] = useState<string[]>([]);
+
+  const isPaymentSectionCollapsed = (sectionId: string) => collapsedPaymentSections.includes(sectionId);
+  const togglePaymentSection = (sectionId: string) => setCollapsedPaymentSections((current) => toggleCollapsedPaymentSection(current, sectionId));
 
   // Calculate totals for preview
   const passengerCount = parseInt(budget.tripInfo.passengers) || 1;
@@ -71,8 +124,16 @@ export function InstallmentsForm() {
       </div>
 
       {/* FORMA DE PAGAMENTO DO AÉREO - OPÇÃO 1: À VISTA */}
-      <div className="border-2 border-blue-300 rounded-lg p-4 bg-blue-50">
-        <Label className="text-[11px] font-semibold text-blue-700 uppercase">Forma de Pagamento do Aéreo - À Vista</Label>
+      <PaymentSection
+        id="flight-cash"
+        title="Forma de Pagamento do Aéreo - À Vista"
+        titleClassName="text-blue-700"
+        containerClassName="border-2 border-blue-300 rounded-lg p-4 bg-blue-50"
+        buttonClassName="h-7 shrink-0 px-2 text-[11px] text-blue-700 hover:bg-blue-100"
+        collapsed={isPaymentSectionCollapsed("flight-cash")}
+        onToggle={() => togglePaymentSection("flight-cash")}
+        summary={flightTotal > 0 ? <p className="mt-2 text-xs font-semibold text-[#1a2e4a]">Total: {formatCurrency(flightTotal)}</p> : null}
+      >
         
         {flightTotal > 0 && (
           <div className="mt-3 p-2 bg-white rounded border border-blue-200">
@@ -163,11 +224,19 @@ export function InstallmentsForm() {
             </div>
           </div>
         </div>
-      </div>
+      </PaymentSection>
 
       {/* FORMA DE PAGAMENTO DO AÉREO - OPÇÃO 2: COM TAXA (MAQUININHA) */}
-      <div className="border-2 border-amber-300 rounded-lg p-4 bg-amber-50">
-        <Label className="text-[11px] font-semibold text-amber-700 uppercase">Forma de Pagamento do Aéreo - Com Taxa</Label>
+      <PaymentSection
+        id="flight-rate"
+        title="Forma de Pagamento do Aéreo - Com Taxa"
+        titleClassName="text-amber-700"
+        containerClassName="border-2 border-amber-300 rounded-lg p-4 bg-amber-50"
+        buttonClassName="h-7 shrink-0 px-2 text-[11px] text-amber-700 hover:bg-amber-100"
+        collapsed={isPaymentSectionCollapsed("flight-rate")}
+        onToggle={() => togglePaymentSection("flight-rate")}
+        summary={flightTotal > 0 ? <p className="mt-2 text-xs font-semibold text-[#1a2e4a]">Valor base: {formatCurrency(flightTotal)}</p> : null}
+      >
         
         {flightTotal > 0 && (
           <div className="mt-3 p-2 bg-white rounded border border-amber-200">
@@ -262,11 +331,19 @@ export function InstallmentsForm() {
             <Label htmlFor="payment-card-option2" className="text-xs cursor-pointer">Cartão</Label>
           </div>
         </div>
-      </div>
+      </PaymentSection>
 
       {/* FORMA DE PAGAMENTO DO HOTEL */}
-      <div className="border-2 border-green-300 rounded-lg p-4 bg-green-50">
-        <Label className="text-[11px] font-semibold text-green-700 uppercase">Forma de Pagamento do Hotel</Label>
+      <PaymentSection
+        id="hotel"
+        title="Forma de Pagamento do Hotel"
+        titleClassName="text-green-700"
+        containerClassName="border-2 border-green-300 rounded-lg p-4 bg-green-50"
+        buttonClassName="h-7 shrink-0 px-2 text-[11px] text-green-700 hover:bg-green-100"
+        collapsed={isPaymentSectionCollapsed("hotel")}
+        onToggle={() => togglePaymentSection("hotel")}
+        summary={hotelTotal > 0 ? <p className="mt-2 text-xs font-semibold text-[#1a2e4a]">Total: {formatCurrency(hotelTotal)}</p> : null}
+      >
         
         {hotelTotal > 0 && (
           <div className="mt-3 p-2 bg-white rounded border border-green-200">
@@ -374,7 +451,7 @@ export function InstallmentsForm() {
             </div>
           </div>
         </div>
-      </div>
+      </PaymentSection>
 
       {/* PARCELAR TUDO JUNTO */}
       <div className="border-t border-slate-200 pt-4">

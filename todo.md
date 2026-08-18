@@ -571,3 +571,7 @@
 - [x] Clarear e reorganizar visualmente o resumo diário da proposta sem alterar a paleta institucional dos demais módulos
 - [x] Unificar a edição de dias e passeios da proposta em um único cadastro completo, removendo a duplicidade de informações
 - [x] Validar a proposta consolidada por testes, build e prévia visual sem alterar os demais módulos
+
+- [x] Ampliar a área de rolagem da aba Hotéis para facilitar a edição de hotéis extensos
+- [x] Adicionar controles de recolher e expandir nos blocos de formas de pagamento
+- [x] Validar que os cálculos, valores e PDF permanecem inalterados após a compactação visual
