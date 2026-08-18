@@ -199,6 +199,8 @@ export interface FinalItineraryEvent {
   hotelMapUrl?: string;
   hotelCheckIn?: string;
   hotelCheckOut?: string;
+  /** Bairro da hospedagem identificado no voucher ou informado manualmente. */
+  hotelNeighborhood?: string;
   /** Telefone/WhatsApp identificado no voucher de hospedagem. */
   hotelPhone?: string;
   /** Código localizador/reserva identificado no voucher de hospedagem. */

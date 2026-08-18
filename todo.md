@@ -647,3 +647,7 @@
 - [x] Validar o preenchimento de localização, tipagem, testes, build e responsividade
 - [x] Adicionar campo Bairro ao cadastro e edição de hotéis da Biblioteca
 - [x] Validar persistência do bairro, tipagem, testes, build e responsividade
+- [x] Exibir o bairro diretamente no cartão resumido dos hotéis da Biblioteca
+- [x] Adicionar filtro por bairro na lista de hotéis da Biblioteca
+- [x] Preencher automaticamente o bairro quando ele estiver visível no voucher do hotel
+- [x] Validar cartão, filtro e leitura do voucher, incluindo tipagem, testes, build e responsividade

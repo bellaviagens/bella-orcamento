@@ -17,7 +17,7 @@ describe("Biblioteca de Viagem", () => {
 
   it("combina filtros de país, cidade e tipo de serviço", () => {
     const detailedItems = [
-      { id: "hotel-scl", category: "hotel" as const, folderName: "Hotéis", country: "Chile", city: "Santiago" },
+      { id: "hotel-scl", category: "hotel" as const, folderName: "Hotéis", country: "Chile", city: "Santiago", neighborhood: "Las Condes" },
       { id: "tour-scl", category: "tour" as const, folderName: "Passeios", country: "Chile", city: "Santiago" },
       { id: "hotel-pucon", category: "hotel" as const, folderName: "Hotéis", country: "Chile", city: "Pucón" },
       { id: "hotel-lisboa", category: "hotel" as const, folderName: "Hotéis", country: "Portugal", city: "Lisboa" },
@@ -28,5 +28,14 @@ describe("Biblioteca de Viagem", () => {
 
   it("agrupa pastas únicas em ordem de leitura", () => {
     expect(getTravelLibraryFolders(items)).toEqual(["Hotéis Chile", "Passeios Chile", "Restaurantes Chile", "Transfers"]);
+  });
+
+  it("filtra hotéis por bairro", () => {
+    const detailedItems = [
+      { id: "hotel-las-condes", category: "hotel" as const, folderName: "Hotéis", country: "Chile", city: "Santiago", neighborhood: "Las Condes" },
+      { id: "hotel-providencia", category: "hotel" as const, folderName: "Hotéis", country: "Chile", city: "Santiago", neighborhood: "Providencia" },
+    ];
+
+    expect(filterTravelLibraryItems(detailedItems, { category: "hotel", country: "Chile", city: "Santiago", neighborhood: "Las Condes" }).map((item) => item.id)).toEqual(["hotel-las-condes"]);
   });
 });

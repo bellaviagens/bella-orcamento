@@ -8,6 +8,7 @@ export type FinalItineraryLibraryInput = {
   destination: string;
   country?: string;
   city?: string;
+  neighborhood?: string;
   contactName?: string;
   phone?: string;
   responsibleName?: string;
@@ -40,6 +41,7 @@ export function finalItineraryEventToLibraryInput(event: FinalItineraryEvent, cu
     destination: location.destination || "Sem destino definido",
     country: location.country || undefined,
     city: location.city || undefined,
+    neighborhood: event.hotelNeighborhood?.trim() || undefined,
     contactName: category === "transfer" ? event.title.trim() || undefined : undefined,
     phone: category === "hotel" ? event.hotelPhone?.trim() || undefined : undefined,
     responsibleName: category === "transfer" ? event.title.trim() || undefined : undefined,

@@ -632,23 +632,24 @@ export const appRouter = router({
           checkIn: { type: "string" },
           checkOut: { type: "string" },
           address: { type: "string" },
+          neighborhood: { type: "string" },
           phone: { type: "string" },
           locatorCode: { type: "string" },
           guestName: { type: "string" },
         },
-        required: ["hotelName", "checkIn", "checkOut", "address", "phone", "locatorCode", "guestName"],
+        required: ["hotelName", "checkIn", "checkOut", "address", "neighborhood", "phone", "locatorCode", "guestName"],
       };
 
       const response = await invokeLLM({
         messages: [
           {
             role: "system",
-            content: "You extract data from hotel vouchers and reservation confirmations. Return only information explicitly visible in the document. Missing values must be empty strings. Dates must use YYYY-MM-DD. Do not infer or invent values. Always respond in Portuguese.",
+            content: "You extract data from hotel vouchers and reservation confirmations. Return only information explicitly visible in the document. Missing values must be empty strings. Dates must use YYYY-MM-DD. Extract the neighborhood/district only when it is explicitly visible, never infer it from an address. Do not invent values. Always respond in Portuguese.",
           },
           {
             role: "user",
             content: [
-              { type: "text", text: "Read this hotel voucher or reservation document. Extract the hotel name, check-in date, check-out date, complete address, phone or WhatsApp, booking locator/code and main guest name, only when visible." },
+              { type: "text", text: "Read this hotel voucher or reservation document. Extract the hotel name, check-in date, check-out date, complete address, neighborhood/district, phone or WhatsApp, booking locator/code and main guest name, only when visible." },
               buildImportDocumentContent(input.documentBase64),
             ],
           },
@@ -669,6 +670,7 @@ export const appRouter = router({
           checkIn: string;
           checkOut: string;
           address: string;
+          neighborhood: string;
           phone: string;
           locatorCode: string;
           guestName: string;

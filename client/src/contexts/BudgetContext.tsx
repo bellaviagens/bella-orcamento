@@ -527,6 +527,7 @@ export function addFinalItineraryEventToBudget(budget: BudgetData, event: Partia
     hotelMapUrl: event.hotelMapUrl || "",
     hotelCheckIn: event.hotelCheckIn || "",
     hotelCheckOut: event.hotelCheckOut || "",
+    hotelNeighborhood: event.hotelNeighborhood || "",
     hotelPhone: event.hotelPhone || "",
     hotelLocator: event.hotelLocator || "",
     hotelGuestName: event.hotelGuestName || "",

@@ -5,6 +5,7 @@ export type HotelVoucherData = {
   checkIn: string;
   checkOut: string;
   address: string;
+  neighborhood: string;
   phone: string;
   locatorCode: string;
   guestName: string;
@@ -32,6 +33,7 @@ export function hotelVoucherUpdates(event: FinalItineraryEvent, parsed: HotelVou
     hotelAddress,
     hotelCheckIn,
     hotelCheckOut,
+    hotelNeighborhood: keepOnlyWhenEmpty(event.hotelNeighborhood, parsed.neighborhood),
     hotelPhone: keepOnlyWhenEmpty(event.hotelPhone, parsed.phone),
     hotelLocator: keepOnlyWhenEmpty(event.hotelLocator, parsed.locatorCode),
     hotelGuestName: keepOnlyWhenEmpty(event.hotelGuestName, parsed.guestName),

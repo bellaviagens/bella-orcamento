@@ -15,6 +15,7 @@ type TravelLibraryItemLike = {
   destination: string | null;
   country?: string | null;
   city?: string | null;
+  neighborhood?: string | null;
   contactName: string | null;
   phone: string | null;
   linkUrl: string | null;
@@ -26,16 +27,18 @@ export type TravelLibraryFilters = {
   category: TravelLibraryCategory | "all";
   country: string;
   city: string;
+  neighborhood: string;
 };
 
 export function filterTravelLibraryItems<T extends TravelLibraryItemLike>(items: T[], filters: TravelLibraryFilters | TravelLibraryCategory | "all") {
   const normalizedFilters: TravelLibraryFilters = typeof filters === "string"
-    ? { category: filters, country: "", city: "" }
+    ? { category: filters, country: "", city: "", neighborhood: "" }
     : filters;
   return items.filter((item) =>
     (normalizedFilters.category === "all" || item.category === normalizedFilters.category)
     && (!normalizedFilters.country || item.country?.trim() === normalizedFilters.country)
-    && (!normalizedFilters.city || item.city?.trim() === normalizedFilters.city),
+    && (!normalizedFilters.city || item.city?.trim() === normalizedFilters.city)
+    && (!normalizedFilters.neighborhood || item.category === "hotel" && item.neighborhood?.trim() === normalizedFilters.neighborhood),
   );
 }
 
