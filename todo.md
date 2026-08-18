@@ -677,3 +677,5 @@
 - [x] Corrigir a busca de propostas de passeios pelo nome do cliente
 - [x] Alinhar o botão Recolher à mesma linha do título Opções gastronômicas
 - [x] Reorganizar as ações dos restaurantes validados e exibir Favoritar e Adicionar à Biblioteca
+- [x] Remover o zero inicial travado do campo de valor adulto na Proposta de Passeios
+- [x] Aplicar entrada e formatação em reais aos valores à vista da aba Parcelamentos

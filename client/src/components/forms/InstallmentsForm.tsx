@@ -8,12 +8,50 @@ import { Button } from "@/components/ui/button";
 import { calculateCombinedTotal, calculateEffectiveHotelTotal } from "@shared/paymentCalculations";
 import { calculateCombinedPaymentPlan, normalizeCombinedPaymentConditions, type CombinedPaymentCondition, type CombinedPaymentMethod, type CombinedPaymentStep } from "@shared/combinedPaymentPlan";
 import { ChevronDown, ChevronUp, Copy, Plus, Trash2 } from "lucide-react";
+import { formatBrazilianCurrencyInput, parseBrazilianCurrencyInput } from "./installmentsCashValue";
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
   }).format(value);
+}
+
+function CashCurrencyInput({
+  value,
+  onValueChange,
+  placeholder,
+}: {
+  value?: number;
+  onValueChange: (value?: number) => void;
+  placeholder: string;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const displayValue = isEditing ? draft : value === undefined ? "" : formatBrazilianCurrencyInput(value);
+
+  return (
+    <Input
+      type="text"
+      inputMode="decimal"
+      value={displayValue}
+      onFocus={() => {
+        setIsEditing(true);
+        setDraft(value === undefined ? "" : value.toFixed(2).replace(".", ","));
+      }}
+      onChange={(event) => {
+        const nextDraft = event.target.value;
+        setDraft(nextDraft);
+        onValueChange(nextDraft.trim() ? parseBrazilianCurrencyInput(nextDraft) : undefined);
+      }}
+      onBlur={() => {
+        setIsEditing(false);
+        setDraft("");
+      }}
+      placeholder={placeholder}
+      className="h-8 text-sm mt-1"
+    />
+  );
 }
 
 const PAYMENT_CONDITION_COLORS = ["#1a2e4a", "#a16207", "#475569", "#4d7c0f"];
@@ -147,14 +185,10 @@ export function InstallmentsForm() {
         {installments?.showCashOption && (
           <div className="mt-3">
             <Label className="text-xs text-slate-600">Valor à Vista (R$)</Label>
-            <Input
-              type="number"
-              min="0"
-              step="0.01"
-              value={installments?.flightCashPrice ?? ""}
-              onChange={(e) => updateInstallments("flightCashPrice", e.target.value ? parseFloat(e.target.value) : undefined)}
-              placeholder={flightTotal > 0 ? `Ex: ${flightTotal.toFixed(2)}` : "Ex: 20000.00"}
-              className="h-8 text-sm mt-1"
+            <CashCurrencyInput
+              value={installments?.flightCashPrice}
+              onValueChange={(value) => updateInstallments("flightCashPrice", value)}
+              placeholder={flightTotal > 0 ? `Ex.: ${formatBrazilianCurrencyInput(flightTotal)}` : "Ex.: R$ 20.000,00"}
             />
             <p className="text-[10px] text-slate-500 mt-1">Se não preencher, será usado o valor total da tarifa.</p>
           </div>
