@@ -665,3 +665,7 @@
 - [x] Adicionar botão para limpar todos os filtros e a busca da Biblioteca
 - [x] Permitir importar PDF/print de hotel para preencher o cadastro da Biblioteca antes de salvar
 - [x] Validar bairro ampliado, limpeza de filtros e pré-cadastro por PDF, incluindo tipagem, testes, build e responsividade
+- [x] Exibir o cadastro do passageiro junto ao anexo do cartão ou bilhete de embarque correspondente
+- [x] Permitir importar PDF ou print para preencher o cadastro de passeios na Biblioteca
+- [x] Permitir importar PDF ou print para preencher o cadastro de transfers na Biblioteca
+- [x] Validar agrupamento de passageiros e pré-cadastros por documento, incluindo tipagem, testes, build e responsividade

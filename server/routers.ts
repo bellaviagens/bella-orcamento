@@ -679,6 +679,42 @@ export const appRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Não foi possível extrair os dados do voucher de hospedagem." });
       }
     }),
+  parseTravelServiceDocument: protectedProcedure
+    .input(z.object({ documentBase64: z.string().min(32).max(11_200_000), category: z.enum(["tour", "transfer"]) }))
+    .mutation(async ({ input }) => {
+      const travelServiceSchema = {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          description: { type: "string" },
+          address: { type: "string" },
+          neighborhood: { type: "string" },
+          phone: { type: "string" },
+          website: { type: "string" },
+          priceNote: { type: "string" },
+          contactName: { type: "string" },
+          responsibleName: { type: "string" },
+          whatsapp: { type: "string" },
+        },
+        required: ["name", "description", "address", "neighborhood", "phone", "website", "priceNote", "contactName", "responsibleName", "whatsapp"],
+        additionalProperties: false,
+      };
+      const serviceLabel = input.category === "tour" ? "passeio, excursão ou atividade turística" : "transfer, traslado ou transporte";
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "You extract travel supplier data from travel-service vouchers, tickets, confirmations and screenshots. Return only information explicitly visible in the document. Missing values must be empty strings. Never infer a neighborhood from an address and never invent values. Always respond in Portuguese." },
+          { role: "user", content: [{ type: "text", text: `Leia este documento de ${serviceLabel}. Extraia, somente quando estiver visível: nome do serviço, breve descrição, endereço ou ponto de encontro, bairro, telefone, site/link, preço ou observação de valor, empresa/contato, responsável e WhatsApp.` }, buildImportDocumentContent(input.documentBase64)] },
+        ],
+        response_format: { type: "json_schema", json_schema: { name: "travel_service_document_data", strict: true, schema: travelServiceSchema as Record<string, unknown> } },
+      });
+      const content = response.choices[0]?.message?.content;
+      if (typeof content !== "string") throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Resposta inválida ao ler o documento do serviço." });
+      try {
+        return JSON.parse(content) as { name: string; description: string; address: string; neighborhood: string; phone: string; website: string; priceNote: string; contactName: string; responsibleName: string; whatsapp: string; };
+      } catch {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Não foi possível extrair os dados do documento do serviço." });
+      }
+    }),
   sharedFavoriteLists: router({
     get: publicProcedure
       .input(z.object({ token: z.string().regex(/^[a-f0-9]{32}$/i) }))

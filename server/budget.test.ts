@@ -30,6 +30,11 @@ describe("appRouter", () => {
     expect(caller.parseTourScreenshot).toBeDefined();
   });
 
+  it("has travel service document parser procedure", () => {
+    const caller = appRouter.createCaller(createMockContext());
+    expect(caller.parseTravelServiceDocument).toBeDefined();
+  });
+
   it("has importQuotationUrl procedure", () => {
     const caller = appRouter.createCaller(createMockContext());
     expect(caller.importQuotationUrl).toBeDefined();

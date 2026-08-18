@@ -12,6 +12,7 @@ import { filterTravelLibraryItems, getTravelLibraryFolders, sortTravelLibraryIte
 import { EMPTY_LIBRARY_DRAFT, libraryItemToDraft, type TravelLibraryDraft } from "./travelLibraryEditorState";
 import { travelLibraryLocationFromDestination } from "./travelLibraryLocation";
 import { mergeHotelVoucherLibraryDraft } from "./hotelVoucherLibraryDraft";
+import { mergeTravelServiceDocumentDraft } from "./travelServiceDocumentDraft";
 
 const CATEGORY_ICONS: Record<TravelLibraryCategory, typeof Hotel> = { hotel: Hotel, tour: Building2, restaurant: Utensils, transfer: BusFront };
 const SUPPORTED_LIBRARY_FILES = ["application/pdf", "image/jpeg", "image/png", "image/webp"] as const;
@@ -38,6 +39,7 @@ export function TravelLibraryPanel({ initiallyOpen = false }: { initiallyOpen?: 
   const deleteMutation = trpc.travelLibrary.delete.useMutation({ onSuccess: async () => { await utils.travelLibrary.list.invalidate(); toast.success("Item removido da Biblioteca de Viagem."); } });
   const uploadMutation = trpc.itineraryAttachments.upload.useMutation();
   const parseHotelVoucher = trpc.parseHotelVoucher.useMutation();
+  const parseTravelServiceDocument = trpc.parseTravelServiceDocument.useMutation();
   const [isOpen, setIsOpen] = useState(initiallyOpen);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -115,6 +117,23 @@ export function TravelLibraryPanel({ initiallyOpen = false }: { initiallyOpen?: 
     } catch (error) { toast.error(error instanceof Error ? error.message : "O documento foi anexado, mas não foi possível ler os dados automaticamente."); }
   };
 
+  const importTravelServiceDocument = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    const serviceCategory = draft.category;
+    if (!file || (serviceCategory !== "tour" && serviceCategory !== "transfer")) return;
+    if (!SUPPORTED_LIBRARY_FILES.includes(file.type as typeof SUPPORTED_LIBRARY_FILES[number])) { toast.error("Use PDF, JPG, PNG ou WEBP para ler o documento."); return; }
+    try {
+      const dataBase64 = await readFileAsDataUrl(file);
+      const uploaded = await uploadMutation.mutateAsync({ fileName: file.name, contentType: file.type as typeof SUPPORTED_LIBRARY_FILES[number], dataBase64 });
+      const parsed = await parseTravelServiceDocument.mutateAsync({ documentBase64: dataBase64, category: serviceCategory });
+      const location = travelLibraryLocationFromDestination(draft.destination || budget.tripInfo.destination);
+      const importedImageUrl = file.type.startsWith("image/") ? uploaded.url : "";
+      setDraft((current) => mergeTravelServiceDocumentDraft(current, serviceCategory, parsed, location, uploaded.url, importedImageUrl));
+      toast.success(`Dados do ${serviceCategory === "tour" ? "passeio" : "transfer"} preenchidos pelo documento. Confira e complete antes de salvar.`);
+    } catch (error) { toast.error(error instanceof Error ? error.message : "O documento foi anexado, mas não foi possível ler os dados automaticamente."); }
+  };
+
   const importIntoBudget = (item: typeof allItems[number]) => {
     if (item.category === "hotel") {
       const hotelLocation = [item.neighborhood, item.city, item.country].filter(Boolean).join(", ");
@@ -138,7 +157,7 @@ export function TravelLibraryPanel({ initiallyOpen = false }: { initiallyOpen?: 
   };
 
   const remove = async (id: string, name: string) => { if (!window.confirm(`Excluir “${name}” da Biblioteca de Viagem?`)) return; try { await deleteMutation.mutateAsync({ id }); } catch (error) { toast.error(error instanceof Error ? error.message : "Não foi possível excluir este item agora."); } };
-  const savePending = createMutation.isPending || updateMutation.isPending || uploadMutation.isPending || parseHotelVoucher.isPending;
+  const savePending = createMutation.isPending || updateMutation.isPending || uploadMutation.isPending || parseHotelVoucher.isPending || parseTravelServiceDocument.isPending;
 
   return <section className="rounded-lg border border-[#1a2e4a]/15 bg-blue-50/60 p-3">
     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -164,6 +183,7 @@ export function TravelLibraryPanel({ initiallyOpen = false }: { initiallyOpen?: 
           <div className="rounded border border-dashed border-blue-100 bg-blue-50/40 p-2"><Label className="text-xs">Anexar foto</Label><Input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => void uploadFile(event, "imageUrl")} disabled={uploadMutation.isPending} className="mt-1 h-8 bg-white text-[11px]" />{draft.imageUrl && <p className="mt-1 text-[10px] text-emerald-700">Foto pronta para salvar.</p>}</div>
           <div className="rounded border border-dashed border-blue-100 bg-blue-50/40 p-2"><Label className="text-xs">Anexar documento / voucher</Label><Input type="file" accept="application/pdf,image/jpeg,image/png,image/webp" onChange={(event) => void uploadFile(event, "documentUrl")} disabled={uploadMutation.isPending} className="mt-1 h-8 bg-white text-[11px]" />{draft.documentUrl && <p className="mt-1 text-[10px] text-emerald-700">Documento pronto para salvar.</p>}</div>
           {draft.category === "hotel" && <div className="sm:col-span-2 rounded border border-dashed border-amber-200 bg-amber-50/70 p-2"><Label className="text-xs text-[#1a2e4a]">Cadastrar hotel por PDF ou print</Label><Input type="file" accept="application/pdf,image/jpeg,image/png,image/webp" onChange={(event) => void importHotelVoucher(event)} disabled={uploadMutation.isPending || parseHotelVoucher.isPending} className="mt-1 h-8 bg-white text-[11px]" /><p className="mt-1 text-[10px] text-slate-600">O sistema preenche os dados visíveis no documento. Revise antes de salvar.</p></div>}
+          {(draft.category === "tour" || draft.category === "transfer") && <div className="sm:col-span-2 rounded border border-dashed border-amber-200 bg-amber-50/70 p-2"><Label className="text-xs text-[#1a2e4a]">Cadastrar {draft.category === "tour" ? "passeio" : "transfer"} por PDF ou print</Label><Input type="file" accept="application/pdf,image/jpeg,image/png,image/webp" onChange={(event) => void importTravelServiceDocument(event)} disabled={uploadMutation.isPending || parseTravelServiceDocument.isPending} className="mt-1 h-8 bg-white text-[11px]" /><p className="mt-1 text-[10px] text-slate-600">O sistema preenche somente dados visíveis no documento. Revise antes de salvar.</p></div>}
           <div className="sm:col-span-2"><Label>Notas</Label><Textarea value={draft.notes} onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))} placeholder="Informações úteis para futuros orçamentos." className="mt-1 min-h-16 bg-slate-50 text-xs" /></div>
         </div>
         <div className="mt-2 flex justify-end"><Button type="button" size="sm" onClick={() => void save()} disabled={savePending} className="h-9 bg-[#1a2e4a] px-3 text-xs font-bold text-white hover:bg-[#233f67]">{editingId ? "Atualizar na biblioteca" : "Salvar na biblioteca"}</Button></div>
