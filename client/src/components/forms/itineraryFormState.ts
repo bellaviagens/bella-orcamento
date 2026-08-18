@@ -21,6 +21,7 @@ export interface RestaurantFavoriteForProposal {
   mapsUrl: string;
   website?: string | null;
   photoUrl?: string | null;
+  tags?: string[];
 }
 
 /** Mantém os links e a foto do favorito ao reutilizá-lo em uma nova proposta. */
@@ -36,4 +37,13 @@ export function favoriteRestaurantToGastronomyOption(favorite: RestaurantFavorit
     website: favorite.website || undefined,
     photoUrl: favorite.photoUrl || undefined,
   };
+}
+
+export function filterRestaurantFavorites<T extends Pick<RestaurantFavoriteForProposal, "name" | "location" | "address"> & { tags?: string[] }>(favorites: T[], search: string, selectedTag: string): T[] {
+  const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
+  return favorites.filter((favorite) => {
+    const matchesTag = selectedTag === "all" || (favorite.tags || []).includes(selectedTag);
+    const searchable = `${favorite.name} ${favorite.location} ${favorite.address} ${(favorite.tags || []).join(" ")}`.toLocaleLowerCase("pt-BR");
+    return matchesTag && (!normalizedSearch || searchable.includes(normalizedSearch));
+  });
 }

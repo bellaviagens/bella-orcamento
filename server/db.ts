@@ -1,6 +1,6 @@
 import { and, desc, eq, isNull, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { favoriteRestaurants, InsertUser, savedBudgetDrafts, savedTourProposals, sharedItineraries, users } from "../drizzle/schema";
+import { favoriteRestaurants, InsertUser, savedBudgetDrafts, savedTourProposals, sharedFavoriteLists, sharedItineraries, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -312,6 +312,21 @@ export interface FavoriteRestaurantInput {
   mapsUrl: string;
   website?: string;
   photoUrl?: string;
+  tags?: string[];
+}
+
+function normalizeFavoriteTags(tags: string[] | undefined) {
+  return Array.from(new Set((tags || []).map((tag) => tag.trim()).filter(Boolean))).slice(0, 12);
+}
+
+function parseFavoriteTags(tags: string | null) {
+  if (!tags) return [];
+  try {
+    const parsed = JSON.parse(tags);
+    return Array.isArray(parsed) ? normalizeFavoriteTags(parsed.filter((tag): tag is string => typeof tag === "string")) : [];
+  } catch {
+    return [];
+  }
 }
 
 export async function saveFavoriteRestaurant(input: FavoriteRestaurantInput) {
@@ -333,6 +348,7 @@ export async function saveFavoriteRestaurant(input: FavoriteRestaurantInput) {
     mapsUrl: input.mapsUrl,
     website: input.website || null,
     photoUrl: input.photoUrl || null,
+    tags: JSON.stringify(normalizeFavoriteTags(input.tags)),
     updatedAt: new Date(),
   };
 
@@ -359,7 +375,18 @@ export async function listFavoriteRestaurants(ownerOpenId: string) {
   return favorites.map((favorite) => ({
     ...favorite,
     rating: favorite.rating === null ? undefined : Number(favorite.rating),
+    tags: parseFavoriteTags(favorite.tags),
   }));
+}
+
+export async function updateFavoriteRestaurantTags(ownerOpenId: string, id: string, tags: string[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para atualizar as categorias.");
+
+  const result = await db.update(favoriteRestaurants)
+    .set({ tags: JSON.stringify(normalizeFavoriteTags(tags)), updatedAt: new Date() })
+    .where(and(eq(favoriteRestaurants.id, id), eq(favoriteRestaurants.ownerOpenId, ownerOpenId)));
+  return (result[0]?.affectedRows ?? 0) > 0;
 }
 
 export async function deleteFavoriteRestaurant(ownerOpenId: string, id: string) {
@@ -369,4 +396,24 @@ export async function deleteFavoriteRestaurant(ownerOpenId: string, id: string) 
   const result = await db.delete(favoriteRestaurants)
     .where(and(eq(favoriteRestaurants.id, id), eq(favoriteRestaurants.ownerOpenId, ownerOpenId)));
   return (result[0]?.affectedRows ?? 0) > 0;
+}
+
+export async function createSharedFavoriteList(input: { ownerOpenId: string; token: string; snapshot: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para compartilhar os favoritos.");
+
+  const id = crypto.randomUUID();
+  await db.insert(sharedFavoriteLists).values({ ...input, id });
+  return { id, token: input.token };
+}
+
+export async function getSharedFavoriteList(token: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select({ snapshot: sharedFavoriteLists.snapshot, updatedAt: sharedFavoriteLists.updatedAt })
+    .from(sharedFavoriteLists)
+    .where(eq(sharedFavoriteLists.token, token))
+    .limit(1);
+  return result[0];
 }

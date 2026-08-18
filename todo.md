@@ -547,3 +547,8 @@
 - [x] Criar uma lista persistente de restaurantes favoritos para reutilização entre propostas.
 - [x] Integrar favoritos à área de gastronomia sem alterar o roteiro e os links existentes.
 - [x] Validar persistência, tipagem, testes, build e visualização.
+
+- [x] Permitir cadastrar e editar tags personalizadas nos restaurantes favoritos.
+- [x] Adicionar pesquisa textual e filtros por tag na lista de favoritos.
+- [x] Permitir compartilhar a lista filtrada de favoritos por WhatsApp ou link copiável.
+- [x] Validar persistência, tipagem, testes, build e visualização.

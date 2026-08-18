@@ -50,6 +50,13 @@
       "when": 1787016358891,
       "tag": "0006_mute_sunfire",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1787016875487,
+      "tag": "0007_cloudy_prodigy",
+      "breakpoints": true
     }
   ]
 }

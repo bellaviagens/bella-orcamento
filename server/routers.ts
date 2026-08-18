@@ -4,7 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { buildImportDocumentContent } from "./importDocument";
-import { createSharedItinerary, deleteBudgetDraft, deleteFavoriteRestaurant, duplicateTourProposal, getBudgetDraft, getSharedItinerary, getTourProposal, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, updateTourProposalStatus } from "./db";
+import { createSharedFavoriteList, createSharedItinerary, deleteBudgetDraft, deleteFavoriteRestaurant, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, updateFavoriteRestaurantTags, updateTourProposalStatus } from "./db";
 import { storagePut } from "./storage";
 import { fetchPlacePhoto, makeRequest, type PlacesSearchResult } from "./_core/map";
 import { TRPCError } from "@trpc/server";
@@ -311,8 +311,33 @@ export const appRouter = router({
         mapsUrl: z.string().url().max(2048),
         website: z.string().url().max(2048).optional(),
         photoUrl: z.string().url().max(2048).optional(),
+        tags: z.array(z.string().trim().min(1).max(32)).max(12).optional(),
       }))
       .mutation(async ({ ctx, input }) => ({ id: await saveFavoriteRestaurant({ ...input, ownerOpenId: ctx.user.openId }) })),
+    updateTags: protectedProcedure
+      .input(z.object({ id: z.string().uuid(), tags: z.array(z.string().trim().min(1).max(32)).max(12) }))
+      .mutation(async ({ ctx, input }) => {
+        const updated = await updateFavoriteRestaurantTags(ctx.user.openId, input.id, input.tags);
+        if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Restaurante favorito não encontrado." });
+        return { success: true };
+      }),
+    share: protectedProcedure
+      .input(z.object({ favoriteIds: z.array(z.string().uuid()).min(1).max(100) }))
+      .mutation(async ({ ctx, input }) => {
+        const requestedIds = new Set(input.favoriteIds);
+        const favorites = (await listFavoriteRestaurants(ctx.user.openId))
+          .filter((favorite) => requestedIds.has(favorite.id))
+          .map(({ id, name, location, address, description, rating, mapsUrl, website, photoUrl, tags }) => ({ id, name, location, address, description, rating, mapsUrl, website, photoUrl, tags }));
+        if (favorites.length === 0) throw new TRPCError({ code: "NOT_FOUND", message: "Nenhum restaurante favorito foi encontrado para compartilhar." });
+
+        const token = crypto.randomUUID().replace(/-/g, "");
+        const shared = await createSharedFavoriteList({
+          ownerOpenId: ctx.user.openId,
+          token,
+          snapshot: JSON.stringify({ favorites }),
+        });
+        return { token: shared.token };
+      }),
     delete: protectedProcedure
       .input(z.object({ id: z.string().uuid() }))
       .mutation(async ({ ctx, input }) => {
@@ -436,6 +461,15 @@ export const appRouter = router({
           contentType: input.contentType,
           size: bytes.length,
         };
+      }),
+  }),
+  sharedFavoriteLists: router({
+    get: publicProcedure
+      .input(z.object({ token: z.string().regex(/^[a-f0-9]{32}$/i) }))
+      .query(async ({ input }) => {
+        const shared = await getSharedFavoriteList(input.token);
+        if (!shared) throw new TRPCError({ code: "NOT_FOUND", message: "Esta lista de restaurantes não foi encontrada." });
+        return shared;
       }),
   }),
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly

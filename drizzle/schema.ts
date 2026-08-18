@@ -77,9 +77,22 @@ export const favoriteRestaurants = mysqlTable("favorite_restaurants", {
   mapsUrl: varchar("mapsUrl", { length: 2048 }).notNull(),
   website: varchar("website", { length: 2048 }),
   photoUrl: varchar("photoUrl", { length: 2048 }),
+  tags: text("tags"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
 export type FavoriteRestaurant = typeof favoriteRestaurants.$inferSelect;
 export type InsertFavoriteRestaurant = typeof favoriteRestaurants.$inferInsert;
+
+export const sharedFavoriteLists = mysqlTable("shared_favorite_lists", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  ownerOpenId: varchar("ownerOpenId", { length: 64 }).notNull(),
+  token: varchar("token", { length: 64 }).notNull().unique(),
+  snapshot: text("snapshot").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SharedFavoriteList = typeof sharedFavoriteLists.$inferSelect;
+export type InsertSharedFavoriteList = typeof sharedFavoriteLists.$inferInsert;

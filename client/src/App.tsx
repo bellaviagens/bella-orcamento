@@ -5,12 +5,14 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import SharedFavorites from "./pages/SharedFavorites";
 import SharedItinerary from "./pages/SharedItinerary";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
+      <Route path={"/favoritos/:token"} component={SharedFavorites} />
       <Route path={"/roteiro/:token"} component={SharedItinerary} />
       <Route path={"/"} component={Home} />
       <Route path={"/404"} component={NotFound} />
