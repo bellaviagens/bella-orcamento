@@ -1,9 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { createEmptyGastronomySearchDraft, favoriteRestaurantToGastronomyOption, filterRestaurantFavorites, sortRestaurantFavorites } from "./itineraryFormState";
+import { createEmptyGastronomySearchDraft, createProposalTourFromActivity, favoriteRestaurantToGastronomyOption, filterRestaurantFavorites, sortRestaurantFavorites } from "./itineraryFormState";
 
 describe("createEmptyGastronomySearchDraft", () => {
   it("limpa os campos e os resultados associados a uma busca gastronômica anterior", () => {
     expect(createEmptyGastronomySearchDraft()).toEqual({ name: "", location: "", targetDays: {} });
+  });
+});
+
+describe("createProposalTourFromActivity", () => {
+  it("concentra no passeio os dados iniciais de descrição, site, foto e quantidade de viajantes", () => {
+    expect(createProposalTourFromActivity({ title: "Tour nos Andes", description: "Passeio panorâmico", linkUrl: "https://fornecedor.example/tour", photoUrl: "https://fornecedor.example/foto.jpg" }, "tour-1", 2)).toMatchObject({
+      id: "tour-1",
+      name: "Tour nos Andes",
+      description: "Passeio panorâmico",
+      pageUrl: "https://fornecedor.example/tour",
+      photosUrl: "https://fornecedor.example/foto.jpg",
+      pricingMode: "perPerson",
+      travelerCount: 2,
+      childPrice: 0,
+      childCount: 0,
+    });
   });
 });
 

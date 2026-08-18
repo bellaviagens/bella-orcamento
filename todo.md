@@ -567,3 +567,7 @@
 - [x] Restaurar voos e hotéis nas respectivas abas ao abrir um rascunho salvo.
 - [x] Tornar claros e distintos os controles de Salvar rascunho de orçamento e Salvar proposta de passeios.
 - [x] Validar carregamento, edição, testes, build, visualização e publicação sem alterar os demais módulos.
+
+- [x] Clarear e reorganizar visualmente o resumo diário da proposta sem alterar a paleta institucional dos demais módulos
+- [x] Unificar a edição de dias e passeios da proposta em um único cadastro completo, removendo a duplicidade de informações
+- [x] Validar a proposta consolidada por testes, build e prévia visual sem alterar os demais módulos

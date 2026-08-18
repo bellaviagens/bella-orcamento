@@ -3,7 +3,6 @@ import { BudgetProvider, useBudget } from "@/contexts/BudgetContext";
 import { TripInfoForm } from "@/components/forms/TripInfoForm";
 import { FlightForm } from "@/components/forms/FlightForm";
 import { HotelForm } from "@/components/forms/HotelForm";
-import { TourForm } from "@/components/forms/TourForm";
 import { ItineraryForm } from "@/components/forms/ItineraryForm";
 import { FinalItineraryForm } from "@/components/forms/FinalItineraryForm";
 import { FareForm } from "@/components/forms/FareForm";
@@ -330,7 +329,7 @@ function BuilderContent() {
                 <TabsContent value="itinerary" className="mt-0">
                   <div className="rounded-xl border border-slate-200 bg-white p-5">
                     <div className="mb-4 flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div><h3 className="text-sm font-bold text-[#1a2e4a]" style={{ fontFamily: "Poppins, sans-serif" }}>{itineraryMode === "proposal" ? "Proposta de passeios" : "Roteiro final pós-aprovação"}</h3><p className="mt-1 text-xs text-slate-500">{itineraryMode === "proposal" ? "Cadastre e organize apenas os passeios para enviar uma proposta de aprovação." : "Inclua chegada, transfer, hospedagem, voos, retorno e os passeios já aprovados."}</p></div>
+                      <div><h3 className="text-sm font-bold text-[#1a2e4a]" style={{ fontFamily: "Poppins, sans-serif" }}>{itineraryMode === "proposal" ? "Proposta de passeios" : "Roteiro final pós-aprovação"}</h3><p className="mt-1 text-xs text-slate-500">{itineraryMode === "proposal" ? "Cadastre e organize cada passeio diretamente no respectivo dia para enviar uma proposta de aprovação." : "Inclua chegada, transfer, hospedagem, voos, retorno e os passeios já aprovados."}</p></div>
                       <div className="inline-flex rounded-lg bg-slate-200 p-1"><Button type="button" size="sm" variant="ghost" onClick={() => setItineraryMode("proposal")} className={`h-8 text-xs ${itineraryMode === "proposal" ? "bg-white text-[#1a2e4a] shadow-sm" : "text-slate-600"}`}>Proposta</Button><Button type="button" size="sm" variant="ghost" onClick={() => setItineraryMode("final")} className={`h-8 text-xs ${itineraryMode === "final" ? "bg-white text-[#1a2e4a] shadow-sm" : "text-slate-600"}`}>Roteiro final</Button></div>
                     </div>
                     <div className="h-[calc(100dvh-16rem)] min-h-[32rem] space-y-6 overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]">
@@ -341,13 +340,7 @@ function BuilderContent() {
                         </div>
                         <ItineraryForm />
                       </section>
-                      <section aria-labelledby="roteiro-passeios" className="border-t border-slate-200 pt-6">
-                        <div className="mb-3">
-                          <h4 id="roteiro-passeios" className="text-sm font-bold text-[#1a2e4a]">Passeios da proposta</h4>
-                          <p className="mt-1 text-xs text-slate-500">Inclua somente os passeios que deseja apresentar para aprovação.</p>
-                        </div>
-                        <TourForm />
-                      </section></> : <FinalItineraryForm />}
+                      </> : <FinalItineraryForm />}
                     </div>
                   </div>
                 </TabsContent>

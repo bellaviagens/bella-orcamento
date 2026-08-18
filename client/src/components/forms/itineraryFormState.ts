@@ -1,4 +1,4 @@
-import type { GastronomyOption } from "@shared/budgetTypes";
+import type { GastronomyOption, Tour } from "@shared/budgetTypes";
 
 export interface GastronomySearchDraft {
   name: string;
@@ -9,6 +9,26 @@ export interface GastronomySearchDraft {
 /** Estado local inicial da busca, usado para que uma Nova Proposta não retenha resultados anteriores. */
 export function createEmptyGastronomySearchDraft(): GastronomySearchDraft {
   return { name: "", location: "", targetDays: {} };
+}
+
+/** Cria o registro de passeio que concentra os detalhes de uma atividade da proposta. */
+export function createProposalTourFromActivity(activity: Pick<import("@shared/budgetTypes").ItineraryActivity, "title" | "description" | "linkUrl" | "photoUrl">, id: string, defaultTravelerCount: number): Tour {
+  return {
+    id,
+    name: activity.title || "Novo passeio",
+    location: "",
+    duration: "",
+    description: activity.description || "",
+    totalPrice: 0,
+    pricingMode: "perPerson",
+    pricePerPerson: 0,
+    travelerCount: Math.max(1, defaultTravelerCount),
+    childPrice: 0,
+    childCount: 0,
+    notes: "",
+    pageUrl: activity.linkUrl || "",
+    photosUrl: activity.photoUrl || "",
+  };
 }
 
 export interface RestaurantFavoriteForProposal {
