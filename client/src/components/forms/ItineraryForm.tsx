@@ -12,6 +12,7 @@ import { nanoid } from "nanoid";
 import { toast } from "sonner";
 import { createEmptyGastronomySearchDraft, createProposalTourFromActivity, favoriteRestaurantToGastronomyOption, filterRestaurantFavorites, sortRestaurantFavorites, type FavoriteRestaurantSort } from "./itineraryFormState";
 import { TravelLibraryPanel } from "./TravelLibraryPanel";
+import { travelLibraryLocationFromDestination } from "./travelLibraryLocation";
 
 export function ItineraryForm() {
   const { budget, addGastronomyToDay, addGastronomyToUsefulTips, addItineraryDay, addItineraryActivity, addTour, importItineraryFromQuotation, moveItineraryActivity, removeGastronomyOption, removeItineraryActivity, reorderItineraryActivities, replaceBudget, resetTourProposal, saveGastronomyOption, updateItineraryActivity, updateTour, updateTourProposal, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
@@ -103,10 +104,14 @@ export function ItineraryForm() {
         website: restaurant.website,
         photoUrl: restaurant.photoUrl,
       });
+      const destination = budget.tripInfo.destination.trim() || restaurant.location.trim();
+      const location = travelLibraryLocationFromDestination(destination);
       await saveToLibraryMutation.mutateAsync({
         category: "restaurant",
-        folderName: budget.tripInfo.destination.trim() || restaurant.location.trim() || "Restaurantes favoritos",
-        destination: budget.tripInfo.destination.trim() || restaurant.location.trim() || undefined,
+        folderName: destination || "Restaurantes favoritos",
+        destination: destination || undefined,
+        country: location.country || undefined,
+        city: location.city || undefined,
         name: restaurant.name,
         linkUrl: restaurant.website || restaurant.mapsUrl || undefined,
         imageUrl: restaurant.photoUrl || undefined,

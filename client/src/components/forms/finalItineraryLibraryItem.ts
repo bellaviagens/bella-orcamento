@@ -1,10 +1,13 @@
 import type { FinalItineraryEvent } from "@shared/budgetTypes";
+import { travelLibraryLocationFromDestination } from "./travelLibraryLocation";
 
 export type FinalItineraryLibraryInput = {
   category: "hotel" | "transfer";
   folderName: string;
   name: string;
   destination: string;
+  country?: string;
+  city?: string;
   contactName?: string;
   phone?: string;
   responsibleName?: string;
@@ -28,12 +31,15 @@ export function finalItineraryEventToLibraryInput(event: FinalItineraryEvent, cu
     event.kind === "hotel" && event.hotelLocator && `Localizador: ${event.hotelLocator}`,
     event.kind === "hotel" && event.hotelGuestName && `Hóspede principal: ${event.hotelGuestName}`,
   ].filter(Boolean).join("\n");
+  const location = travelLibraryLocationFromDestination(currentDestination);
 
   return {
     category,
     folderName: category === "hotel" ? "Hotéis" : "Transfers",
     name: event.title.trim() || (category === "hotel" ? "Hospedagem" : "Transfer"),
-    destination: currentDestination.trim() || "Sem destino definido",
+    destination: location.destination || "Sem destino definido",
+    country: location.country || undefined,
+    city: location.city || undefined,
     contactName: category === "transfer" ? event.title.trim() || undefined : undefined,
     phone: category === "hotel" ? event.hotelPhone?.trim() || undefined : undefined,
     responsibleName: category === "transfer" ? event.title.trim() || undefined : undefined,

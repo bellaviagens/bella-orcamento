@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { filterTravelLibraryItems, getTravelLibraryFolders, TRAVEL_LIBRARY_CATEGORY_LABELS, type TravelLibraryCategory } from "./travelLibraryState";
 import { EMPTY_LIBRARY_DRAFT, libraryItemToDraft, type TravelLibraryDraft } from "./travelLibraryEditorState";
+import { travelLibraryLocationFromDestination } from "./travelLibraryLocation";
 
 const CATEGORY_ICONS: Record<TravelLibraryCategory, typeof Hotel> = { hotel: Hotel, tour: Building2, restaurant: Utensils, transfer: BusFront };
 const SUPPORTED_LIBRARY_FILES = ["application/pdf", "image/jpeg", "image/png", "image/webp"] as const;
@@ -29,7 +30,7 @@ function asOptional(value: string) {
 
 export function TravelLibraryPanel({ initiallyOpen = false }: { initiallyOpen?: boolean }) {
   const utils = trpc.useUtils();
-  const { addHotel, addTour, addFinalItineraryEvent, saveGastronomyOption } = useBudget();
+  const { budget, addHotel, addTour, addFinalItineraryEvent, saveGastronomyOption } = useBudget();
   const libraryQuery = trpc.travelLibrary.list.useQuery();
   const createMutation = trpc.travelLibrary.create.useMutation({ onSuccess: async () => { await utils.travelLibrary.list.invalidate(); toast.success("Item salvo na Biblioteca de Viagem."); } });
   const updateMutation = trpc.travelLibrary.update.useMutation({ onSuccess: async () => { await utils.travelLibrary.list.invalidate(); toast.success("Item da Biblioteca atualizado."); } });
@@ -49,7 +50,13 @@ export function TravelLibraryPanel({ initiallyOpen = false }: { initiallyOpen?: 
   const destinations = useMemo(() => Array.from(new Set(items.map((item) => item.destination?.trim() || "Sem destino definido"))).sort((a, b) => a.localeCompare(b, "pt-BR")), [items]);
 
   const closeEditor = () => { setDraft(EMPTY_LIBRARY_DRAFT); setEditingId(null); setShowForm(false); };
-  const openNewItem = () => { setDraft(EMPTY_LIBRARY_DRAFT); setEditingId(null); setShowForm(true); setIsOpen(true); };
+  const openNewItem = () => {
+    const location = travelLibraryLocationFromDestination(budget.tripInfo.destination);
+    setDraft({ ...EMPTY_LIBRARY_DRAFT, ...location });
+    setEditingId(null);
+    setShowForm(true);
+    setIsOpen(true);
+  };
   const openExistingItem = (item: typeof allItems[number]) => { setDraft(libraryItemToDraft(item)); setEditingId(item.id); setShowForm(true); setIsOpen(true); };
 
   const save = async () => {

@@ -643,3 +643,5 @@
 - [x] Preencher a edição da Biblioteca com dados do hotel, transfer ou restaurante favoritado
 - [x] Salvar informações de voucher de hospedagem e dados do Roteiro Final na Biblioteca quando solicitado
 - [x] Validar edição, reaproveitamento dos dados, tipagem, testes, build e responsividade
+- [x] Preencher automaticamente país e cidade da Biblioteca a partir do destino da viagem, mantendo edição manual
+- [x] Validar o preenchimento de localização, tipagem, testes, build e responsividade

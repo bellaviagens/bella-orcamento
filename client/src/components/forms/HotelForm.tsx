@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { Hotel } from "@shared/budgetTypes";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
+import { travelLibraryLocationFromDestination } from "./travelLibraryLocation";
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("pt-BR", {
@@ -168,11 +169,14 @@ export function HotelForm() {
 
   const saveHotelToLibrary = async (hotel: Hotel) => {
     const destination = budget.tripInfo.destination.trim();
+    const location = travelLibraryLocationFromDestination(destination);
     try {
       await saveToLibraryMutation.mutateAsync({
         category: "hotel",
         folderName: destination || "Hotéis gerais",
         destination: destination || undefined,
+        country: location.country || undefined,
+        city: location.city || undefined,
         name: hotel.name || "Hotel sem nome",
         contactName: hotel.address || undefined,
         linkUrl: /^https?:\/\//i.test(hotel.hotelUrl || "") ? hotel.hotelUrl : undefined,
