@@ -66,6 +66,7 @@ export function ItineraryForm() {
   const [favoritePriceRangeDrafts, setFavoritePriceRangeDrafts] = useState<Record<string, string>>({});
   const [favoritePersonalNoteDrafts, setFavoritePersonalNoteDrafts] = useState<Record<string, string>>({});
   const [sharedFavoritesUrl, setSharedFavoritesUrl] = useState("");
+  const [gastronomySectionCollapsed, setGastronomySectionCollapsed] = useState(false);
   const [gastronomyOptionsCollapsed, setGastronomyOptionsCollapsed] = useState(false);
   const selectedProposalQuery = trpc.tourProposals.get.useQuery(
     { id: selectedProposalId || "00000000-0000-0000-0000-000000000000" },
@@ -92,7 +93,7 @@ export function ItineraryForm() {
     toast.success(`${result.name} foi salvo como opção gastronômica.`);
   };
 
-  const handleSaveFavoriteRestaurant = async (restaurant: NonNullable<typeof gastronomySearchQuery.data>["results"][number]) => {
+  const handleSaveFavoriteRestaurant = async (restaurant: { id: string; name: string; location: string; address: string; description: string; rating?: number; mapsUrl: string; website?: string; photoUrl?: string }) => {
     try {
       await saveFavoriteRestaurantMutation.mutateAsync({
         placeId: restaurant.id,
@@ -541,8 +542,9 @@ export function ItineraryForm() {
       </div>
 
       <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3">
-        <div className="mb-2 flex items-center gap-2 text-sm font-bold text-[#1a2e4a]"><UtensilsCrossed className="h-4 w-4" /> Opções gastronômicas</div>
+        <div className="mb-2 flex items-center justify-between gap-2"><div className="flex min-w-0 items-center gap-2 text-sm font-bold text-[#1a2e4a]"><UtensilsCrossed className="h-4 w-4 shrink-0" /> <span>Opções gastronômicas</span></div><Button type="button" variant="ghost" size="sm" onClick={() => setGastronomySectionCollapsed((current) => !current)} aria-expanded={!gastronomySectionCollapsed} className="h-10 min-w-24 shrink-0 px-3 text-xs text-slate-600 hover:bg-white hover:text-[#1a2e4a]"><ChevronDown className={`mr-1.5 h-4 w-4 transition-transform ${gastronomySectionCollapsed ? "" : "rotate-180"}`} />{gastronomySectionCollapsed ? "Abrir" : "Recolher"}</Button></div>
         <p className="mb-3 text-xs leading-relaxed text-slate-600">Informe o nome e a região do restaurante. A busca retorna dados de localização para você validar antes de usar no roteiro.</p>
+        {!gastronomySectionCollapsed && <>
         <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
           <Input value={gastronomyName} onChange={(event) => setGastronomyName(event.target.value)} placeholder="Nome do restaurante ou local" className="bg-white" />
           <Input value={gastronomyLocation} onChange={(event) => setGastronomyLocation(event.target.value)} placeholder="Cidade ou região" className="bg-white" />
@@ -578,13 +580,15 @@ export function ItineraryForm() {
         </div>
 
         {(budget.gastronomyOptions || []).length ? <div className="mt-3 border-t border-amber-200 pt-3">
-          <div className="mb-2 flex items-center justify-between gap-2"><p className="text-xs font-semibold text-[#1a2e4a]">Opções validadas</p><Button type="button" variant="ghost" size="sm" onClick={() => setGastronomyOptionsCollapsed((current) => !current)} aria-expanded={!gastronomyOptionsCollapsed} className="h-10 min-w-24 px-3 text-xs text-slate-600 hover:bg-white hover:text-[#1a2e4a]"><ChevronDown className={`mr-1.5 h-4 w-4 transition-transform ${gastronomyOptionsCollapsed ? "" : "rotate-180"}`} />{gastronomyOptionsCollapsed ? "Abrir" : "Recolher"}</Button></div>
-          {!gastronomyOptionsCollapsed && <div className="space-y-2">{(budget.gastronomyOptions || []).map((option) => <div key={option.id} className="rounded-md border border-amber-100 bg-white p-2.5">
+          <p className="mb-2 text-xs font-semibold text-[#1a2e4a]">Opções validadas</p>
+          <div className="space-y-2">{(budget.gastronomyOptions || []).map((option) => <div key={option.id} className="rounded-md border border-amber-100 bg-white p-2.5">
             {option.photoUrl && <img src={option.photoUrl} alt={`Foto de ${option.name}`} className="mb-2 h-24 w-full rounded-md border border-slate-100 object-cover sm:hidden" />}
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><p className="text-sm font-bold text-[#1a2e4a]">{option.name}</p><p className="text-xs text-slate-600">{option.description || option.address}</p></div><div className="flex flex-wrap items-center gap-1"><Button type="button" variant="outline" size="sm" asChild className="h-8 bg-white px-2 text-xs"><a href={option.mapsUrl} target="_blank" rel="noreferrer">Ver endereço</a></Button>{option.website && <Button type="button" variant="outline" size="sm" asChild className="h-8 bg-white px-2 text-xs"><a href={option.website} target="_blank" rel="noreferrer">Site / fotos</a></Button>}<Button type="button" variant="outline" size="sm" className="h-8 border-red-200 bg-red-50 px-2 text-xs font-semibold text-red-600 hover:bg-red-100 hover:text-red-700" onClick={() => removeGastronomyOption(option.id)} title={`Excluir ${option.name}`} aria-label={`Excluir restaurante ${option.name}`}><Trash2 className="mr-1 h-3.5 w-3.5" />Excluir</Button></div></div>
-            <div className="mt-2 flex flex-col gap-2 sm:flex-row"><Select value={gastronomyTargetDays[option.id] || "none"} onValueChange={(dayId) => setGastronomyTargetDays((current) => ({ ...current, [option.id]: dayId }))}><SelectTrigger className="h-8 flex-1 bg-slate-50 text-xs"><SelectValue placeholder="Escolher dia para incluir" /></SelectTrigger><SelectContent><SelectItem value="none">Escolher dia para incluir</SelectItem>{itinerary.map((day) => <SelectItem key={day.id} value={day.id}>Dia {day.day} — {day.title || "Dia livre"}</SelectItem>)}</SelectContent></Select><Button type="button" variant="outline" size="sm" disabled={!gastronomyTargetDays[option.id] || gastronomyTargetDays[option.id] === "none"} onClick={() => { addGastronomyToDay(gastronomyTargetDays[option.id], option.id); toast.success(`${option.name} foi incluído na agenda do dia.`); }} className="h-8 bg-white text-xs font-semibold">Incluir no dia</Button><Button type="button" variant="outline" size="sm" onClick={() => { addGastronomyToUsefulTips(option.id); toast.success(`${option.name} foi incluído nas Dicas e Links Úteis.`); }} className="h-8 bg-white text-xs font-semibold">Enviar para dicas</Button></div>
-          </div>)}</div>}
+            <div className="min-w-0"><p className="text-sm font-bold text-[#1a2e4a]">{option.name}</p><p className="text-xs text-slate-600">{option.description || option.address}</p></div>
+            <div className="mt-2 flex flex-wrap gap-1.5 border-t border-slate-100 pt-2"><Button type="button" variant="outline" size="sm" asChild className="h-8 bg-white px-2 text-xs"><a href={option.mapsUrl} target="_blank" rel="noreferrer">Ver endereço</a></Button>{option.website && <Button type="button" variant="outline" size="sm" asChild className="h-8 bg-white px-2 text-xs"><a href={option.website} target="_blank" rel="noreferrer">Site / fotos</a></Button>}<Button type="button" variant="outline" size="sm" onClick={() => void handleSaveFavoriteRestaurant(option)} disabled={saveFavoriteRestaurantMutation.isPending || saveToLibraryMutation.isPending} className="h-8 bg-white px-2 text-xs font-semibold text-[#1a2e4a]"><Heart className="mr-1 h-3.5 w-3.5" />Favoritar + Biblioteca</Button><Button type="button" variant="outline" size="sm" className="h-8 border-red-200 bg-red-50 px-2 text-xs font-semibold text-red-600 hover:bg-red-100 hover:text-red-700" onClick={() => removeGastronomyOption(option.id)} title={`Excluir ${option.name}`} aria-label={`Excluir restaurante ${option.name}`}><Trash2 className="mr-1 h-3.5 w-3.5" />Excluir</Button></div>
+            <div className="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]"><Select value={gastronomyTargetDays[option.id] || "none"} onValueChange={(dayId) => setGastronomyTargetDays((current) => ({ ...current, [option.id]: dayId }))}><SelectTrigger className="h-8 bg-slate-50 text-xs"><SelectValue placeholder="Escolher dia para incluir" /></SelectTrigger><SelectContent><SelectItem value="none">Escolher dia para incluir</SelectItem>{itinerary.map((day) => <SelectItem key={day.id} value={day.id}>Dia {day.day} — {day.title || "Dia livre"}</SelectItem>)}</SelectContent></Select><Button type="button" variant="outline" size="sm" disabled={!gastronomyTargetDays[option.id] || gastronomyTargetDays[option.id] === "none"} onClick={() => { addGastronomyToDay(gastronomyTargetDays[option.id], option.id); toast.success(`${option.name} foi incluído na agenda do dia.`); }} className="h-8 bg-white text-xs font-semibold">Incluir no dia</Button><Button type="button" variant="outline" size="sm" onClick={() => { addGastronomyToUsefulTips(option.id); toast.success(`${option.name} foi incluído nas Dicas e Links Úteis.`); }} className="h-8 bg-white text-xs font-semibold">Enviar para dicas</Button></div>
+          </div>)}</div>
         </div> : null}
+        </>}
       </div>
 
       <TravelLibraryPanel />
