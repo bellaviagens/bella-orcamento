@@ -58,6 +58,40 @@ interface BudgetContextType {
 
 const BudgetContext = createContext<BudgetContextType | null>(null);
 
+/** Reidrata snapshots de versões anteriores sem descartar os dados salvos. */
+export function rehydrateBudgetDraft(snapshot: Partial<BudgetData>): BudgetData {
+  const savedFinalItinerary = snapshot.finalItinerary;
+
+  return {
+    ...defaultBudgetData,
+    ...snapshot,
+    tripInfo: { ...defaultBudgetData.tripInfo, ...snapshot.tripInfo },
+    flights: Array.isArray(snapshot.flights) ? [...snapshot.flights] : [],
+    fareComparison: {
+      ...defaultBudgetData.fareComparison,
+      ...snapshot.fareComparison,
+      tiers: Array.isArray(snapshot.fareComparison?.tiers) ? [...snapshot.fareComparison.tiers] : [],
+    },
+    baggage: Array.isArray(snapshot.baggage) ? [...snapshot.baggage] : [],
+    hotels: Array.isArray(snapshot.hotels) ? [...snapshot.hotels] : [],
+    tours: Array.isArray(snapshot.tours) ? [...snapshot.tours] : [],
+    gastronomyOptions: Array.isArray(snapshot.gastronomyOptions) ? [...snapshot.gastronomyOptions] : [],
+    itinerary: Array.isArray(snapshot.itinerary) ? [...snapshot.itinerary] : [],
+    tourProposal: { ...defaultBudgetData.tourProposal, ...snapshot.tourProposal },
+    finalItinerary: {
+      ...defaultBudgetData.finalItinerary,
+      ...savedFinalItinerary,
+      passengers: Array.isArray(savedFinalItinerary?.passengers) ? [...savedFinalItinerary.passengers] : [],
+      events: Array.isArray(savedFinalItinerary?.events) ? [...savedFinalItinerary.events] : [],
+      welcomeMessageTemplates: Array.isArray(savedFinalItinerary?.welcomeMessageTemplates)
+        ? [...savedFinalItinerary.welcomeMessageTemplates]
+        : (defaultBudgetData.finalItinerary.welcomeMessageTemplates || []).map((template) => ({ ...template })),
+    },
+    installments: { ...defaultBudgetData.installments, ...snapshot.installments },
+    pageBreaks: snapshot.pageBreaks ? { ...snapshot.pageBreaks } : undefined,
+  };
+}
+
 function calculateBenefits(tier: FareTier): string[] {
   const benefits = [];
   if (tier.carryOn) benefits.push("Mala de Mão");
@@ -689,7 +723,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const replaceBudget = useCallback((nextBudget: BudgetData) => {
-    setBudget(nextBudget);
+    setBudget(rehydrateBudgetDraft(nextBudget));
   }, []);
 
   const updateFinalItinerary = useCallback((updates: Partial<FinalItinerary>) => {

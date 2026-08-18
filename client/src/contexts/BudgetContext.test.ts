@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { updateFareTierInBudget } from "./BudgetContext";
+import { rehydrateBudgetDraft, updateFareTierInBudget } from "./BudgetContext";
 import { defaultBudgetData } from "@shared/budgetTypes";
 
 describe("updateFareTierInBudget", () => {
@@ -27,5 +27,30 @@ describe("updateFareTierInBudget", () => {
       "Check-in prioritário",
       "Acesso à sala VIP",
     ]);
+  });
+});
+
+describe("rehydrateBudgetDraft", () => {
+  it("preserva voos e hotéis salvos ao abrir um rascunho", () => {
+    const snapshot = {
+      ...defaultBudgetData,
+      flights: [{
+        ...defaultBudgetData.flights[0],
+        id: "voo-rascunho",
+        operatingAirline: "GOL",
+      }],
+      hotels: [{
+        ...defaultBudgetData.hotels[0],
+        id: "hotel-rascunho",
+        name: "Hotel salvo no rascunho",
+      }],
+    };
+
+    const restored = rehydrateBudgetDraft(JSON.parse(JSON.stringify(snapshot)));
+
+    expect(restored.flights).toEqual(snapshot.flights);
+    expect(restored.hotels).toEqual(snapshot.hotels);
+    expect(restored.flights).not.toBe(snapshot.flights);
+    expect(restored.hotels).not.toBe(snapshot.hotels);
   });
 });

@@ -231,6 +231,11 @@
 - [x] Manter o método Cartão específico da condição aérea parcelada
 - [x] Validar no preview as etiquetas separadas para as duas condições de pagamento
 
+- [x] Corrigir a restauração de voos e hotéis ao abrir um rascunho de orçamento
+- [x] Diferenciar visualmente o salvamento do orçamento completo e o salvamento da proposta de passeios
+- [x] Validar com teste que a reidratação de um rascunho preserva voos e hotéis
+- [x] Normalizar snapshots de rascunhos antigos sem apagar os dados salvos
+
 - [x] Replicar a opção aérea à vista dentro dos cards de tarifa quando houver hotel
 - [x] Manter valores e métodos à vista separados da condição parcelada nos cards com hotel
 - [x] Validar o cenário hotel com aéreo sem alterar os demais blocos
@@ -558,3 +563,7 @@
 - [x] Permitir ordenar favoritos por avaliação ou faixa de preço.
 - [x] Permitir registrar e editar notas pessoais em cada restaurante favorito.
 - [x] Validar persistência, tipagem, testes, build e visualização.
+
+- [ ] Restaurar voos e hotéis nas respectivas abas ao abrir um rascunho salvo.
+- [ ] Tornar claros e distintos os controles de Salvar rascunho de orçamento e Salvar proposta de passeios.
+- [ ] Validar carregamento, edição, testes, build, visualização e publicação sem alterar os demais módulos.

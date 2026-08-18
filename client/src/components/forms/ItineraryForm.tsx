@@ -395,7 +395,10 @@ export function ItineraryForm() {
 	          })()}
 	          <div className="sm:col-span-2 rounded-md border border-slate-200 bg-white p-2.5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <Button type="button" onClick={handleSaveProposal} disabled={saveProposalMutation.isPending} className="h-10 font-bold"><Save className="mr-2 h-4 w-4" />{saveProposalMutation.isPending ? "Salvando..." : "Salvar proposta"}</Button>
+            <div className="text-right">
+              <Button type="button" onClick={handleSaveProposal} disabled={saveProposalMutation.isPending} className="h-10 font-bold"><Save className="mr-2 h-4 w-4" />{saveProposalMutation.isPending ? "Salvando..." : "Salvar proposta de passeios"}</Button>
+              <p className="mt-1 max-w-xs text-[10px] leading-relaxed text-slate-500">Salva somente os passeios para aprovação. Para guardar também voos e hotéis, use “Orçamento completo”.</p>
+            </div>
             <Select onValueChange={handleLoadProposal} disabled={savedProposalsQuery.isLoading || selectedProposalQuery.isFetching}>
               <SelectTrigger className="h-10 flex-1"><FolderOpen className="mr-2 h-4 w-4" /><SelectValue placeholder={savedProposalsQuery.isLoading ? "Carregando propostas..." : "Abrir proposta já salva"} /></SelectTrigger>
               <SelectContent>{(savedProposalsQuery.data || []).map((saved) => <SelectItem key={saved.id} value={saved.id}>{saved.clientName} — {saved.proposalTitle}</SelectItem>)}</SelectContent>

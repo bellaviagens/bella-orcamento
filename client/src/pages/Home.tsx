@@ -36,6 +36,7 @@ function BuilderContent() {
   const [draftDialogOpen, setDraftDialogOpen] = useState(false);
   const [draftLabel, setDraftLabel] = useState("");
   const [currentDraftId, setCurrentDraftId] = useState<string | undefined>();
+  const [budgetLoadKey, setBudgetLoadKey] = useState(0);
   const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
   const [draftSearch, setDraftSearch] = useState("");
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
@@ -57,6 +58,7 @@ function BuilderContent() {
       replaceBudget(JSON.parse(selectedDraftQuery.data.snapshot));
       setCurrentDraftId(selectedDraftQuery.data.id);
       setDraftLabel(selectedDraftQuery.data.label);
+      setBudgetLoadKey((currentKey) => currentKey + 1);
       setSelectedDraftId(null);
       setDraftDialogOpen(false);
       toast.success("Rascunho aberto. Você pode continuar editando hotéis, voos e demais dados.");
@@ -139,7 +141,7 @@ function BuilderContent() {
             className="text-white hover:bg-white/10"
           >
             <Save className="h-4 w-4 mr-2" />
-            Rascunho
+            Orçamento completo
           </Button>
           <Button
             variant="ghost"
@@ -195,16 +197,17 @@ function BuilderContent() {
       <Dialog open={draftDialogOpen} onOpenChange={setDraftDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-[#1a2e4a]">Rascunhos de orçamento</DialogTitle>
-            <DialogDescription>Salve o trabalho atual e retome-o depois para editar voos, hotéis e todas as demais informações.</DialogDescription>
+            <DialogTitle className="text-[#1a2e4a]">Salvar ou abrir orçamento completo</DialogTitle>
+            <DialogDescription>O rascunho guarda todo o orçamento — cliente, viagem, voos, hotéis, tarifas, pagamentos e roteiro — para você continuar editando depois.</DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
             <Label htmlFor="draft-label" className="text-xs font-semibold text-slate-600">Nome do rascunho</Label>
             <Input id="draft-label" value={draftLabel} onChange={(event) => setDraftLabel(event.target.value)} placeholder="Ex.: Orçamento — Santiago" />
             <Button type="button" className="w-full bg-[#1a2e4a] text-white hover:bg-[#243c62]" onClick={saveDraft} disabled={saveDraftMutation.isPending}>
               <Save className="mr-2 h-4 w-4" />
-              {saveDraftMutation.isPending ? "Salvando..." : "Salvar rascunho atual"}
+              {saveDraftMutation.isPending ? "Salvando..." : "Salvar orçamento completo (rascunho)"}
             </Button>
+            <p className="text-[11px] leading-relaxed text-slate-500">A opção <strong>“Salvar proposta de passeios”</strong>, dentro de Roteiro, salva apenas a proposta de passeios para aprovação. Ela não substitui este orçamento completo.</p>
           </div>
           <div className="border-t border-slate-200 pt-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#1a2e4a]"><FolderOpen className="h-4 w-4" /> Rascunhos salvos</div>
@@ -310,7 +313,7 @@ function BuilderContent() {
                       Voos
                     </h3>
                     <div className="h-[calc(100dvh-16rem)] min-h-[32rem] overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]">
-                      <FlightForm />
+                      <FlightForm key={`flights-${budgetLoadKey}`} />
                     </div>
                   </div>
                 </TabsContent>
@@ -320,7 +323,7 @@ function BuilderContent() {
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
                       Hotéis
                     </h3>
-                    <HotelForm />
+                    <HotelForm key={`hotels-${budgetLoadKey}`} />
                   </div>
                 </TabsContent>
 
