@@ -658,3 +658,5 @@
 - [x] Estender filtros de localização da Biblioteca para passeios e transfers
 - [x] Adicionar busca textual de passeios e transfers pelos dados cadastrados
 - [x] Validar filtros e busca ampliados, incluindo tipagem, testes, build e responsividade
+- [x] Corrigir o filtro de bairros para ficar ativo quando a categoria Hotéis for selecionada
+- [x] Validar a disponibilidade do filtro, tipagem, testes, build e responsividade
