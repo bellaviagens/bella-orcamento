@@ -48,7 +48,7 @@ export function filterTravelLibraryItems<T extends TravelLibraryItemLike>(items:
     (normalizedFilters.category === "all" || item.category === normalizedFilters.category)
     && (!normalizedFilters.country || item.country?.trim() === normalizedFilters.country)
     && (!normalizedFilters.city || item.city?.trim() === normalizedFilters.city)
-    && (!normalizedFilters.neighborhood || item.category === "hotel" && item.neighborhood?.trim() === normalizedFilters.neighborhood)
+    && (!normalizedFilters.neighborhood || item.neighborhood?.trim() === normalizedFilters.neighborhood)
     && (!searchQuery || [item.name, item.destination, item.country, item.city, item.neighborhood, item.contactName, item.phone, item.responsibleName, item.whatsapp, item.notes].some((value) => normalizedText(value).includes(searchQuery))),
   );
 }

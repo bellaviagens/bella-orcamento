@@ -660,3 +660,8 @@
 - [x] Validar filtros e busca ampliados, incluindo tipagem, testes, build e responsividade
 - [x] Corrigir o filtro de bairros para ficar ativo quando a categoria Hotéis for selecionada
 - [x] Validar a disponibilidade do filtro, tipagem, testes, build e responsividade
+- [x] Disponibilizar e persistir o campo Bairro para restaurantes, passeios e transfers na Biblioteca
+- [x] Permitir filtrar todos os serviços da Biblioteca por bairro
+- [x] Adicionar botão para limpar todos os filtros e a busca da Biblioteca
+- [x] Permitir importar PDF/print de hotel para preencher o cadastro da Biblioteca antes de salvar
+- [x] Validar bairro ampliado, limpeza de filtros e pré-cadastro por PDF, incluindo tipagem, testes, build e responsividade

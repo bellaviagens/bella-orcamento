@@ -39,6 +39,15 @@ describe("Biblioteca de Viagem", () => {
     expect(filterTravelLibraryItems(detailedItems, { category: "hotel", country: "Chile", city: "Santiago", neighborhood: "Las Condes" }).map((item) => item.id)).toEqual(["hotel-las-condes"]);
   });
 
+  it("aplica o filtro de bairro também a passeios e transfers", () => {
+    const localizedItems = [
+      { id: "tour-1", category: "tour" as const, folderName: "Passeios", country: "Chile", city: "Santiago", neighborhood: "Providencia" },
+      { id: "transfer-1", category: "transfer" as const, folderName: "Transfers", country: "Chile", city: "Santiago", neighborhood: "Las Condes" },
+    ];
+
+    expect(filterTravelLibraryItems(localizedItems, { category: "all", country: "Chile", city: "Santiago", neighborhood: "Providencia" }).map((item) => item.id)).toEqual(["tour-1"]);
+  });
+
   it("pesquisa hotéis por nome, endereço salvo nas notas ou bairro", () => {
     const detailedItems = [
       { id: "hotel-1", category: "hotel" as const, folderName: "Hotéis", name: "Hotel Andes", destination: "Santiago, Chile", country: "Chile", city: "Santiago", neighborhood: "Las Condes", contactName: null, phone: null, linkUrl: null, imageUrl: null, notes: "Endereço: Avenida Manquehue Norte" },
