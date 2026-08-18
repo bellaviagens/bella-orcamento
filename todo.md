@@ -584,3 +584,7 @@
 - [x] Iniciar todos os blocos da aba Parcelamento recolhidos
 - [x] Ampliar novamente a área de rolagem do editor de hotéis para aproveitar mais a tela
 - [x] Validar persistência, comportamento visual, testes e build sem alterar cálculos ou PDF
+
+- [x] Garantir que abrir um orçamento salvo use exclusivamente o snapshot salvo, sem sobrescrever valores ou hotéis pelo último estado local
+- [x] Adicionar botão explícito no Roteiro Final para puxar os passeios da proposta salva
+- [x] Cobrir a precedência de restauração e a importação de passeios por testes, build e prévia visual

@@ -356,7 +356,7 @@ function BuilderContent() {
                       Adicione quantas tarifas quiser com nomes customizáveis. Você pode destacar uma para que apaça em destaque no orçamento.
                     </p>
                     <div className="h-[calc(100dvh-16rem)] min-h-[32rem] overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]">
-                      <FareForm />
+                      <FareForm key={`fares-${budgetLoadKey}`} />
                     </div>
                   </div>
                 </TabsContent>
@@ -366,7 +366,7 @@ function BuilderContent() {
                     <h3 className="text-sm font-bold text-[#1a2e4a] mb-4" style={{ fontFamily: "Poppins, sans-serif" }}>
                       Bagagens
                     </h3>
-                    <BaggageForm />
+                    <BaggageForm key={`baggage-${budgetLoadKey}`} />
                   </div>
                 </TabsContent>
 
@@ -376,7 +376,7 @@ function BuilderContent() {
                       Parcelamento
                     </h3>
                     <div className="h-[calc(100dvh-16rem)] min-h-[32rem] overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]">
-                      <InstallmentsForm />
+                      <InstallmentsForm key={`installments-${budgetLoadKey}`} />
                     </div>
                   </div>
                 </TabsContent>

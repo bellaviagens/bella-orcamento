@@ -94,6 +94,15 @@ export function rehydrateBudgetDraft(snapshot: Partial<BudgetData>): BudgetData 
 
 export const LAST_BUDGET_STORAGE_KEY = "bella-viagens-last-budget-v1";
 
+function persistLastBudgetLocally(nextBudget: BudgetData) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(LAST_BUDGET_STORAGE_KEY, JSON.stringify(nextBudget));
+  } catch {
+    // A edição continua disponível mesmo se o navegador bloquear o armazenamento local.
+  }
+}
+
 /** Recupera com segurança o último orçamento local, inclusive snapshots de versões anteriores. */
 export function restoreLastBudgetFromStorage(serializedBudget: string | null): BudgetData {
   if (!serializedBudget) return defaultBudgetData;
@@ -598,11 +607,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(LAST_BUDGET_STORAGE_KEY, JSON.stringify(budget));
-    } catch {
-      // A edição continua disponível mesmo se o navegador bloquear o armazenamento local.
-    }
+    persistLastBudgetLocally(budget);
   }, [budget]);
 
   const updateTripInfo = useCallback((field: string, value: string) => {
@@ -763,7 +768,11 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const replaceBudget = useCallback((nextBudget: BudgetData) => {
-    setBudget(rehydrateBudgetDraft(nextBudget));
+    const restoredBudget = rehydrateBudgetDraft(nextBudget);
+    // Ao abrir um orçamento salvo, ele passa a ser imediatamente o último orçamento local.
+    // Assim, nenhum estado anterior pode voltar a prevalecer durante a próxima abertura.
+    persistLastBudgetLocally(restoredBudget);
+    setBudget(restoredBudget);
   }, []);
 
   const updateFinalItinerary = useCallback((updates: Partial<FinalItinerary>) => {
