@@ -673,3 +673,5 @@
 - [x] Mover as regras de bagagem para dentro do cartão de cada voo, junto aos passageiros e documentos
 - [x] Permitir escolher qual proposta de passeios salva será importada para o Roteiro Final
 - [x] Iniciar recolhidos todos os dias, compromissos e seções com controle Abrir/Recolher no Roteiro Final
+- [x] Iniciar recolhida a lista de propostas de passeios e clientes no editor
+- [x] Corrigir a busca de propostas de passeios pelo nome do cliente

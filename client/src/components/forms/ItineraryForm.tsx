@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { createEmptyGastronomySearchDraft, createProposalTourFromActivity, favoriteRestaurantToGastronomyOption, filterRestaurantFavorites, sortRestaurantFavorites, type FavoriteRestaurantSort } from "./itineraryFormState";
 import { TravelLibraryPanel } from "./TravelLibraryPanel";
 import { travelLibraryLocationFromDestination } from "./travelLibraryLocation";
+import { filterSavedTourProposals } from "./tourProposalListState";
 
 export function ItineraryForm() {
   const { budget, addGastronomyToDay, addGastronomyToUsefulTips, addItineraryDay, addItineraryActivity, addTour, importItineraryFromQuotation, moveItineraryActivity, removeGastronomyOption, removeItineraryActivity, reorderItineraryActivities, replaceBudget, resetTourProposal, saveGastronomyOption, updateItineraryActivity, updateTour, updateTourProposal, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
@@ -34,13 +35,13 @@ export function ItineraryForm() {
   const deleteProposalMutation = trpc.tourProposals.delete.useMutation();
   const saveToLibraryMutation = trpc.travelLibrary.create.useMutation();
   const [savedProposalSearch, setSavedProposalSearch] = useState("");
-  const savedProposalQueryInput = useMemo(
-    () => ({ search: savedProposalSearch.trim() || undefined }),
-    [savedProposalSearch],
+  const savedProposalsQuery = trpc.tourProposals.list.useQuery();
+  const filteredSavedProposals = useMemo(
+    () => filterSavedTourProposals(savedProposalsQuery.data || [], savedProposalSearch),
+    [savedProposalSearch, savedProposalsQuery.data],
   );
-  const savedProposalsQuery = trpc.tourProposals.list.useQuery(savedProposalQueryInput);
   const [selectedProposalId, setSelectedProposalId] = useState<string | null>(null);
-  const [showSavedProposals, setShowSavedProposals] = useState(true);
+  const [showSavedProposals, setShowSavedProposals] = useState(false);
   const [proposalToDelete, setProposalToDelete] = useState<{ id: string; clientName: string } | null>(null);
   const [gastronomyName, setGastronomyName] = useState("");
   const [gastronomyLocation, setGastronomyLocation] = useState("");
@@ -381,6 +382,8 @@ export function ItineraryForm() {
     setCollapsedActivityIds(new Set());
     knownDayIdsRef.current = new Set();
     setQuotationUrl("");
+    setSavedProposalSearch("");
+    setShowSavedProposals(false);
     const emptyGastronomySearch = createEmptyGastronomySearchDraft();
     setGastronomyName(emptyGastronomySearch.name);
     setGastronomyLocation(emptyGastronomySearch.location);
@@ -488,22 +491,22 @@ export function ItineraryForm() {
             </div>
             <Select onValueChange={handleLoadProposal} disabled={savedProposalsQuery.isLoading || selectedProposalQuery.isFetching}>
               <SelectTrigger className="h-10 flex-1"><FolderOpen className="mr-2 h-4 w-4" /><SelectValue placeholder={savedProposalsQuery.isLoading ? "Carregando propostas..." : "Abrir proposta já salva"} /></SelectTrigger>
-              <SelectContent>{(savedProposalsQuery.data || []).map((saved) => <SelectItem key={saved.id} value={saved.id}>{saved.clientName} — {saved.proposalTitle}</SelectItem>)}</SelectContent>
+              <SelectContent>{filteredSavedProposals.map((saved) => <SelectItem key={saved.id} value={saved.id}>{saved.clientName} — {saved.proposalTitle}</SelectItem>)}</SelectContent>
             </Select>
             </div>
-            {!showSavedProposals && <div className="mt-2 flex justify-end"><Button type="button" variant="outline" size="sm" onClick={() => setShowSavedProposals(true)} className="h-9 bg-white text-xs font-semibold"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Ver propostas salvas</Button></div>}
+            {!showSavedProposals && <div className="mt-2 flex justify-end"><Button type="button" variant="outline" size="sm" onClick={() => setShowSavedProposals(true)} className="h-9 bg-white text-xs font-semibold"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Ver propostas e clientes salvos</Button></div>}
             {showSavedProposals && <><div className="relative mt-2">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input value={savedProposalSearch} onChange={(event) => setSavedProposalSearch(event.target.value)} placeholder="Buscar proposta pelo nome do cliente" className="h-9 bg-slate-50 pl-8 text-sm" />
             </div>
             <div className="mt-2 max-h-44 space-y-1 overflow-y-auto pr-1">
-              {(savedProposalsQuery.data || []).map((saved) => (
+              {filteredSavedProposals.map((saved) => (
                 <div key={saved.id} className="flex flex-col gap-2 rounded-md border border-slate-100 px-2.5 py-2 sm:flex-row sm:items-center">
                   <button type="button" onClick={() => handleLoadProposal(saved.id)} className="min-w-0 flex-1 text-left" title="Abrir proposta"><span className="block truncate text-xs font-bold text-[#1a2e4a]">{saved.clientName}</span><span className="block truncate text-[11px] text-slate-500">{saved.proposalTitle}</span></button>
                   <div className="flex items-center gap-1.5"><Select value={saved.status} onValueChange={(status: "pending" | "sent" | "approved") => handleProposalStatus(saved.id, status)} disabled={updateProposalStatusMutation.isPending}><SelectTrigger className="h-8 w-28 text-xs"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="pending">Pendente</SelectItem><SelectItem value="sent">Enviada</SelectItem><SelectItem value="approved">Aprovada</SelectItem></SelectContent></Select><Button type="button" variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={() => handleDuplicateProposal(saved.id)} disabled={duplicateProposalMutation.isPending} title="Duplicar proposta"><Copy className="mr-1 h-3.5 w-3.5" />Duplicar</Button><Button type="button" variant="outline" size="sm" className="h-8 border-red-200 bg-red-50 px-2 text-xs font-semibold text-red-600 hover:bg-red-100 hover:text-red-700" onClick={() => setProposalToDelete({ id: saved.id, clientName: saved.clientName })} disabled={deleteProposalMutation.isPending} title="Excluir proposta"><Trash2 className="h-3.5 w-3.5" /></Button></div>
                 </div>
               ))}
-              {!savedProposalsQuery.isLoading && (savedProposalsQuery.data || []).length === 0 && <p className="px-1 py-2 text-xs text-slate-500">Nenhuma proposta encontrada.</p>}
+              {!savedProposalsQuery.isLoading && filteredSavedProposals.length === 0 && <p className="px-1 py-2 text-xs text-slate-500">Nenhuma proposta encontrada para este cliente.</p>}
             </div></>}
           </div>
           <AlertDialog open={Boolean(proposalToDelete)} onOpenChange={(open) => { if (!open) setProposalToDelete(null); }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Excluir proposta de passeios?</AlertDialogTitle><AlertDialogDescription>{proposalToDelete ? `A proposta de ${proposalToDelete.clientName} será removida permanentemente. Essa ação não altera o orçamento que está aberto agora.` : ""}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => void handleDeleteProposal()} className="bg-red-600 hover:bg-red-700">Excluir proposta</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
