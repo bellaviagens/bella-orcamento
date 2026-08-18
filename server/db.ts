@@ -1,6 +1,6 @@
 import { and, desc, eq, isNull, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, savedBudgetDrafts, savedTourProposals, sharedItineraries, users } from "../drizzle/schema";
+import { favoriteRestaurants, InsertUser, savedBudgetDrafts, savedTourProposals, sharedItineraries, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -299,4 +299,74 @@ export async function revokeSharedItinerary(ownerOpenId: string, token: string) 
     .set({ revokedAt: new Date(), updatedAt: new Date() })
     .where(and(eq(sharedItineraries.ownerOpenId, ownerOpenId), eq(sharedItineraries.token, token), isNull(sharedItineraries.revokedAt)));
   return result[0]?.affectedRows ?? 0;
+}
+
+export interface FavoriteRestaurantInput {
+  ownerOpenId: string;
+  placeId: string;
+  name: string;
+  location: string;
+  address: string;
+  description: string;
+  rating?: number;
+  mapsUrl: string;
+  website?: string;
+  photoUrl?: string;
+}
+
+export async function saveFavoriteRestaurant(input: FavoriteRestaurantInput) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para salvar o favorito.");
+
+  const existing = await db.select({ id: favoriteRestaurants.id })
+    .from(favoriteRestaurants)
+    .where(and(eq(favoriteRestaurants.ownerOpenId, input.ownerOpenId), eq(favoriteRestaurants.placeId, input.placeId)))
+    .limit(1);
+
+  const values = {
+    placeId: input.placeId,
+    name: input.name,
+    location: input.location,
+    address: input.address,
+    description: input.description,
+    rating: input.rating === undefined ? null : String(input.rating),
+    mapsUrl: input.mapsUrl,
+    website: input.website || null,
+    photoUrl: input.photoUrl || null,
+    updatedAt: new Date(),
+  };
+
+  if (existing[0]) {
+    await db.update(favoriteRestaurants)
+      .set(values)
+      .where(and(eq(favoriteRestaurants.id, existing[0].id), eq(favoriteRestaurants.ownerOpenId, input.ownerOpenId)));
+    return existing[0].id;
+  }
+
+  const id = crypto.randomUUID();
+  await db.insert(favoriteRestaurants).values({ ...values, id, ownerOpenId: input.ownerOpenId });
+  return id;
+}
+
+export async function listFavoriteRestaurants(ownerOpenId: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const favorites = await db.select().from(favoriteRestaurants)
+    .where(eq(favoriteRestaurants.ownerOpenId, ownerOpenId))
+    .orderBy(desc(favoriteRestaurants.updatedAt));
+
+  return favorites.map((favorite) => ({
+    ...favorite,
+    rating: favorite.rating === null ? undefined : Number(favorite.rating),
+  }));
+}
+
+export async function deleteFavoriteRestaurant(ownerOpenId: string, id: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para excluir o favorito.");
+
+  const result = await db.delete(favoriteRestaurants)
+    .where(and(eq(favoriteRestaurants.id, id), eq(favoriteRestaurants.ownerOpenId, ownerOpenId)));
+  return (result[0]?.affectedRows ?? 0) > 0;
 }

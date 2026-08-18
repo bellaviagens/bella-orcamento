@@ -542,3 +542,8 @@
 
 - [x] Limpar os campos e resultados temporários da pesquisa gastronômica ao clicar em Nova Proposta.
 - [x] Validar o reset da nova proposta sem alterar os demais módulos.
+
+- [x] Reforçar a confirmação antes de limpar a proposta atual.
+- [x] Criar uma lista persistente de restaurantes favoritos para reutilização entre propostas.
+- [x] Integrar favoritos à área de gastronomia sem alterar o roteiro e os links existentes.
+- [x] Validar persistência, tipagem, testes, build e visualização.

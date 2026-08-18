@@ -64,3 +64,22 @@ export const sharedItineraries = mysqlTable("shared_itineraries", {
 
 export type SharedItinerary = typeof sharedItineraries.$inferSelect;
 export type InsertSharedItinerary = typeof sharedItineraries.$inferInsert;
+
+export const favoriteRestaurants = mysqlTable("favorite_restaurants", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  ownerOpenId: varchar("ownerOpenId", { length: 64 }).notNull(),
+  placeId: varchar("placeId", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  location: varchar("location", { length: 255 }).notNull(),
+  address: varchar("address", { length: 1000 }).notNull(),
+  description: text("description").notNull(),
+  rating: varchar("rating", { length: 16 }),
+  mapsUrl: varchar("mapsUrl", { length: 2048 }).notNull(),
+  website: varchar("website", { length: 2048 }),
+  photoUrl: varchar("photoUrl", { length: 2048 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type FavoriteRestaurant = typeof favoriteRestaurants.$inferSelect;
+export type InsertFavoriteRestaurant = typeof favoriteRestaurants.$inferInsert;

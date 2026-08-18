@@ -4,7 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { buildImportDocumentContent } from "./importDocument";
-import { createSharedItinerary, deleteBudgetDraft, duplicateTourProposal, getBudgetDraft, getSharedItinerary, getTourProposal, listBudgetDrafts, listTourProposals, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveTourProposal, updateTourProposalStatus } from "./db";
+import { createSharedItinerary, deleteBudgetDraft, deleteFavoriteRestaurant, duplicateTourProposal, getBudgetDraft, getSharedItinerary, getTourProposal, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, updateTourProposalStatus } from "./db";
 import { storagePut } from "./storage";
 import { fetchPlacePhoto, makeRequest, type PlacesSearchResult } from "./_core/map";
 import { TRPCError } from "@trpc/server";
@@ -296,6 +296,29 @@ export const appRouter = router({
           console.error("Gastronomy search error:", error);
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Não foi possível pesquisar este local agora. Confira o nome e a região ou tente novamente." });
         }
+      }),
+  }),
+  favoriteRestaurants: router({
+    list: protectedProcedure.query(({ ctx }) => listFavoriteRestaurants(ctx.user.openId)),
+    save: protectedProcedure
+      .input(z.object({
+        placeId: z.string().trim().min(1).max(255),
+        name: z.string().trim().min(1).max(255),
+        location: z.string().trim().max(255),
+        address: z.string().trim().max(1000),
+        description: z.string().trim().max(4000),
+        rating: z.number().min(0).max(5).optional(),
+        mapsUrl: z.string().url().max(2048),
+        website: z.string().url().max(2048).optional(),
+        photoUrl: z.string().url().max(2048).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => ({ id: await saveFavoriteRestaurant({ ...input, ownerOpenId: ctx.user.openId }) })),
+    delete: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .mutation(async ({ ctx, input }) => {
+        const removed = await deleteFavoriteRestaurant(ctx.user.openId, input.id);
+        if (!removed) throw new TRPCError({ code: "NOT_FOUND", message: "Restaurante favorito não encontrado." });
+        return { success: true };
       }),
   }),
   tourProposals: router({

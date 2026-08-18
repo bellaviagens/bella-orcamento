@@ -2,13 +2,14 @@ import { getItineraryDayActivities, useBudget } from "@/contexts/BudgetContext";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarDays, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, GripVertical, Link2, Loader2, Plus, Save, Search, Trash2, UtensilsCrossed } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, GripVertical, Heart, Link2, Loader2, Plus, Save, Search, Trash2, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
-import { createEmptyGastronomySearchDraft } from "./itineraryFormState";
+import { createEmptyGastronomySearchDraft, favoriteRestaurantToGastronomyOption } from "./itineraryFormState";
 
 export function ItineraryForm() {
   const { budget, addGastronomyToDay, addGastronomyToUsefulTips, addItineraryDay, addItineraryActivity, importItineraryFromQuotation, moveItineraryActivity, removeGastronomyOption, removeItineraryActivity, reorderItineraryActivities, replaceBudget, resetTourProposal, saveGastronomyOption, updateItineraryActivity, updateTour, updateTourProposal, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
@@ -40,6 +41,9 @@ export function ItineraryForm() {
     [gastronomyLocation, gastronomyName],
   );
   const gastronomySearchQuery = trpc.gastronomy.search.useQuery(gastronomySearchInput, { enabled: false, retry: false });
+  const favoriteRestaurantsQuery = trpc.favoriteRestaurants.list.useQuery();
+  const saveFavoriteRestaurantMutation = trpc.favoriteRestaurants.save.useMutation();
+  const deleteFavoriteRestaurantMutation = trpc.favoriteRestaurants.delete.useMutation();
   const selectedProposalQuery = trpc.tourProposals.get.useQuery(
     { id: selectedProposalId || "00000000-0000-0000-0000-000000000000" },
     { enabled: Boolean(selectedProposalId) },
@@ -63,6 +67,43 @@ export function ItineraryForm() {
   const saveSearchedGastronomy = (result: NonNullable<typeof gastronomySearchQuery.data>["results"][number]) => {
     saveGastronomyOption(result);
     toast.success(`${result.name} foi salvo como opção gastronômica.`);
+  };
+
+  const handleSaveFavoriteRestaurant = async (restaurant: NonNullable<typeof gastronomySearchQuery.data>["results"][number]) => {
+    try {
+      await saveFavoriteRestaurantMutation.mutateAsync({
+        placeId: restaurant.id,
+        name: restaurant.name,
+        location: restaurant.location,
+        address: restaurant.address,
+        description: restaurant.description,
+        rating: restaurant.rating,
+        mapsUrl: restaurant.mapsUrl,
+        website: restaurant.website,
+        photoUrl: restaurant.photoUrl,
+      });
+      await utils.favoriteRestaurants.list.invalidate();
+      toast.success(`${restaurant.name} foi salvo nos restaurantes favoritos.`);
+    } catch (error) {
+      console.error("Save favorite restaurant error:", error);
+      toast.error(error instanceof Error ? error.message : "Não foi possível salvar este restaurante nos favoritos.");
+    }
+  };
+
+  const handleUseFavoriteRestaurant = (favorite: NonNullable<typeof favoriteRestaurantsQuery.data>[number]) => {
+    saveGastronomyOption(favoriteRestaurantToGastronomyOption(favorite));
+    toast.success(`${favorite.name} foi adicionado às opções gastronômicas desta proposta.`);
+  };
+
+  const handleDeleteFavoriteRestaurant = async (id: string) => {
+    try {
+      await deleteFavoriteRestaurantMutation.mutateAsync({ id });
+      await utils.favoriteRestaurants.list.invalidate();
+      toast.success("Restaurante removido dos favoritos.");
+    } catch (error) {
+      console.error("Delete favorite restaurant error:", error);
+      toast.error(error instanceof Error ? error.message : "Não foi possível remover este favorito.");
+    }
   };
 
   const handleSaveProposal = async () => {
@@ -182,7 +223,6 @@ export function ItineraryForm() {
   };
 
   const handleNewProposal = () => {
-    if (!window.confirm("Iniciar uma nova proposta? Os passeios, dias e dados da proposta atual serão limpos. O Roteiro Final e as propostas salvas permanecerão preservados.")) return;
     resetTourProposal();
     setCollapsedDayIds(new Set());
     knownDayIdsRef.current = new Set();
@@ -206,7 +246,23 @@ export function ItineraryForm() {
             <h4 className="text-sm font-bold text-[#1a2e4a]">Abertura e pagamento da proposta</h4>
             <p className="mt-1 text-xs text-slate-500">Essas informações aparecem antes e depois dos passeios no documento de aprovação.</p>
           </div>
-          <Button type="button" variant="outline" onClick={handleNewProposal} className="h-9 shrink-0 bg-white text-xs font-bold"><FilePlus2 className="mr-1.5 h-4 w-4" />Nova proposta</Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button type="button" variant="outline" className="h-9 shrink-0 bg-white text-xs font-bold"><FilePlus2 className="mr-1.5 h-4 w-4" />Nova proposta</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="border-amber-200 bg-white">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-[#1a2e4a]">Iniciar uma nova proposta?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Os passeios, dias, dados do cliente, opções gastronômicas e resultados de busca desta proposta serão limpos. O Roteiro Final, as propostas salvas e seus restaurantes favoritos permanecerão preservados.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleNewProposal} className="bg-[#1a2e4a] text-white hover:bg-[#12243d]">Limpar e iniciar nova proposta</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div><Label htmlFor="proposal-client">Cliente</Label><Input id="proposal-client" value={budget.tourProposal.clientName || ""} onChange={(event) => updateTourProposal({ clientName: event.target.value })} placeholder="Ex.: Suelen Vieira" className="mt-1 bg-white" /></div>
@@ -311,9 +367,18 @@ export function ItineraryForm() {
           {gastronomySearchQuery.data.results.map((result) => <div key={result.id} className="flex flex-col gap-2 rounded-md border border-amber-100 bg-white p-2.5 sm:flex-row sm:items-center sm:justify-between">
             {result.photoUrl && <img src={result.photoUrl} alt={`Foto de ${result.name}`} className="h-14 w-full rounded-md border border-slate-100 object-cover sm:w-20" />}
             <div className="min-w-0"><p className="text-sm font-bold text-[#1a2e4a]">{result.name}</p><p className="text-xs text-slate-600">{result.description || result.address}</p></div>
-            <Button type="button" variant="outline" size="sm" onClick={() => saveSearchedGastronomy(result)} className="shrink-0 bg-white text-xs font-bold">Validar e salvar</Button>
+            <div className="flex shrink-0 flex-wrap gap-1.5"><Button type="button" variant="outline" size="sm" onClick={() => handleSaveFavoriteRestaurant(result)} disabled={saveFavoriteRestaurantMutation.isPending} className="bg-white text-xs font-bold"><Heart className="mr-1 h-3.5 w-3.5" />Favorito</Button><Button type="button" variant="outline" size="sm" onClick={() => saveSearchedGastronomy(result)} className="bg-white text-xs font-bold">Validar e salvar</Button></div>
           </div>)}
         </div> : null}
+
+        <div className="mt-3 border-t border-amber-200 pt-3">
+          <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-[#1a2e4a]"><Heart className="h-3.5 w-3.5" /> Restaurantes favoritos</div>
+          {favoriteRestaurantsQuery.isLoading ? <p className="text-xs text-slate-500">Carregando favoritos...</p> : (favoriteRestaurantsQuery.data || []).length ? <div className="space-y-2">{(favoriteRestaurantsQuery.data || []).map((favorite) => <div key={favorite.id} className="flex flex-col gap-2 rounded-md border border-amber-100 bg-white p-2 sm:flex-row sm:items-center sm:justify-between">
+            {favorite.photoUrl && <img src={favorite.photoUrl} alt={`Foto de ${favorite.name}`} className="h-12 w-full rounded-md border border-slate-100 object-cover sm:w-16" />}
+            <div className="min-w-0 flex-1"><p className="text-xs font-bold text-[#1a2e4a]">{favorite.name}</p><p className="truncate text-[11px] text-slate-500">{favorite.address || favorite.location}</p></div>
+            <div className="flex flex-wrap gap-1"><Button type="button" variant="outline" size="sm" onClick={() => handleUseFavoriteRestaurant(favorite)} className="h-8 bg-white px-2 text-xs font-semibold">Usar no roteiro</Button><Button type="button" variant="outline" size="sm" onClick={() => handleDeleteFavoriteRestaurant(favorite.id)} disabled={deleteFavoriteRestaurantMutation.isPending} className="h-8 border-red-200 bg-red-50 px-2 text-xs font-semibold text-red-600 hover:bg-red-100 hover:text-red-700"><Trash2 className="mr-1 h-3.5 w-3.5" />Excluir</Button></div>
+          </div>)}</div> : <p className="text-xs text-slate-500">Salve um resultado de busca como favorito para reutilizá-lo em outras propostas.</p>}
+        </div>
 
         {(budget.gastronomyOptions || []).length ? <div className="mt-3 border-t border-amber-200 pt-3">
           <p className="mb-2 text-xs font-semibold text-[#1a2e4a]">Opções validadas</p>
