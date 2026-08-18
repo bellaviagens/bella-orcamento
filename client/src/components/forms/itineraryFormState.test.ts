@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createEmptyGastronomySearchDraft, favoriteRestaurantToGastronomyOption, filterRestaurantFavorites } from "./itineraryFormState";
+import { createEmptyGastronomySearchDraft, favoriteRestaurantToGastronomyOption, filterRestaurantFavorites, sortRestaurantFavorites } from "./itineraryFormState";
 
 describe("createEmptyGastronomySearchDraft", () => {
   it("limpa os campos e os resultados associados a uma busca gastronômica anterior", () => {
@@ -35,13 +35,20 @@ describe("favoriteRestaurantToGastronomyOption", () => {
 
 describe("filterRestaurantFavorites", () => {
   const favorites = [
-    { name: "Bistrô Andes", location: "Santiago", address: "Providencia", tags: ["jantar", "romântico"] },
-    { name: "Café Central", location: "Santiago", address: "Centro", tags: ["almoço"] },
+    { name: "Bistrô Andes", location: "Santiago", address: "Providencia", tags: ["jantar", "romântico"], collectionName: "Santiago 2027", rating: 4.8, priceRange: "alta" },
+    { name: "Café Central", location: "Santiago", address: "Centro", tags: ["almoço"], collectionName: "Santiago 2027", rating: 4.2, priceRange: "economica" },
+    { name: "Bar Valparaíso", location: "Valparaíso", address: "Cerro Alegre", tags: ["jantar"], collectionName: "Chile 2027", rating: 4.5, priceRange: "premium" },
   ];
 
   it("filtra por texto ou por categoria personalizada", () => {
     expect(filterRestaurantFavorites(favorites, "andes", "all")).toHaveLength(1);
     expect(filterRestaurantFavorites(favorites, "", "almoço")).toEqual([favorites[1]]);
     expect(filterRestaurantFavorites(favorites, "centro", "jantar")).toEqual([]);
+    expect(filterRestaurantFavorites(favorites, "", "all", "Chile 2027")).toEqual([favorites[2]]);
+  });
+
+  it("ordena por avaliação e faixa de preço sem alterar a lista original", () => {
+    expect(sortRestaurantFavorites(favorites, "rating_desc").map((favorite) => favorite.name)).toEqual(["Bistrô Andes", "Bar Valparaíso", "Café Central"]);
+    expect(sortRestaurantFavorites(favorites, "price_asc").map((favorite) => favorite.name)).toEqual(["Café Central", "Bistrô Andes", "Bar Valparaíso"]);
   });
 });

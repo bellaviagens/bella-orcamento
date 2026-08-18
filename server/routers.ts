@@ -4,7 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { buildImportDocumentContent } from "./importDocument";
-import { createSharedFavoriteList, createSharedItinerary, deleteBudgetDraft, deleteFavoriteRestaurant, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, updateFavoriteRestaurantTags, updateTourProposalStatus } from "./db";
+import { createSharedFavoriteList, createSharedItinerary, deleteBudgetDraft, deleteFavoriteRestaurant, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, updateFavoriteRestaurantDetails, updateFavoriteRestaurantTags, updateTourProposalStatus } from "./db";
 import { storagePut } from "./storage";
 import { fetchPlacePhoto, makeRequest, type PlacesSearchResult } from "./_core/map";
 import { TRPCError } from "@trpc/server";
@@ -321,13 +321,25 @@ export const appRouter = router({
         if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Restaurante favorito não encontrado." });
         return { success: true };
       }),
+    updateDetails: protectedProcedure
+      .input(z.object({
+        id: z.string().uuid(),
+        collectionName: z.string().trim().max(120).optional(),
+        priceRange: z.enum(["economica", "moderada", "alta", "premium"]).optional(),
+        personalNote: z.string().trim().max(2000).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const updated = await updateFavoriteRestaurantDetails({ ...input, ownerOpenId: ctx.user.openId });
+        if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Restaurante favorito não encontrado." });
+        return { success: true };
+      }),
     share: protectedProcedure
       .input(z.object({ favoriteIds: z.array(z.string().uuid()).min(1).max(100) }))
       .mutation(async ({ ctx, input }) => {
         const requestedIds = new Set(input.favoriteIds);
         const favorites = (await listFavoriteRestaurants(ctx.user.openId))
           .filter((favorite) => requestedIds.has(favorite.id))
-          .map(({ id, name, location, address, description, rating, mapsUrl, website, photoUrl, tags }) => ({ id, name, location, address, description, rating, mapsUrl, website, photoUrl, tags }));
+          .map(({ id, name, location, address, description, rating, mapsUrl, website, photoUrl, tags, collectionName, priceRange, personalNote }) => ({ id, name, location, address, description, rating, mapsUrl, website, photoUrl, tags, collectionName, priceRange, personalNote }));
         if (favorites.length === 0) throw new TRPCError({ code: "NOT_FOUND", message: "Nenhum restaurante favorito foi encontrado para compartilhar." });
 
         const token = crypto.randomUUID().replace(/-/g, "");

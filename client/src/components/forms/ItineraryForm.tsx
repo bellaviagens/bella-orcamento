@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { CalendarDays, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, GripVertical, Heart, Link2, Loader2, Plus, Save, Search, Share2, Tag, Trash2, UtensilsCrossed, X } from "lucide-react";
 import { toast } from "sonner";
-import { createEmptyGastronomySearchDraft, favoriteRestaurantToGastronomyOption, filterRestaurantFavorites } from "./itineraryFormState";
+import { createEmptyGastronomySearchDraft, favoriteRestaurantToGastronomyOption, filterRestaurantFavorites, sortRestaurantFavorites, type FavoriteRestaurantSort } from "./itineraryFormState";
 
 export function ItineraryForm() {
   const { budget, addGastronomyToDay, addGastronomyToUsefulTips, addItineraryDay, addItineraryActivity, importItineraryFromQuotation, moveItineraryActivity, removeGastronomyOption, removeItineraryActivity, reorderItineraryActivities, replaceBudget, resetTourProposal, saveGastronomyOption, updateItineraryActivity, updateTour, updateTourProposal, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
@@ -45,10 +45,16 @@ export function ItineraryForm() {
   const saveFavoriteRestaurantMutation = trpc.favoriteRestaurants.save.useMutation();
   const deleteFavoriteRestaurantMutation = trpc.favoriteRestaurants.delete.useMutation();
   const updateFavoriteTagsMutation = trpc.favoriteRestaurants.updateTags.useMutation();
+  const updateFavoriteDetailsMutation = trpc.favoriteRestaurants.updateDetails.useMutation();
   const shareFavoriteRestaurantsMutation = trpc.favoriteRestaurants.share.useMutation();
   const [favoriteSearch, setFavoriteSearch] = useState("");
   const [favoriteTagFilter, setFavoriteTagFilter] = useState("all");
+  const [favoriteCollectionFilter, setFavoriteCollectionFilter] = useState("all");
+  const [favoriteSort, setFavoriteSort] = useState<FavoriteRestaurantSort>("recent");
   const [favoriteTagDrafts, setFavoriteTagDrafts] = useState<Record<string, string>>({});
+  const [favoriteCollectionDrafts, setFavoriteCollectionDrafts] = useState<Record<string, string>>({});
+  const [favoritePriceRangeDrafts, setFavoritePriceRangeDrafts] = useState<Record<string, string>>({});
+  const [favoritePersonalNoteDrafts, setFavoritePersonalNoteDrafts] = useState<Record<string, string>>({});
   const [sharedFavoritesUrl, setSharedFavoritesUrl] = useState("");
   const selectedProposalQuery = trpc.tourProposals.get.useQuery(
     { id: selectedProposalId || "00000000-0000-0000-0000-000000000000" },
@@ -117,9 +123,16 @@ export function ItineraryForm() {
     () => Array.from(new Set(favoriteRestaurants.flatMap((favorite) => favorite.tags || []))).sort((first, second) => first.localeCompare(second, "pt-BR")),
     [favoriteRestaurants],
   );
+  const favoriteCollections = useMemo(
+    () => Array.from(new Set(favoriteRestaurants.map((favorite) => favorite.collectionName?.trim()).filter((collection): collection is string => Boolean(collection)))).sort((first, second) => first.localeCompare(second, "pt-BR")),
+    [favoriteRestaurants],
+  );
   const filteredFavoriteRestaurants = useMemo(() => {
-    return filterRestaurantFavorites(favoriteRestaurants, favoriteSearch, favoriteTagFilter);
-  }, [favoriteRestaurants, favoriteSearch, favoriteTagFilter]);
+    return sortRestaurantFavorites(
+      filterRestaurantFavorites(favoriteRestaurants, favoriteSearch, favoriteTagFilter, favoriteCollectionFilter),
+      favoriteSort,
+    );
+  }, [favoriteRestaurants, favoriteSearch, favoriteTagFilter, favoriteCollectionFilter, favoriteSort]);
 
   const handleUpdateFavoriteTags = async (favorite: NonNullable<typeof favoriteRestaurantsQuery.data>[number], tags: string[]) => {
     try {
@@ -141,6 +154,25 @@ export function ItineraryForm() {
     }
     await handleUpdateFavoriteTags(favorite, [...tags, draft]);
     setFavoriteTagDrafts((current) => ({ ...current, [favorite.id]: "" }));
+  };
+
+  const handleUpdateFavoriteDetails = async (
+    favorite: NonNullable<typeof favoriteRestaurantsQuery.data>[number],
+    details: { collectionName: string; priceRange: string; personalNote: string },
+  ) => {
+    try {
+      await updateFavoriteDetailsMutation.mutateAsync({
+        id: favorite.id,
+        collectionName: details.collectionName.trim() || undefined,
+        priceRange: details.priceRange ? details.priceRange as "economica" | "moderada" | "alta" | "premium" : undefined,
+        personalNote: details.personalNote.trim() || undefined,
+      });
+      await utils.favoriteRestaurants.list.invalidate();
+      toast.success("Detalhes do favorito atualizados.");
+    } catch (error) {
+      console.error("Update favorite restaurant details error:", error);
+      toast.error(error instanceof Error ? error.message : "Não foi possível atualizar os detalhes do favorito.");
+    }
   };
 
   const createFavoriteShareLink = async () => {
@@ -445,12 +477,18 @@ export function ItineraryForm() {
 
         <div className="mt-3 border-t border-amber-200 pt-3">
           <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-2 text-xs font-semibold text-[#1a2e4a]"><Heart className="h-3.5 w-3.5" /> Restaurantes favoritos</div>{favoriteRestaurants.length ? <div className="flex flex-wrap gap-1.5"><Button type="button" variant="outline" size="sm" onClick={handleCopyFavoriteShareLink} disabled={shareFavoriteRestaurantsMutation.isPending} className="h-8 bg-white px-2 text-xs font-semibold"><Copy className="mr-1 h-3.5 w-3.5" />Copiar link</Button><Button type="button" variant="outline" size="sm" onClick={handleWhatsAppFavoriteShare} disabled={shareFavoriteRestaurantsMutation.isPending} className="h-8 bg-white px-2 text-xs font-semibold"><Share2 className="mr-1 h-3.5 w-3.5" />WhatsApp</Button></div> : null}</div>
-          {favoriteRestaurants.length ? <><div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_180px]"><Input value={favoriteSearch} onChange={(event) => setFavoriteSearch(event.target.value)} placeholder="Pesquisar por nome, local ou categoria" className="h-9 bg-white text-xs" /><Select value={favoriteTagFilter} onValueChange={setFavoriteTagFilter}><SelectTrigger className="h-9 bg-white text-xs"><SelectValue placeholder="Todas as categorias" /></SelectTrigger><SelectContent><SelectItem value="all">Todas as categorias</SelectItem>{favoriteTags.map((tag) => <SelectItem key={tag} value={tag}>{tag}</SelectItem>)}</SelectContent></Select></div>{sharedFavoritesUrl ? <div className="mt-2 flex items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-2 py-1.5 text-[11px] text-[#1a2e4a]"><Link2 className="h-3.5 w-3.5 shrink-0" /><a href={sharedFavoritesUrl} target="_blank" rel="noreferrer" className="truncate font-semibold underline">{sharedFavoritesUrl}</a></div> : null}</> : null}
-          {favoriteRestaurantsQuery.isLoading ? <p className="mt-2 text-xs text-slate-500">Carregando favoritos...</p> : favoriteRestaurants.length ? <div className="mt-2 space-y-2">{filteredFavoriteRestaurants.length ? filteredFavoriteRestaurants.map((favorite) => <div key={favorite.id} className="flex flex-col gap-2 rounded-md border border-amber-100 bg-white p-2 sm:flex-row sm:items-center sm:justify-between">
-            {favorite.photoUrl && <img src={favorite.photoUrl} alt={`Foto de ${favorite.name}`} className="h-12 w-full rounded-md border border-slate-100 object-cover sm:w-16" />}
-            <div className="min-w-0 flex-1"><p className="text-xs font-bold text-[#1a2e4a]">{favorite.name}</p><p className="truncate text-[11px] text-slate-500">{favorite.address || favorite.location}</p><div className="mt-1 flex flex-wrap items-center gap-1">{(favorite.tags || []).map((tag) => <span key={tag} className="inline-flex items-center gap-0.5 rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-[#1a2e4a]"><Tag className="h-2.5 w-2.5" />{tag}<button type="button" onClick={() => handleUpdateFavoriteTags(favorite, (favorite.tags || []).filter((current) => current !== tag))} className="ml-0.5 rounded-full hover:bg-blue-100" aria-label={`Remover categoria ${tag}`}><X className="h-2.5 w-2.5" /></button></span>)}<div className="flex items-center"><Input value={favoriteTagDrafts[favorite.id] || ""} onChange={(event) => setFavoriteTagDrafts((current) => ({ ...current, [favorite.id]: event.target.value }))} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void handleAddFavoriteTag(favorite); } }} placeholder="Ex.: jantar" className="h-6 w-24 rounded-r-none bg-slate-50 px-1.5 text-[10px]" /><Button type="button" variant="outline" size="sm" onClick={() => void handleAddFavoriteTag(favorite)} className="h-6 rounded-l-none bg-white px-1 text-[10px]" aria-label={`Adicionar categoria para ${favorite.name}`}><Plus className="h-3 w-3" /></Button></div></div></div>
-            <div className="flex flex-wrap gap-1"><Button type="button" variant="outline" size="sm" onClick={() => handleUseFavoriteRestaurant(favorite)} className="h-8 bg-white px-2 text-xs font-semibold">Usar no roteiro</Button><Button type="button" variant="outline" size="sm" onClick={() => handleDeleteFavoriteRestaurant(favorite.id)} disabled={deleteFavoriteRestaurantMutation.isPending} className="h-8 border-red-200 bg-red-50 px-2 text-xs font-semibold text-red-600 hover:bg-red-100 hover:text-red-700"><Trash2 className="mr-1 h-3.5 w-3.5" />Excluir</Button></div>
-          </div>) : <p className="py-2 text-xs text-slate-500">Nenhum favorito corresponde à pesquisa ou ao filtro selecionado.</p>}</div> : <p className="text-xs text-slate-500">Salve um resultado de busca como favorito para reutilizá-lo em outras propostas.</p>}
+          {favoriteRestaurants.length ? <><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_160px_175px_170px]"><Input value={favoriteSearch} onChange={(event) => setFavoriteSearch(event.target.value)} placeholder="Pesquisar por nome, local ou categoria" className="h-9 bg-white text-xs" /><Select value={favoriteTagFilter} onValueChange={setFavoriteTagFilter}><SelectTrigger className="h-9 bg-white text-xs"><SelectValue placeholder="Todas as categorias" /></SelectTrigger><SelectContent><SelectItem value="all">Todas as categorias</SelectItem>{favoriteTags.map((tag) => <SelectItem key={tag} value={tag}>{tag}</SelectItem>)}</SelectContent></Select><Select value={favoriteCollectionFilter} onValueChange={setFavoriteCollectionFilter}><SelectTrigger className="h-9 bg-white text-xs"><SelectValue placeholder="Todas as coleções" /></SelectTrigger><SelectContent><SelectItem value="all">Todas as coleções</SelectItem>{favoriteCollections.map((collection) => <SelectItem key={collection} value={collection}>{collection}</SelectItem>)}</SelectContent></Select><Select value={favoriteSort} onValueChange={(value) => setFavoriteSort(value as FavoriteRestaurantSort)}><SelectTrigger className="h-9 bg-white text-xs"><SelectValue placeholder="Ordenar favoritos" /></SelectTrigger><SelectContent><SelectItem value="recent">Mais recentes</SelectItem><SelectItem value="rating_desc">Melhor avaliação</SelectItem><SelectItem value="price_asc">Menor faixa de preço</SelectItem><SelectItem value="price_desc">Maior faixa de preço</SelectItem></SelectContent></Select></div>{sharedFavoritesUrl ? <div className="mt-2 flex items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-2 py-1.5 text-[11px] text-[#1a2e4a]"><Link2 className="h-3.5 w-3.5 shrink-0" /><a href={sharedFavoritesUrl} target="_blank" rel="noreferrer" className="truncate font-semibold underline">{sharedFavoritesUrl}</a></div> : null}</> : null}
+          {favoriteRestaurantsQuery.isLoading ? <p className="mt-2 text-xs text-slate-500">Carregando favoritos...</p> : favoriteRestaurants.length ? <div className="mt-2 space-y-2">{filteredFavoriteRestaurants.length ? filteredFavoriteRestaurants.map((favorite) => {
+            const collectionName = favoriteCollectionDrafts[favorite.id] ?? favorite.collectionName ?? "";
+            const priceRange = favoritePriceRangeDrafts[favorite.id] ?? favorite.priceRange ?? "";
+            const personalNote = favoritePersonalNoteDrafts[favorite.id] ?? favorite.personalNote ?? "";
+            const saveDetails = () => void handleUpdateFavoriteDetails(favorite, { collectionName, priceRange, personalNote });
+            return <div key={favorite.id} className="flex flex-col gap-2 rounded-md border border-amber-100 bg-white p-2 sm:flex-row sm:items-start sm:justify-between">
+              {favorite.photoUrl && <img src={favorite.photoUrl} alt={`Foto de ${favorite.name}`} className="h-16 w-full rounded-md border border-slate-100 object-cover sm:w-20" />}
+              <div className="min-w-0 flex-1"><p className="text-xs font-bold text-[#1a2e4a]">{favorite.name}</p><p className="truncate text-[11px] text-slate-500">{favorite.address || favorite.location}</p><div className="mt-1 flex flex-wrap items-center gap-1">{(favorite.tags || []).map((tag) => <span key={tag} className="inline-flex items-center gap-0.5 rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-[#1a2e4a]"><Tag className="h-2.5 w-2.5" />{tag}<button type="button" onClick={() => handleUpdateFavoriteTags(favorite, (favorite.tags || []).filter((current) => current !== tag))} className="ml-0.5 rounded-full hover:bg-blue-100" aria-label={`Remover categoria ${tag}`}><X className="h-2.5 w-2.5" /></button></span>)}<div className="flex items-center"><Input value={favoriteTagDrafts[favorite.id] || ""} onChange={(event) => setFavoriteTagDrafts((current) => ({ ...current, [favorite.id]: event.target.value }))} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void handleAddFavoriteTag(favorite); } }} placeholder="Ex.: jantar" className="h-6 w-24 rounded-r-none bg-slate-50 px-1.5 text-[10px]" /><Button type="button" variant="outline" size="sm" onClick={() => void handleAddFavoriteTag(favorite)} className="h-6 rounded-l-none bg-white px-1 text-[10px]" aria-label={`Adicionar categoria para ${favorite.name}`}><Plus className="h-3 w-3" /></Button></div></div><div className="mt-2 grid gap-1.5 sm:grid-cols-[minmax(0,1fr)_155px]"><Input value={collectionName} onChange={(event) => setFavoriteCollectionDrafts((current) => ({ ...current, [favorite.id]: event.target.value }))} onBlur={saveDetails} placeholder="Coleção: Santiago 2027" className="h-8 bg-slate-50 text-[11px]" /><Select value={priceRange || "none"} onValueChange={(value) => { setFavoritePriceRangeDrafts((current) => ({ ...current, [favorite.id]: value === "none" ? "" : value })); void handleUpdateFavoriteDetails(favorite, { collectionName, priceRange: value === "none" ? "" : value, personalNote }); }}><SelectTrigger className="h-8 bg-slate-50 text-[11px]"><SelectValue placeholder="Faixa de preço" /></SelectTrigger><SelectContent><SelectItem value="none">Faixa de preço</SelectItem><SelectItem value="economica">Econômica</SelectItem><SelectItem value="moderada">Moderada</SelectItem><SelectItem value="alta">Alta</SelectItem><SelectItem value="premium">Premium</SelectItem></SelectContent></Select></div><Textarea value={personalNote} onChange={(event) => setFavoritePersonalNoteDrafts((current) => ({ ...current, [favorite.id]: event.target.value }))} onBlur={saveDetails} placeholder="Notas pessoais: reserva, prato recomendado, horário..." className="mt-1.5 min-h-14 bg-slate-50 text-[11px]" /></div>
+              <div className="flex flex-wrap gap-1"><Button type="button" variant="outline" size="sm" onClick={() => handleUseFavoriteRestaurant(favorite)} className="h-8 bg-white px-2 text-xs font-semibold">Usar no roteiro</Button><Button type="button" variant="outline" size="sm" onClick={() => handleDeleteFavoriteRestaurant(favorite.id)} disabled={deleteFavoriteRestaurantMutation.isPending} className="h-8 border-red-200 bg-red-50 px-2 text-xs font-semibold text-red-600 hover:bg-red-100 hover:text-red-700"><Trash2 className="mr-1 h-3.5 w-3.5" />Excluir</Button></div>
+            </div>;
+          }) : <p className="py-2 text-xs text-slate-500">Nenhum favorito corresponde à pesquisa ou ao filtro selecionado.</p>}</div> : <p className="text-xs text-slate-500">Salve um resultado de busca como favorito para reutilizá-lo em outras propostas.</p>}
         </div>
 
         {(budget.gastronomyOptions || []).length ? <div className="mt-3 border-t border-amber-200 pt-3">

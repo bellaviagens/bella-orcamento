@@ -171,6 +171,8 @@ export interface FinalItineraryEvent {
   time: string;
   description: string;
   linkUrl: string;
+  /** Link separado para endereço ou mapa, especialmente útil para restaurantes. */
+  addressUrl?: string;
   photoUrl: string;
   /** Ícone ou imagem opcional exibido no resumo cronológico da capa. */
   summaryVisualUrl?: string;

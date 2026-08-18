@@ -552,3 +552,9 @@
 - [x] Adicionar pesquisa textual e filtros por tag na lista de favoritos.
 - [x] Permitir compartilhar a lista filtrada de favoritos por WhatsApp ou link copiável.
 - [x] Validar persistência, tipagem, testes, build e visualização.
+
+- [x] Exibir o link Ver endereço dos restaurantes na Proposta de Passeios e no Roteiro Final.
+- [x] Permitir agrupar restaurantes favoritos em coleções por destino ou viagem.
+- [x] Permitir ordenar favoritos por avaliação ou faixa de preço.
+- [x] Permitir registrar e editar notas pessoais em cada restaurante favorito.
+- [x] Validar persistência, tipagem, testes, build e visualização.

@@ -313,6 +313,9 @@ export interface FavoriteRestaurantInput {
   website?: string;
   photoUrl?: string;
   tags?: string[];
+  collectionName?: string;
+  priceRange?: "economica" | "moderada" | "alta" | "premium";
+  personalNote?: string;
 }
 
 function normalizeFavoriteTags(tags: string[] | undefined) {
@@ -349,6 +352,9 @@ export async function saveFavoriteRestaurant(input: FavoriteRestaurantInput) {
     website: input.website || null,
     photoUrl: input.photoUrl || null,
     tags: JSON.stringify(normalizeFavoriteTags(input.tags)),
+    collectionName: input.collectionName || null,
+    priceRange: input.priceRange || null,
+    personalNote: input.personalNote || null,
     updatedAt: new Date(),
   };
 
@@ -386,6 +392,27 @@ export async function updateFavoriteRestaurantTags(ownerOpenId: string, id: stri
   const result = await db.update(favoriteRestaurants)
     .set({ tags: JSON.stringify(normalizeFavoriteTags(tags)), updatedAt: new Date() })
     .where(and(eq(favoriteRestaurants.id, id), eq(favoriteRestaurants.ownerOpenId, ownerOpenId)));
+  return (result[0]?.affectedRows ?? 0) > 0;
+}
+
+export async function updateFavoriteRestaurantDetails(input: {
+  ownerOpenId: string;
+  id: string;
+  collectionName?: string;
+  priceRange?: "economica" | "moderada" | "alta" | "premium";
+  personalNote?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para atualizar os detalhes do favorito.");
+
+  const result = await db.update(favoriteRestaurants)
+    .set({
+      collectionName: input.collectionName || null,
+      priceRange: input.priceRange || null,
+      personalNote: input.personalNote || null,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(favoriteRestaurants.id, input.id), eq(favoriteRestaurants.ownerOpenId, input.ownerOpenId)));
   return (result[0]?.affectedRows ?? 0) > 0;
 }
 

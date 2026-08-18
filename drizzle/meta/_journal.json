@@ -57,6 +57,13 @@
       "when": 1787016875487,
       "tag": "0007_cloudy_prodigy",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1787019002988,
+      "tag": "0008_faithful_maddog",
+      "breakpoints": true
     }
   ]
 }

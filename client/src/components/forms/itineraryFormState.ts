@@ -22,6 +22,9 @@ export interface RestaurantFavoriteForProposal {
   website?: string | null;
   photoUrl?: string | null;
   tags?: string[];
+  collectionName?: string | null;
+  priceRange?: string | null;
+  personalNote?: string | null;
 }
 
 /** Mantém os links e a foto do favorito ao reutilizá-lo em uma nova proposta. */
@@ -39,11 +42,31 @@ export function favoriteRestaurantToGastronomyOption(favorite: RestaurantFavorit
   };
 }
 
-export function filterRestaurantFavorites<T extends Pick<RestaurantFavoriteForProposal, "name" | "location" | "address"> & { tags?: string[] }>(favorites: T[], search: string, selectedTag: string): T[] {
+export function filterRestaurantFavorites<T extends Pick<RestaurantFavoriteForProposal, "name" | "location" | "address"> & { tags?: string[]; collectionName?: string | null }>(favorites: T[], search: string, selectedTag: string, selectedCollection = "all"): T[] {
   const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
   return favorites.filter((favorite) => {
     const matchesTag = selectedTag === "all" || (favorite.tags || []).includes(selectedTag);
-    const searchable = `${favorite.name} ${favorite.location} ${favorite.address} ${(favorite.tags || []).join(" ")}`.toLocaleLowerCase("pt-BR");
-    return matchesTag && (!normalizedSearch || searchable.includes(normalizedSearch));
+    const matchesCollection = selectedCollection === "all" || favorite.collectionName === selectedCollection;
+    const searchable = `${favorite.name} ${favorite.location} ${favorite.address} ${favorite.collectionName || ""} ${(favorite.tags || []).join(" ")}`.toLocaleLowerCase("pt-BR");
+    return matchesTag && matchesCollection && (!normalizedSearch || searchable.includes(normalizedSearch));
   });
+}
+
+export type FavoriteRestaurantSort = "recent" | "rating_desc" | "price_asc" | "price_desc";
+
+const PRICE_RANGE_RANK = { economica: 1, moderada: 2, alta: 3, premium: 4 } as const;
+
+/** Ordena sem modificar a lista original, mantendo favoritos sem preço ao final. */
+export function sortRestaurantFavorites<T extends { rating?: number; priceRange?: string | null; updatedAt?: Date | string }>(favorites: T[], sort: FavoriteRestaurantSort): T[] {
+  const sorted = [...favorites];
+  if (sort === "rating_desc") return sorted.sort((first, second) => (second.rating ?? -1) - (first.rating ?? -1));
+  if (sort === "price_asc" || sort === "price_desc") {
+    const direction = sort === "price_asc" ? 1 : -1;
+    return sorted.sort((first, second) => {
+      const firstRank = first.priceRange && first.priceRange in PRICE_RANGE_RANK ? PRICE_RANGE_RANK[first.priceRange as keyof typeof PRICE_RANGE_RANK] : Number.POSITIVE_INFINITY;
+      const secondRank = second.priceRange && second.priceRange in PRICE_RANGE_RANK ? PRICE_RANGE_RANK[second.priceRange as keyof typeof PRICE_RANGE_RANK] : Number.POSITIVE_INFINITY;
+      return (firstRank - secondRank) * direction;
+    });
+  }
+  return sorted;
 }

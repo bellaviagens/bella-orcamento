@@ -78,6 +78,9 @@ export const favoriteRestaurants = mysqlTable("favorite_restaurants", {
   website: varchar("website", { length: 2048 }),
   photoUrl: varchar("photoUrl", { length: 2048 }),
   tags: text("tags"),
+  collectionName: varchar("collectionName", { length: 120 }),
+  priceRange: varchar("priceRange", { length: 24 }),
+  personalNote: text("personalNote"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

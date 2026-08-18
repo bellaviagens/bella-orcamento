@@ -440,6 +440,7 @@ export function FinalItineraryForm() {
             </div>}
             <div className="sm:col-span-2"><Label>Detalhes e observações</Label><Textarea value={event.description} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { description: nativeEvent.target.value })} placeholder="Escreva as orientações, contato, ponto de encontro ou qualquer informação importante." className="mt-1 min-h-20 bg-white" /></div>
             <div><Label>Link útil (WhatsApp, empresa ou cartão de embarque)</Label><Input type="url" value={event.linkUrl} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { linkUrl: nativeEvent.target.value })} placeholder="https://..." className="mt-1 bg-white" /></div>
+            <div><Label>Link do endereço (Google Maps)</Label><Input type="url" value={event.addressUrl || ""} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { addressUrl: nativeEvent.target.value })} placeholder="https://maps.google.com/..." className="mt-1 bg-white" /></div>
             <div><Label>Link da foto</Label><Input type="url" value={event.photoUrl} onChange={(nativeEvent) => updateFinalItineraryEvent(event.id, { photoUrl: nativeEvent.target.value })} placeholder="https://..." className="mt-1 bg-white" /></div>
           </div>
         </article>
