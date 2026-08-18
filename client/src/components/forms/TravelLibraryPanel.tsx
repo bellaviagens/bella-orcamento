@@ -63,7 +63,7 @@ export function TravelLibraryPanel({ initiallyOpen = false }: { initiallyOpen?: 
     if (!draft.destination.trim() || !draft.folderName.trim() || !draft.name.trim()) { toast.error("Informe destino, subgrupo e nome para salvar na biblioteca."); return; }
     const input = {
       ...draft,
-      country: asOptional(draft.country), city: asOptional(draft.city), contactName: asOptional(draft.contactName), phone: asOptional(draft.phone),
+      country: asOptional(draft.country), city: asOptional(draft.city), neighborhood: draft.category === "hotel" ? asOptional(draft.neighborhood) : undefined, contactName: asOptional(draft.contactName), phone: asOptional(draft.phone),
       responsibleName: asOptional(draft.responsibleName), whatsapp: asOptional(draft.whatsapp), linkUrl: asOptional(draft.linkUrl), imageUrl: asOptional(draft.imageUrl), documentUrl: asOptional(draft.documentUrl), notes: asOptional(draft.notes),
     };
     try {
@@ -123,6 +123,7 @@ export function TravelLibraryPanel({ initiallyOpen = false }: { initiallyOpen?: 
           <div><Label>Destino</Label><Input value={draft.destination} onChange={(event) => setDraft((current) => ({ ...current, destination: event.target.value }))} placeholder="Ex.: Santiago" className="mt-1 h-9 bg-slate-50 text-xs" /></div>
           <div><Label>País</Label><Input value={draft.country} onChange={(event) => setDraft((current) => ({ ...current, country: event.target.value }))} placeholder="Ex.: Chile" className="mt-1 h-9 bg-slate-50 text-xs" /></div>
           <div><Label>Cidade</Label><Input value={draft.city} onChange={(event) => setDraft((current) => ({ ...current, city: event.target.value }))} placeholder="Ex.: Santiago" className="mt-1 h-9 bg-slate-50 text-xs" /></div>
+          {draft.category === "hotel" && <div><Label>Bairro</Label><Input value={draft.neighborhood} onChange={(event) => setDraft((current) => ({ ...current, neighborhood: event.target.value }))} placeholder="Ex.: Las Condes" className="mt-1 h-9 bg-slate-50 text-xs" /></div>}
           <div><Label>Subgrupo</Label><Input value={draft.folderName} onChange={(event) => setDraft((current) => ({ ...current, folderName: event.target.value }))} placeholder="Ex.: Hotéis centro" className="mt-1 h-9 bg-slate-50 text-xs" /></div>
           <div><Label>Nome</Label><Input value={draft.name} onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))} placeholder="Ex.: Hotel Plaza Santiago" className="mt-1 h-9 bg-slate-50 text-xs" /></div>
           <div><Label>Contato / empresa</Label><Input value={draft.contactName} onChange={(event) => setDraft((current) => ({ ...current, contactName: event.target.value }))} placeholder="Ex.: Transfer Andes" className="mt-1 h-9 bg-slate-50 text-xs" /></div>

@@ -444,6 +444,7 @@ export interface TravelLibraryItemInput {
   destination?: string;
   country?: string;
   city?: string;
+  neighborhood?: string;
   contactName?: string;
   phone?: string;
   responsibleName?: string;
@@ -468,6 +469,7 @@ export async function createTravelLibraryItem(input: TravelLibraryItemInput) {
     destination: input.destination?.trim() || null,
     country: input.country?.trim() || null,
     city: input.city?.trim() || null,
+    neighborhood: input.neighborhood?.trim() || null,
     contactName: input.contactName?.trim() || null,
     phone: input.phone?.trim() || null,
     responsibleName: input.responsibleName?.trim() || null,
@@ -492,6 +494,7 @@ export async function updateTravelLibraryItem(input: TravelLibraryItemInput & { 
       destination: input.destination?.trim() || null,
       country: input.country?.trim() || null,
       city: input.city?.trim() || null,
+      neighborhood: input.neighborhood?.trim() || null,
       contactName: input.contactName?.trim() || null,
       phone: input.phone?.trim() || null,
       responsibleName: input.responsibleName?.trim() || null,

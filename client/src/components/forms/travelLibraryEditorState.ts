@@ -7,6 +7,7 @@ export type TravelLibraryDraft = {
   destination: string;
   country: string;
   city: string;
+  neighborhood: string;
   contactName: string;
   phone: string;
   responsibleName: string;
@@ -26,6 +27,7 @@ export const EMPTY_LIBRARY_DRAFT: TravelLibraryDraft = {
   destination: "",
   country: "",
   city: "",
+  neighborhood: "",
   contactName: "",
   phone: "",
   responsibleName: "",
@@ -44,6 +46,7 @@ export function libraryItemToDraft(item: {
   destination?: string | null;
   country?: string | null;
   city?: string | null;
+  neighborhood?: string | null;
   contactName?: string | null;
   phone?: string | null;
   responsibleName?: string | null;
@@ -60,6 +63,7 @@ export function libraryItemToDraft(item: {
     destination: item.destination || "",
     country: item.country || "",
     city: item.city || "",
+    neighborhood: item.neighborhood || "",
     contactName: item.contactName || "",
     phone: item.phone || "",
     responsibleName: item.responsibleName || "",

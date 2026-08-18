@@ -97,6 +97,7 @@ export const travelLibraryItems = mysqlTable("travel_library_items", {
   destination: varchar("destination", { length: 255 }),
   country: varchar("country", { length: 120 }),
   city: varchar("city", { length: 120 }),
+  neighborhood: varchar("neighborhood", { length: 120 }),
   contactName: varchar("contactName", { length: 255 }),
   phone: varchar("phone", { length: 80 }),
   responsibleName: varchar("responsibleName", { length: 255 }),

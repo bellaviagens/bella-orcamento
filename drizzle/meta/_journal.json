@@ -85,6 +85,13 @@
       "when": 1787076574054,
       "tag": "0011_late_photon",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1787080405480,
+      "tag": "0012_amazing_dagger",
+      "breakpoints": true
     }
   ]
 }

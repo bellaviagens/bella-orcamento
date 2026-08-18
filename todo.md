@@ -645,3 +645,5 @@
 - [x] Validar edição, reaproveitamento dos dados, tipagem, testes, build e responsividade
 - [x] Preencher automaticamente país e cidade da Biblioteca a partir do destino da viagem, mantendo edição manual
 - [x] Validar o preenchimento de localização, tipagem, testes, build e responsividade
+- [x] Adicionar campo Bairro ao cadastro e edição de hotéis da Biblioteca
+- [x] Validar persistência do bairro, tipagem, testes, build e responsividade

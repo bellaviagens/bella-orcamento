@@ -10,6 +10,7 @@ describe("libraryItemToDraft", () => {
       destination: "Santiago",
       country: "Chile",
       city: "Santiago",
+      neighborhood: "Las Condes",
       contactName: "Recepção",
       phone: "+56 2 1234 5678",
       documentUrl: "/manus-storage/voucher.pdf",
@@ -18,6 +19,7 @@ describe("libraryItemToDraft", () => {
       category: "hotel",
       name: "Hotel Plaza",
       country: "Chile",
+      neighborhood: "Las Condes",
       documentUrl: "/manus-storage/voucher.pdf",
       notes: "Check-in às 15h",
     });
