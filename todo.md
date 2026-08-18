@@ -575,3 +575,7 @@
 - [x] Ampliar a área de rolagem da aba Hotéis para facilitar a edição de hotéis extensos
 - [x] Adicionar controles de recolher e expandir nos blocos de formas de pagamento
 - [x] Validar que os cálculos, valores e PDF permanecem inalterados após a compactação visual
+
+- [x] Adicionar controle individual de recolher e abrir em cada compromisso da agenda diária
+- [x] Permitir levar os passeios da proposta aprovada para o Roteiro Final sem redigitar informações
+- [x] Validar a conversão dos passeios, testes, build e prévia visual sem alterar os demais módulos

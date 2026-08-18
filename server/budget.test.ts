@@ -4,7 +4,7 @@ import type { TrpcContext } from "./_core/context";
 import { calculateCombinedInstallmentValue, calculateCombinedTotal, calculateEffectiveHotelTotal } from "../shared/paymentCalculations";
 import { calculateCombinedPaymentPlan } from "../shared/combinedPaymentPlan";
 import { calculateTourProposalInstallment, calculateTourTotal, getTourTravelerCount } from "../shared/tourPricing";
-import { addFinalItineraryEventToBudget, addFlightToFinalItineraryInBudget, addGastronomyToDayInBudget, addGastronomyToUsefulTipsInBudget, addHotelToFinalItineraryInBudget, addItineraryActivityToBudget, duplicateHotelInBudget, duplicateTourInBudget, getItineraryDayActivities, importQuotationActivitiesIntoBudget, moveItineraryActivityBetweenDaysInBudget, removeItineraryActivityFromBudget, reorderHotelsInBudget, reorderItineraryActivitiesInBudget, reorderItineraryDaysInBudget, reorderToursInBudget, resetTourProposalInBudget, updateItineraryActivityInBudget } from "../client/src/contexts/BudgetContext";
+import { addFinalItineraryEventToBudget, addFlightToFinalItineraryInBudget, addGastronomyToDayInBudget, addGastronomyToUsefulTipsInBudget, addHotelToFinalItineraryInBudget, addItineraryActivityToBudget, addTourToFinalItineraryInBudget, duplicateHotelInBudget, duplicateTourInBudget, getItineraryDayActivities, importQuotationActivitiesIntoBudget, moveItineraryActivityBetweenDaysInBudget, removeItineraryActivityFromBudget, reorderHotelsInBudget, reorderItineraryActivitiesInBudget, reorderItineraryDaysInBudget, reorderToursInBudget, resetTourProposalInBudget, updateItineraryActivityInBudget } from "../client/src/contexts/BudgetContext";
 
 function createMockContext(): TrpcContext {
   return {
@@ -497,5 +497,39 @@ describe("parcelamento conjunto", () => {
     expect(plan[0].steps[0]).toMatchObject({ totalWithRate: 4200, installmentValue: 420, cardRate: 5 });
     expect(plan[0].steps[1]).toMatchObject({ totalWithRate: 4000, installmentValue: 400, cardRate: 0 });
     expect(plan[0].total).toBe(8200);
+  });
+});
+
+describe("addTourToFinalItineraryInBudget", () => {
+  it("aproveita a atividade cadastrada no dia da proposta ao montar o roteiro final", async () => {
+    const { defaultBudgetData } = await import("../shared/budgetTypes");
+    const budget = {
+      ...defaultBudgetData,
+      tours: [{
+        id: "tour-aprovado", name: "Passeio nos Andes", location: "Santiago", duration: "8 horas",
+        description: "Passeio completo pela cordilheira.", totalPrice: 700,
+        pageUrl: "https://fornecedor.example/passeio", photosUrl: "https://fornecedor.example/foto.jpg", notes: "Levar documento.",
+      }],
+      itinerary: [{
+        id: "dia-3", day: 3, title: "Passeio na neve", notes: "",
+        activities: [{
+          id: "atividade-tour-aprovado", kind: "tour" as const, title: "Passeio nos Andes", time: "07:30",
+          description: "Passeio completo pela cordilheira.", linkUrl: "https://fornecedor.example/passeio",
+          addressUrl: "https://maps.example/andes", photoUrl: "https://fornecedor.example/foto-especifica.jpg",
+          ticketUrl: "https://fornecedor.example/ingresso", importantNotes: "Chegar 15 minutos antes.", tourId: "tour-aprovado",
+        }],
+      }],
+      finalItinerary: { ...defaultBudgetData.finalItinerary, events: [] },
+    };
+
+    const updated = addTourToFinalItineraryInBudget(budget, "tour-aprovado");
+
+    expect(updated.finalItinerary.events).toHaveLength(1);
+    expect(updated.finalItinerary.events[0]).toMatchObject({
+      day: 3, time: "07:30", title: "Passeio nos Andes", linkUrl: "https://fornecedor.example/passeio",
+      addressUrl: "https://maps.example/andes", photoUrl: "https://fornecedor.example/foto-especifica.jpg", sourceTourId: "tour-aprovado",
+    });
+    expect(updated.finalItinerary.events[0].description).toContain("Chegar 15 minutos antes.");
+    expect(updated.finalItinerary.events[0].description).toContain("https://fornecedor.example/ingresso");
   });
 });

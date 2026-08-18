@@ -550,14 +550,28 @@ export function addHotelToFinalItineraryInBudget(budget: BudgetData, hotelId: st
 export function addTourToFinalItineraryInBudget(budget: BudgetData, tourId: string): BudgetData {
   const tour = budget.tours.find((item) => item.id === tourId);
   if (!tour || budget.finalItinerary.events.some((event) => event.sourceTourId === tourId)) return budget;
-  const itineraryDay = budget.itinerary.find((day) => day.tourId === tourId);
+  const itineraryDay = budget.itinerary.find((day) =>
+    day.tourId === tourId || getItineraryDayActivities(day).some((activity) => activity.tourId === tourId),
+  );
+  const sourceActivity = itineraryDay
+    ? getItineraryDayActivities(itineraryDay).find((activity) => activity.tourId === tourId)
+    : undefined;
+  const description = [
+    tour.description,
+    sourceActivity?.description && sourceActivity.description !== tour.description ? sourceActivity.description : "",
+    tour.notes ? `Informações adicionais: ${tour.notes}` : "",
+    sourceActivity?.importantNotes ? `Importante: ${sourceActivity.importantNotes}` : "",
+    sourceActivity?.ticketUrl ? `Ingresso: ${sourceActivity.ticketUrl}` : "",
+  ].filter(Boolean).join("\n\n");
   return addFinalItineraryEventToBudget(budget, {
     day: itineraryDay?.day || nextFinalItineraryDay(budget.finalItinerary.events),
     kind: "tour",
     title: tour.name,
-    description: tour.description,
+    time: sourceActivity?.time || "",
+    description,
     linkUrl: tour.pageUrl || "",
-    photoUrl: tour.photosUrl || "",
+    addressUrl: sourceActivity?.addressUrl || "",
+    photoUrl: sourceActivity?.photoUrl || tour.photosUrl || "",
     sourceTourId: tourId,
   });
 }
