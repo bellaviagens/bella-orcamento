@@ -179,7 +179,7 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
         {destination && <WeatherWidget destination={destination} period={data.tripInfo.period} events={events} />}
       </header>
 
-      {events.length === 0 ? <div className="py-12 text-center text-sm text-slate-500">Inclua chegada, transfers, hospedagem, voos e passeios na aba <strong>Roteiro Final</strong> para gerar o documento pós-aprovação.</div> : <div className="mt-5 border-t-2 border-amber-400 pt-4"><div className="mb-4 flex items-center gap-2"><Clock3 className="h-5 w-5 text-[#1a2e4a]" /><h3 className="text-sm font-bold uppercase tracking-[0.16em] text-[#1a2e4a]">Linha do tempo diária</h3></div><div className="space-y-5">{Array.from(eventsByDay.entries()).map(([day, dayEvents]) => {
+      {events.length === 0 ? <div className="py-12 text-center text-sm text-slate-500">Inclua chegada, transfers, hospedagem, voos e passeios na aba <strong>Roteiro Final</strong> para gerar o documento pós-aprovação.</div> : <div className="mt-3"><div className="mb-4 flex items-center gap-2"><Clock3 className="h-5 w-5 text-[#1a2e4a]" /><h3 className="text-sm font-bold uppercase tracking-[0.16em] text-[#1a2e4a]">Linha do tempo diária</h3></div><div className="space-y-5">{Array.from(eventsByDay.entries()).map(([day, dayEvents]) => {
         const dayDate = dayEvents.map((event) => event.flightDate || event.hotelCheckIn || event.hotelCheckOut).find(Boolean);
         return <section key={day} data-pdf-keep-together="true" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
           <div className="mb-3 flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day}</span><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-600">Dia {day}</p>{dayDate && <p className="mt-0.5 text-[11px] font-medium text-slate-500">{formatDate(dayDate)}</p>}</div><div className="h-px flex-1 bg-amber-200" /></div>
@@ -187,6 +187,7 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
         const Icon = EVENT_ICONS[event.kind];
         const isFlight = event.kind === "flight" || event.kind === "return";
         const isHotel = event.kind === "hotel";
+        const eventPhotoUrl = event.photoUrl || (isHotel ? (data.hotels || []).find((hotel) => hotel.id === event.sourceHotelId)?.photoUrl : "");
         const hasFlightDetails = isFlight && [event.flightAirline, event.flightNumber, event.flightLocator, event.flightDate, event.flightDepartureAirport, event.flightDepartureTime, event.flightArrivalAirport, event.flightArrivalTime, event.flightDepartureTerminal, event.flightArrivalTerminal].some(Boolean);
         const alert = getUpcomingAlert(event);
         const attachmentGroups = groupAttachmentsByPassenger(event.attachments || [], finalItinerary.passengers || []);
@@ -220,12 +221,12 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
 
                 {attachmentGroups.length > 0 && <div className="mt-3 rounded-lg border border-blue-100 bg-white p-2.5"><p className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1a2e4a]">{isFlight && <Plane className="h-3.5 w-3.5" />}{isFlight ? "Cartões de embarque e documentos deste voo" : "Documentos anexados"}</p><div className="space-y-2.5">{attachmentGroups.map((group) => <section key={group.label}><p className="mb-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-slate-500"><UserRound className="h-3 w-3" />{group.label}</p><div className="flex flex-wrap gap-2">{group.attachments.map((attachment) => <a key={attachment.id} data-pdf-link={attachment.url} href={attachment.url} target="_blank" rel="noreferrer" className={isFlight ? "inline-flex max-w-full items-center gap-1.5 rounded-md border border-[#1a2e4a] bg-[#1a2e4a] px-2.5 py-2 text-xs font-bold text-white" : "inline-flex max-w-full items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-semibold text-[#1a2e4a] hover:border-amber-300 hover:text-amber-700"}><FileText className="h-3.5 w-3.5 shrink-0" /><span className="max-w-52 truncate">{isFlight ? `Abrir cartão de embarque: ${attachment.name}` : attachment.name}</span><ExternalLink className="h-3 w-3 shrink-0" /></a>)}</div></section>)}</div></div>}
 
-                {event.photoUrl && <a href={event.photoUrl} target="_blank" rel="noreferrer" className="mt-3 block" aria-label={`Abrir foto de ${event.title}`}><img src={event.photoUrl} alt={`Foto de ${event.title}`} crossOrigin="anonymous" onError={(nativeEvent) => nativeEvent.currentTarget.remove()} className="h-32 w-full rounded-lg border border-slate-200 object-cover" /></a>}
+                {eventPhotoUrl && <a data-pdf-link={eventPhotoUrl} href={eventPhotoUrl} target="_blank" rel="noreferrer" className="mt-3 block" aria-label={`Abrir foto de ${event.title}`}><img src={eventPhotoUrl} alt={`Foto de ${event.title}`} crossOrigin="anonymous" onError={(nativeEvent) => nativeEvent.currentTarget.remove()} className={`${isHotel ? "h-40" : "h-32"} w-full rounded-lg border border-slate-200 object-cover`} /></a>}
                 {event.description && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">{event.description}</p>}
                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
                   {event.addressUrl && <a data-pdf-link={event.addressUrl} href={event.addressUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-[#1a2e4a] hover:text-amber-600"><MapPin className="h-3.5 w-3.5" />Ver endereço</a>}
                   {event.linkUrl && <a data-pdf-link={event.linkUrl} href={event.linkUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-[#1a2e4a] hover:text-amber-600"><ExternalLink className="h-3.5 w-3.5" />Acessar informações</a>}
-                  {event.photoUrl && <a data-pdf-link={event.photoUrl} href={event.photoUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-[#1a2e4a] hover:text-amber-600"><Images className="h-3.5 w-3.5" />Fotos</a>}
+                  {eventPhotoUrl && <a data-pdf-link={eventPhotoUrl} href={eventPhotoUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-[#1a2e4a] hover:text-amber-600"><Images className="h-3.5 w-3.5" />Fotos</a>}
                 </div>
               </div>
             </div>
@@ -233,7 +234,7 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
         </div>;
       })}</div></section>;
       })}</div></div>}
-      {usefulLinks.length > 0 && <section className="mt-5 border-t-2 border-amber-400 pt-4">
+      {usefulLinks.length > 0 && <section className="mt-3">
         <div className="mb-4 flex items-center gap-2"><Sparkles className="h-5 w-5 text-amber-600" /><div><h3 className="text-sm font-bold uppercase tracking-[0.16em] text-[#1a2e4a]">Dicas e Links Úteis</h3><p className="mt-0.5 text-xs text-slate-500">Informações práticas para aproveitar a viagem com mais tranquilidade.</p></div></div>
         <div className="grid gap-3 sm:grid-cols-2">{usefulLinks.map((usefulLink) => <article key={usefulLink.id} data-pdf-keep-together="true" className="rounded-xl border border-amber-200 bg-amber-50/70 p-3"><p className="text-sm font-bold text-[#1a2e4a]">{usefulLink.title || "Informação útil"}</p>{usefulLink.description && <p className="mt-1.5 whitespace-pre-line text-xs leading-relaxed text-slate-600">{usefulLink.description}</p>}{usefulLink.url && <a data-pdf-link={usefulLink.url} href={usefulLink.url} target="_blank" rel="noreferrer" className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-bold text-[#1a2e4a] hover:text-amber-700"><ExternalLink className="h-3.5 w-3.5" />Acessar contato ou informação</a>}</article>)}</div>
       </section>}

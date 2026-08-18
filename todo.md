@@ -588,3 +588,8 @@
 - [x] Garantir que abrir um orçamento salvo use exclusivamente o snapshot salvo, sem sobrescrever valores ou hotéis pelo último estado local
 - [x] Adicionar botão explícito no Roteiro Final para puxar os passeios da proposta salva
 - [x] Cobrir a precedência de restauração e a importação de passeios por testes, build e prévia visual
+
+- [x] Exibir a foto cadastrada da hospedagem nos compromissos de hotel do Roteiro Final
+- [x] Adicionar ação segura para limpar somente os dados do Roteiro Final
+- [x] Remover espaço e linha desnecessários antes do conteúdo nas páginas internas do Roteiro Final
+- [x] Validar foto, limpeza, PDF, testes, build e prévia visual sem alterar os demais módulos

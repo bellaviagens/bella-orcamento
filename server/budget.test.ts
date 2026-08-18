@@ -4,7 +4,7 @@ import type { TrpcContext } from "./_core/context";
 import { calculateCombinedInstallmentValue, calculateCombinedTotal, calculateEffectiveHotelTotal } from "../shared/paymentCalculations";
 import { calculateCombinedPaymentPlan } from "../shared/combinedPaymentPlan";
 import { calculateTourProposalInstallment, calculateTourTotal, getTourTravelerCount } from "../shared/tourPricing";
-import { addFinalItineraryEventToBudget, addFlightToFinalItineraryInBudget, addGastronomyToDayInBudget, addGastronomyToUsefulTipsInBudget, addHotelToFinalItineraryInBudget, addItineraryActivityToBudget, addTourToFinalItineraryInBudget, duplicateHotelInBudget, duplicateTourInBudget, getItineraryDayActivities, importQuotationActivitiesIntoBudget, moveItineraryActivityBetweenDaysInBudget, removeItineraryActivityFromBudget, reorderHotelsInBudget, reorderItineraryActivitiesInBudget, reorderItineraryDaysInBudget, reorderToursInBudget, resetTourProposalInBudget, updateItineraryActivityInBudget } from "../client/src/contexts/BudgetContext";
+import { addFinalItineraryEventToBudget, addFlightToFinalItineraryInBudget, addGastronomyToDayInBudget, addGastronomyToUsefulTipsInBudget, addHotelToFinalItineraryInBudget, addItineraryActivityToBudget, addTourToFinalItineraryInBudget, clearFinalItineraryInBudget, duplicateHotelInBudget, duplicateTourInBudget, getItineraryDayActivities, importQuotationActivitiesIntoBudget, moveItineraryActivityBetweenDaysInBudget, removeItineraryActivityFromBudget, reorderHotelsInBudget, reorderItineraryActivitiesInBudget, reorderItineraryDaysInBudget, reorderToursInBudget, resetTourProposalInBudget, updateItineraryActivityInBudget } from "../client/src/contexts/BudgetContext";
 
 function createMockContext(): TrpcContext {
   return {
@@ -531,5 +531,37 @@ describe("addTourToFinalItineraryInBudget", () => {
     });
     expect(updated.finalItinerary.events[0].description).toContain("Chegar 15 minutos antes.");
     expect(updated.finalItinerary.events[0].description).toContain("https://fornecedor.example/ingresso");
+  });
+});
+
+describe("clearFinalItineraryInBudget", () => {
+  it("limpa apenas o Roteiro Final e preserva orçamento, voos, hotéis e proposta de passeios", async () => {
+    const { defaultBudgetData, DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE } = await import("../shared/budgetTypes");
+    const budgetWithFinalItinerary = {
+      ...defaultBudgetData,
+      tourProposal: { ...defaultBudgetData.tourProposal, title: "Passeios aprovados", clientName: "Suelen Vieira" },
+      finalItinerary: {
+        ...defaultBudgetData.finalItinerary,
+        enabled: true,
+        title: "Roteiro de Suelen",
+        coverImageUrl: "https://images.example/capa.jpg",
+        passengers: [{ id: "passageira-1", name: "Suelen Vieira", baggageChecklist: [] }],
+        events: [{ id: "hotel-roteiro", kind: "hotel" as const, day: 1, title: "Hospedagem — Hotel Central" }],
+      },
+    };
+
+    const cleared = clearFinalItineraryInBudget(budgetWithFinalItinerary);
+
+    expect(cleared.flights).toEqual(budgetWithFinalItinerary.flights);
+    expect(cleared.hotels).toEqual(budgetWithFinalItinerary.hotels);
+    expect(cleared.tourProposal).toEqual(budgetWithFinalItinerary.tourProposal);
+    expect(cleared.finalItinerary).toMatchObject({
+      enabled: false,
+      title: "Roteiro final da viagem",
+      introMessage: DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE,
+      coverImageUrl: "",
+      passengers: [],
+      events: [],
+    });
   });
 });

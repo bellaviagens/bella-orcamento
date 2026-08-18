@@ -116,4 +116,25 @@ describe("FinalItineraryPreview — capa institucional", () => {
     expect(markup).toContain("https://example.com/passeio.png");
     expect(markup).toContain("Passeio com visual");
   });
+
+  it("exibe a foto vinculada ao hotel e não cria uma linha extra antes da linha do tempo", () => {
+    const hotelPhotoUrl = "https://example.com/hotel-bella.jpg";
+    const data = {
+      tripInfo: { destination: "Santiago", period: "10/09/2026 a 17/09/2026", passengers: "2 viajantes" },
+      hotels: [{ id: "hotel-bella", name: "Hotel Bella", photoUrl: hotelPhotoUrl }],
+      finalItinerary: {
+        title: "Roteiro Santiago",
+        introMessage: "",
+        passengers: [],
+        usefulLinks: [],
+        events: [{ id: "hotel-event", sourceHotelId: "hotel-bella", day: 1, time: "15:00", kind: "hotel", title: "Hospedagem Hotel Bella", description: "", linkUrl: "" }],
+      },
+    } as unknown as BudgetData;
+
+    const markup = renderToStaticMarkup(<FinalItineraryPreview data={data} />);
+
+    expect(markup).toContain(hotelPhotoUrl);
+    expect(markup).toContain("Foto de Hospedagem Hotel Bella");
+    expect(markup).not.toContain("border-t-2");
+  });
 });

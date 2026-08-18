@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Building2, CalendarDays, CarFront, Copy, ExternalLink, FileText, GripVertical, Hotel, Link2, Luggage, Mail, MessageCircle, Phone, Plane, Plus, QrCode, Share2, Trash2, Upload, UserRound, Users, X } from "lucide-react";
 import { DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE, DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE } from "@shared/budgetTypes";
 import type { FinalItineraryBaggageItem, FinalItineraryEventKind } from "@shared/budgetTypes";
@@ -42,6 +43,7 @@ export function FinalItineraryForm() {
   const {
     budget,
     updateFinalItinerary,
+    clearFinalItinerary,
     addFinalItineraryEvent,
     updateFinalItineraryEvent,
     removeFinalItineraryEvent,
@@ -89,6 +91,23 @@ export function FinalItineraryForm() {
   const emailShareUrl = shareMessage
     ? `mailto:?subject=${encodeURIComponent(`Roteiro de viagem — ${finalItinerary.title || "Bella Viagens e Milhas"}`)}&body=${encodeURIComponent(shareMessage)}`
     : "";
+
+  const handleClearFinalItinerary = () => {
+    clearFinalItinerary();
+    setDraggedEventId(null);
+    setDragOverEventId(null);
+    setAttachmentPassengerByEvent({});
+    setNewBaggageItemByPassenger({});
+    setNewPassengerName("");
+    setShareUrl("");
+    setQrCodeUrl("");
+    setShareError(null);
+    setShareCopied(false);
+    setShareExpiryDate("");
+    setShowSharePreview(false);
+    setSelectedWelcomeTemplateId("");
+    setNewWelcomeTemplateName("");
+  };
 
   const handleCoverImageSelection = (file?: File) => {
     if (!file) return;
@@ -338,8 +357,25 @@ export function FinalItineraryForm() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs leading-relaxed text-emerald-900">
-        <strong>Roteiro Final pós-aprovação.</strong> Use esta etapa somente quando os passeios forem aprovados. Ela é independente da proposta e reúne informações práticas para a viagem.
+      <div className="flex flex-col gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs leading-relaxed text-emerald-900 sm:flex-row sm:items-center sm:justify-between">
+        <p><strong>Roteiro Final pós-aprovação.</strong> Use esta etapa somente quando os passeios forem aprovados. Ela é independente da proposta e reúne informações práticas para a viagem.</p>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button type="button" variant="outline" className="h-9 shrink-0 border-red-200 bg-white text-xs font-bold text-red-700 hover:bg-red-50 hover:text-red-800"><Trash2 className="mr-1.5 h-3.5 w-3.5" />Limpar roteiro</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="border-amber-200 bg-white">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-[#1a2e4a]">Limpar o Roteiro Final?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Todos os eventos, passageiros, anexos e configurações deste Roteiro Final serão removidos. Os dados do orçamento, incluindo voos, hotéis e proposta de passeios, permanecerão preservados.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleClearFinalItinerary} className="bg-[#1a2e4a] text-white hover:bg-[#12243d]">Limpar roteiro</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       <div className="rounded-lg border border-[#1a2e4a]/15 bg-blue-50/60 p-3">
