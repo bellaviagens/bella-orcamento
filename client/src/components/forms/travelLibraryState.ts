@@ -18,6 +18,8 @@ type TravelLibraryItemLike = {
   neighborhood?: string | null;
   contactName: string | null;
   phone: string | null;
+  responsibleName?: string | null;
+  whatsapp?: string | null;
   linkUrl: string | null;
   imageUrl: string | null;
   notes: string | null;
@@ -47,7 +49,7 @@ export function filterTravelLibraryItems<T extends TravelLibraryItemLike>(items:
     && (!normalizedFilters.country || item.country?.trim() === normalizedFilters.country)
     && (!normalizedFilters.city || item.city?.trim() === normalizedFilters.city)
     && (!normalizedFilters.neighborhood || item.category === "hotel" && item.neighborhood?.trim() === normalizedFilters.neighborhood)
-    && (!searchQuery || item.category !== "hotel" || [item.name, item.neighborhood, item.contactName, item.notes].some((value) => normalizedText(value).includes(searchQuery))),
+    && (!searchQuery || [item.name, item.destination, item.country, item.city, item.neighborhood, item.contactName, item.phone, item.responsibleName, item.whatsapp, item.notes].some((value) => normalizedText(value).includes(searchQuery))),
   );
 }
 

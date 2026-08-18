@@ -56,4 +56,14 @@ describe("Biblioteca de Viagem", () => {
     ];
     expect(sortTravelLibraryItems(detailedItems, "neighborhood").map((item) => item.id)).toEqual(["hotel-1", "hotel-2"]);
   });
+
+  it("pesquisa passeios e transfers por dados cadastrados", () => {
+    const detailedItems = [
+      { id: "tour-1", category: "tour" as const, folderName: "Passeios", name: "Vinícolas do Vale", destination: "Santiago, Chile", country: "Chile", city: "Santiago", neighborhood: null, contactName: null, phone: null, linkUrl: null, imageUrl: null, notes: "Saída do hotel às 08:00" },
+      { id: "transfer-1", category: "transfer" as const, folderName: "Transfers", name: "Transfer Andes", destination: "Santiago, Chile", country: "Chile", city: "Santiago", neighborhood: null, contactName: "Andes Transportes", phone: "+56 9 9999-9999", responsibleName: "Carlos Silva", whatsapp: "+56 9 9999-9999", linkUrl: null, imageUrl: null, notes: "Recepção no aeroporto" },
+    ];
+
+    expect(filterTravelLibraryItems(detailedItems, { category: "tour", country: "Chile", city: "Santiago", neighborhood: "", searchQuery: "08:00" }).map((item) => item.id)).toEqual(["tour-1"]);
+    expect(filterTravelLibraryItems(detailedItems, { category: "transfer", country: "Chile", city: "Santiago", neighborhood: "", searchQuery: "carlos" }).map((item) => item.id)).toEqual(["transfer-1"]);
+  });
 });

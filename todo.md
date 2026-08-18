@@ -655,3 +655,6 @@
 - [x] Adicionar busca textual de hotéis por nome, endereço ou bairro
 - [x] Exibir bairro na confirmação de importação do hotel para a aba Hotéis
 - [x] Validar ordenação, busca e importação, incluindo tipagem, testes, build e responsividade
+- [x] Estender filtros de localização da Biblioteca para passeios e transfers
+- [x] Adicionar busca textual de passeios e transfers pelos dados cadastrados
+- [x] Validar filtros e busca ampliados, incluindo tipagem, testes, build e responsividade
