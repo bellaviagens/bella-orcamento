@@ -24,9 +24,11 @@ describe("toggleCollapsedSection", () => {
     const initial = new Set(["cover", "event-1"]);
     const openedCover = toggleCollapsedSection(initial, "cover");
     const collapsedShare = toggleCollapsedSection(openedCover, "share");
+    const collapsedUsefulLinks = toggleCollapsedSection(collapsedShare, "useful-links");
 
     expect(initial).toEqual(new Set(["cover", "event-1"]));
     expect(openedCover).toEqual(new Set(["event-1"]));
     expect(collapsedShare).toEqual(new Set(["event-1", "share"]));
+    expect(collapsedUsefulLinks).toEqual(new Set(["event-1", "share", "useful-links"]));
   });
 });

@@ -615,3 +615,6 @@
 - [x] Adicionar botão Abrir/Recolher na seção Acesso rápido pelo celular
 - [x] Adicionar controles individuais Abrir/Recolher em dados de passageiro, compromissos e dias do Roteiro Final
 - [x] Validar interação, tipagem, testes, build, prévia e preservação do PDF
+- [x] Adicionar botão Abrir/Recolher em Dicas e Links Úteis do Roteiro Final
+- [x] Ampliar a área de toque dos controles Abrir/Recolher para celular sem alterar cores ou conteúdo
+- [x] Validar responsividade móvel, tipagem, testes, build e prévia
