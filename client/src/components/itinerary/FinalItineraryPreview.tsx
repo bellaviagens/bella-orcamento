@@ -86,6 +86,13 @@ function groupAttachmentsByPassenger(attachments: FinalItineraryAttachment[], pa
   return Array.from(groups.values());
 }
 
+function documentTypeLabel(documentType?: FinalItineraryAttachment["documentType"]) {
+  if (documentType === "boarding_pass") return "Cartão de embarque";
+  if (documentType === "ticket") return "Bilhete aéreo";
+  if (documentType === "itinerary") return "Itinerário";
+  return "Documento do voo";
+}
+
 function toIsoDate(day: string, month: string, year: string) {
   const date = new Date(Number(year), Number(month) - 1, Number(day));
   if (date.getFullYear() !== Number(year) || date.getMonth() !== Number(month) - 1 || date.getDate() !== Number(day)) return undefined;
@@ -208,8 +215,9 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
                     <DetailCell label="Localizador" value={event.flightLocator} />
                     <DetailCell label="Data" value={formatDate(event.flightDate)} />
                   </div>
-                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  <div className="mt-2 grid gap-2 sm:grid-cols-3">
                     <DetailCell label="Partida" value={[event.flightDepartureAirport, event.flightDepartureTerminal, event.flightDepartureTime].filter(Boolean).join(" • ")} />
+                    <DetailCell label="Portão" value={event.flightDepartureGate} />
                     <DetailCell label="Chegada" value={[event.flightArrivalAirport, event.flightArrivalTerminal, event.flightArrivalTime].filter(Boolean).join(" • ")} />
                   </div>
                 </div>}
@@ -220,7 +228,7 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
                   {event.hotelMapUrl && <a data-pdf-link={event.hotelMapUrl} href={event.hotelMapUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[#1a2e4a] hover:text-amber-600"><MapPin className="h-3.5 w-3.5" />Abrir localização no Google Maps</a>}
                 </div>}
 
-                  {attachmentGroups.length > 0 && <div className="mt-3 rounded-lg border border-blue-100 bg-white p-2.5"><p className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1a2e4a]">{isFlight && <Plane className="h-3.5 w-3.5" />}{isFlight ? "Cartões de embarque e documentos deste voo" : "Documentos anexados"}</p><div className="space-y-2.5">{attachmentGroups.map((group) => <section key={group.label}><p className="mb-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-slate-500"><UserRound className="h-3 w-3" />{group.label}</p><div className="flex flex-wrap gap-2">{group.attachments.map((attachment) => <a key={attachment.id} data-pdf-link={attachment.url} href={attachment.url} target="_blank" rel="noreferrer" className={isFlight ? "inline-flex max-w-full items-center gap-1.5 rounded-md border border-[#1a2e4a] bg-[#1a2e4a] px-2.5 py-2 text-xs font-bold text-white" : "inline-flex max-w-full items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-semibold text-[#1a2e4a] hover:border-amber-300 hover:text-amber-700"}><FileText className="h-3.5 w-3.5 shrink-0" /><span className="max-w-52 truncate">{isFlight ? `Abrir cartão de embarque: ${attachment.name}` : attachment.name}</span>{attachment.seat && <span className={isFlight ? "rounded bg-white/15 px-1.5 py-0.5 text-[10px]" : "rounded bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-800"}>Assento {attachment.seat}</span>}<ExternalLink className="h-3 w-3 shrink-0" /></a>)}</div></section>)}</div></div>}
+                  {attachmentGroups.length > 0 && <div className="mt-3 rounded-lg border border-blue-100 bg-white p-2.5"><p className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1a2e4a]">{isFlight && <Plane className="h-3.5 w-3.5" />}{isFlight ? "Documentos deste voo" : "Documentos anexados"}</p><div className="space-y-2.5">{attachmentGroups.map((group) => <section key={group.label}><p className="mb-1.5 inline-flex items-center gap-1 text-[10px] font-bold text-slate-500"><UserRound className="h-3 w-3" />{group.label}{isFlight && group.label !== "Documentos gerais" && <span className="ml-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700">Documento anexado</span>}</p><div className="flex flex-wrap gap-2">{group.attachments.map((attachment) => <a key={attachment.id} data-pdf-link={attachment.url} href={attachment.url} target="_blank" rel="noreferrer" className={isFlight ? "inline-flex max-w-full items-center gap-1.5 rounded-md border border-[#1a2e4a] bg-[#1a2e4a] px-2.5 py-2 text-xs font-bold text-white" : "inline-flex max-w-full items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-semibold text-[#1a2e4a] hover:border-amber-300 hover:text-amber-700"}><FileText className="h-3.5 w-3.5 shrink-0" /><span className="max-w-52 truncate">{isFlight ? `Abrir ${documentTypeLabel(attachment.documentType).toLowerCase()}: ${attachment.name}` : attachment.name}</span>{attachment.seat && <span className={isFlight ? "rounded bg-white/15 px-1.5 py-0.5 text-[10px]" : "rounded bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-800"}>Assento {attachment.seat}</span>}<ExternalLink className="h-3 w-3 shrink-0" /></a>)}</div></section>)}</div></div>}
 
                 {eventPhotoUrl && <a data-pdf-link={eventPhotoUrl} href={eventPhotoUrl} target="_blank" rel="noreferrer" className="mt-3 block" aria-label={`Abrir foto de ${event.title}`}><img src={eventPhotoUrl} alt={`Foto de ${event.title}`} crossOrigin="anonymous" onError={(nativeEvent) => nativeEvent.currentTarget.remove()} className={`${isHotel ? "h-40" : "h-32"} w-full rounded-lg border border-slate-200 object-cover`} /></a>}
                 {event.description && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">{event.description}</p>}

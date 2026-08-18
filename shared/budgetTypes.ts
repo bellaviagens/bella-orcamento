@@ -129,6 +129,8 @@ export interface GastronomyOption {
 
 export type FinalItineraryEventKind = "arrival" | "transfer" | "hotel" | "flight" | "return" | "tour" | "custom";
 
+export type FinalItineraryAttachmentDocumentType = "boarding_pass" | "ticket" | "itinerary" | "document";
+
 export interface FinalItineraryAttachment {
   id: string;
   name: string;
@@ -140,6 +142,8 @@ export interface FinalItineraryAttachment {
   passengerName?: string;
   /** Assento identificado diretamente no cartão de embarque, quando disponível. */
   seat?: string;
+  /** Classificação identificada no documento anexado para apresentar o rótulo correto. */
+  documentType?: FinalItineraryAttachmentDocumentType;
 }
 
 export interface FinalItineraryBaggageItem {
@@ -196,6 +200,7 @@ export interface FinalItineraryEvent {
   flightArrivalAirport?: string;
   flightArrivalTime?: string;
   flightDepartureTerminal?: string;
+  flightDepartureGate?: string;
   flightArrivalTerminal?: string;
   attachments?: FinalItineraryAttachment[];
 }

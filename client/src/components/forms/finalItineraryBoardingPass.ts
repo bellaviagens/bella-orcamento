@@ -1,4 +1,4 @@
-import type { FinalItineraryAttachment, FinalItineraryEvent, FinalItineraryPassenger } from "@shared/budgetTypes";
+import type { FinalItineraryAttachment, FinalItineraryAttachmentDocumentType, FinalItineraryEvent, FinalItineraryPassenger } from "@shared/budgetTypes";
 
 export type BoardingPassData = {
   airline: string;
@@ -8,11 +8,13 @@ export type BoardingPassData = {
   departureAirport: string;
   departureTime: string;
   departureTerminal: string;
+  departureGate: string;
   arrivalAirport: string;
   arrivalTime: string;
   arrivalTerminal: string;
   passengerName: string;
   seat: string;
+  documentType: FinalItineraryAttachmentDocumentType;
 };
 
 function keepExistingValue(parsedValue: string, currentValue?: string) {
@@ -48,6 +50,7 @@ export function boardingPassAttachmentUpdates(
     passengerId,
     passengerName: parsed.passengerName.trim() || selectedPassenger?.name || attachment.passengerName,
     seat: parsed.seat.trim() || attachment.seat,
+    documentType: parsed.documentType || attachment.documentType,
   };
 }
 
@@ -62,6 +65,7 @@ export function boardingPassUpdates(event: FinalItineraryEvent, parsed: Boarding
     flightDepartureAirport: keepExistingValue(parsed.departureAirport, event.flightDepartureAirport),
     flightDepartureTime: departureTime,
     flightDepartureTerminal: keepExistingValue(parsed.departureTerminal, event.flightDepartureTerminal),
+    flightDepartureGate: keepExistingValue(parsed.departureGate, event.flightDepartureGate),
     flightArrivalAirport: keepExistingValue(parsed.arrivalAirport, event.flightArrivalAirport),
     flightArrivalTime: keepExistingValue(parsed.arrivalTime, event.flightArrivalTime),
     flightArrivalTerminal: keepExistingValue(parsed.arrivalTerminal, event.flightArrivalTerminal),

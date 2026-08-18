@@ -9,11 +9,13 @@ const parsedBoardingPass = {
   departureAirport: "FLN",
   departureTime: "10:05",
   departureTerminal: "1",
+  departureGate: "24",
   arrivalAirport: "SCL",
   arrivalTime: "12:50",
   arrivalTerminal: "Internacional",
   passengerName: "Maria da Silva",
   seat: "12A",
+  documentType: "ticket" as const,
 };
 
 describe("boardingPassUpdates", () => {
@@ -27,6 +29,7 @@ describe("boardingPassUpdates", () => {
       flightDate: "2026-08-26",
       flightDepartureAirport: "FLN",
       flightDepartureTime: "10:05",
+      flightDepartureGate: "24",
       flightArrivalAirport: "SCL",
       flightArrivalTime: "12:50",
       time: "10:05",
@@ -51,11 +54,13 @@ describe("boardingPassUpdates", () => {
       departureAirport: "",
       departureTime: "",
       departureTerminal: "",
+      departureGate: "",
       arrivalAirport: "SCL",
       arrivalTime: "12:50",
       arrivalTerminal: "",
       passengerName: "",
       seat: "",
+      documentType: "document",
     });
 
     expect(updates).toMatchObject({
@@ -75,7 +80,7 @@ describe("boardingPassUpdates", () => {
       parsedBoardingPass,
     );
 
-    expect(attachment).toMatchObject({ passengerId: "passenger-1", passengerName: "Maria da Silva", seat: "12A" });
+    expect(attachment).toMatchObject({ passengerId: "passenger-1", passengerName: "Maria da Silva", seat: "12A", documentType: "ticket" });
   });
 
   it("preserva a seleção manual de passageiro quando ela for diferente do nome lido", () => {
@@ -86,6 +91,6 @@ describe("boardingPassUpdates", () => {
       parsedBoardingPass,
     );
 
-    expect(attachment).toMatchObject({ passengerId: "passenger-2", passengerName: "Maria da Silva", seat: "12A" });
+    expect(attachment).toMatchObject({ passengerId: "passenger-2", passengerName: "Maria da Silva", seat: "12A", documentType: "ticket" });
   });
 });

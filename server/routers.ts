@@ -488,25 +488,27 @@ export const appRouter = router({
           departureAirport: { type: "string" },
           departureTime: { type: "string" },
           departureTerminal: { type: "string" },
+          departureGate: { type: "string" },
           arrivalAirport: { type: "string" },
           arrivalTime: { type: "string" },
           arrivalTerminal: { type: "string" },
           passengerName: { type: "string" },
           seat: { type: "string" },
+          documentType: { type: "string", enum: ["boarding_pass", "ticket", "itinerary", "document"] },
         },
-        required: ["airline", "flightNumber", "locator", "date", "departureAirport", "departureTime", "departureTerminal", "arrivalAirport", "arrivalTime", "arrivalTerminal", "passengerName", "seat"],
+        required: ["airline", "flightNumber", "locator", "date", "departureAirport", "departureTime", "departureTerminal", "departureGate", "arrivalAirport", "arrivalTime", "arrivalTerminal", "passengerName", "seat", "documentType"],
       };
 
       const response = await invokeLLM({
         messages: [
           {
             role: "system",
-            content: "You extract data from airline boarding passes and e-tickets. Return only data that is explicitly visible in the document. For missing values, return an empty string. Use IATA airport codes where shown. Dates must use YYYY-MM-DD and times must use HH:MM. Preserve the passenger name exactly as printed and extract the assigned seat when it is visible. Always respond in Portuguese.",
+            content: "You extract data from airline boarding passes, e-tickets and itineraries. Return only data that is explicitly visible in the document. For missing values, return an empty string. Use IATA airport codes where shown. Dates must use YYYY-MM-DD and times must use HH:MM. Preserve the passenger name exactly as printed and extract the assigned seat and departure gate when visible. Classify the file as boarding_pass only when it is a boarding pass, ticket for an e-ticket/bilhete, itinerary for an itinerary/reservation summary, or document otherwise. Always respond in Portuguese.",
           },
           {
             role: "user",
             content: [
-              { type: "text", text: "Read this boarding pass or airline ticket and extract the airline, flight number, booking locator (PNR), flight date, departure and arrival airports, departure and arrival times, both terminals, passenger name, and assigned seat when visible. Do not infer information that is not on the document." },
+              { type: "text", text: "Read this flight document and extract the airline, flight number, booking locator (PNR), flight date, departure and arrival airports, departure and arrival times, both terminals, departure gate, passenger name, and assigned seat when visible. Also classify the document as boarding pass, e-ticket/bilhete, itinerary or generic document. Do not infer information that is not on the document." },
               buildImportDocumentContent(input.documentBase64),
             ],
           },
@@ -530,11 +532,13 @@ export const appRouter = router({
           departureAirport: string;
           departureTime: string;
           departureTerminal: string;
+          departureGate: string;
           arrivalAirport: string;
           arrivalTime: string;
           arrivalTerminal: string;
           passengerName: string;
           seat: string;
+          documentType: "boarding_pass" | "ticket" | "itinerary" | "document";
         };
       } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Não foi possível extrair os dados do cartão de embarque." });

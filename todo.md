@@ -601,3 +601,8 @@
 - [x] Extrair automaticamente nome do passageiro e assento ao anexar cartão de embarque
 - [x] Preencher o passageiro vinculado e apresentar o assento identificado no Roteiro Final
 - [x] Validar extração ampliada, testes, build e prévia visual
+
+- [x] Distinguir visualmente bilhete, itinerário e cartão de embarque conforme o anexo recebido
+- [x] Extrair automaticamente portão de embarque e horário do voo quando estiverem disponíveis no documento
+- [x] Aproximar a associação do passageiro do anexo e indicar claramente o status de check-in por passageiro
+- [x] Validar rótulos, dados extraídos, status, testes, build e prévia visual
