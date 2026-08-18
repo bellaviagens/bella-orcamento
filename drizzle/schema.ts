@@ -88,6 +88,25 @@ export const favoriteRestaurants = mysqlTable("favorite_restaurants", {
 export type FavoriteRestaurant = typeof favoriteRestaurants.$inferSelect;
 export type InsertFavoriteRestaurant = typeof favoriteRestaurants.$inferInsert;
 
+export const travelLibraryItems = mysqlTable("travel_library_items", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  ownerOpenId: varchar("ownerOpenId", { length: 64 }).notNull(),
+  category: mysqlEnum("category", ["hotel", "tour", "transfer"]).notNull(),
+  folderName: varchar("folderName", { length: 120 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  destination: varchar("destination", { length: 255 }),
+  contactName: varchar("contactName", { length: 255 }),
+  phone: varchar("phone", { length: 80 }),
+  linkUrl: varchar("linkUrl", { length: 2048 }),
+  imageUrl: varchar("imageUrl", { length: 2048 }),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TravelLibraryItem = typeof travelLibraryItems.$inferSelect;
+export type InsertTravelLibraryItem = typeof travelLibraryItems.$inferInsert;
+
 export const sharedFavoriteLists = mysqlTable("shared_favorite_lists", {
   id: varchar("id", { length: 36 }).primaryKey(),
   ownerOpenId: varchar("ownerOpenId", { length: 64 }).notNull(),

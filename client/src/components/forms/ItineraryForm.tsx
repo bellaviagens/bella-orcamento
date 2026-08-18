@@ -11,6 +11,7 @@ import { CalendarDays, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, Grip
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
 import { createEmptyGastronomySearchDraft, createProposalTourFromActivity, favoriteRestaurantToGastronomyOption, filterRestaurantFavorites, sortRestaurantFavorites, type FavoriteRestaurantSort } from "./itineraryFormState";
+import { TravelLibraryPanel } from "./TravelLibraryPanel";
 
 export function ItineraryForm() {
   const { budget, addGastronomyToDay, addGastronomyToUsefulTips, addItineraryDay, addItineraryActivity, addTour, importItineraryFromQuotation, moveItineraryActivity, removeGastronomyOption, removeItineraryActivity, reorderItineraryActivities, replaceBudget, resetTourProposal, saveGastronomyOption, updateItineraryActivity, updateTour, updateTourProposal, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
@@ -540,6 +541,8 @@ export function ItineraryForm() {
           </div>)}</div>}
         </div> : null}
       </div>
+
+      <TravelLibraryPanel />
 
       {itinerary.map((day) => {
         const activities = getItineraryDayActivities(day);

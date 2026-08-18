@@ -1,6 +1,6 @@
 import { and, desc, eq, isNull, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { favoriteRestaurants, InsertUser, savedBudgetDrafts, savedTourProposals, sharedFavoriteLists, sharedItineraries, users } from "../drizzle/schema";
+import { favoriteRestaurants, InsertUser, savedBudgetDrafts, savedTourProposals, sharedFavoriteLists, sharedItineraries, travelLibraryItems, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -431,6 +431,61 @@ export async function deleteFavoriteRestaurant(ownerOpenId: string, id: string) 
 
   const result = await db.delete(favoriteRestaurants)
     .where(and(eq(favoriteRestaurants.id, id), eq(favoriteRestaurants.ownerOpenId, ownerOpenId)));
+  return (result[0]?.affectedRows ?? 0) > 0;
+}
+
+export type TravelLibraryCategory = "hotel" | "tour" | "transfer";
+
+export interface TravelLibraryItemInput {
+  ownerOpenId: string;
+  category: TravelLibraryCategory;
+  folderName: string;
+  name: string;
+  destination?: string;
+  contactName?: string;
+  phone?: string;
+  linkUrl?: string;
+  imageUrl?: string;
+  notes?: string;
+}
+
+export async function createTravelLibraryItem(input: TravelLibraryItemInput) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para salvar na biblioteca.");
+
+  const id = crypto.randomUUID();
+  await db.insert(travelLibraryItems).values({
+    id,
+    ownerOpenId: input.ownerOpenId,
+    category: input.category,
+    folderName: input.folderName.trim(),
+    name: input.name.trim(),
+    destination: input.destination?.trim() || null,
+    contactName: input.contactName?.trim() || null,
+    phone: input.phone?.trim() || null,
+    linkUrl: input.linkUrl?.trim() || null,
+    imageUrl: input.imageUrl?.trim() || null,
+    notes: input.notes?.trim() || null,
+  });
+  return id;
+}
+
+export async function listTravelLibraryItems(ownerOpenId: string, category?: TravelLibraryCategory) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const whereClause = category
+    ? and(eq(travelLibraryItems.ownerOpenId, ownerOpenId), eq(travelLibraryItems.category, category))
+    : eq(travelLibraryItems.ownerOpenId, ownerOpenId);
+  return db.select().from(travelLibraryItems).where(whereClause).orderBy(desc(travelLibraryItems.updatedAt));
+}
+
+export async function deleteTravelLibraryItem(ownerOpenId: string, id: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para excluir da biblioteca.");
+
+  const result = await db.delete(travelLibraryItems)
+    .where(and(eq(travelLibraryItems.id, id), eq(travelLibraryItems.ownerOpenId, ownerOpenId)));
   return (result[0]?.affectedRows ?? 0) > 0;
 }
 

@@ -624,5 +624,5 @@
 - [x] Adicionar controle Abrir/Recolher na lista de opções gastronômicas validadas
 - [x] Revisar a base atual de favoritos para planejar pastas de restaurantes, hotéis, passeios e transfers
 - [x] Validar tipagem, testes, build e fluxos atualizados de propostas de passeios
-- [ ] Implementar uma Biblioteca de Viagem persistente por pastas para hotéis, passeios e transfers, com reaproveitamento nos orçamentos
-- [ ] Redesenhar a navegação com uma área lateral de cadastros, preservando as abas e fluxos atuais
+- [x] Implementar uma Biblioteca de Viagem persistente por pastas para hotéis, passeios e transfers, com reaproveitamento nos orçamentos
+- [x] Redesenhar a navegação com uma área lateral de cadastros, preservando as abas e fluxos atuais

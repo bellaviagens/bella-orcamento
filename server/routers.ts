@@ -4,7 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { buildImportDocumentContent } from "./importDocument";
-import { createSharedFavoriteList, createSharedItinerary, deleteBudgetDraft, deleteFavoriteRestaurant, deleteTourProposal, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, updateFavoriteRestaurantDetails, updateFavoriteRestaurantTags, updateTourProposalStatus } from "./db";
+import { createSharedFavoriteList, createSharedItinerary, createTravelLibraryItem, deleteBudgetDraft, deleteFavoriteRestaurant, deleteTourProposal, deleteTravelLibraryItem, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, listTravelLibraryItems, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, updateFavoriteRestaurantDetails, updateFavoriteRestaurantTags, updateTourProposalStatus } from "./db";
 import { storagePut } from "./storage";
 import { fetchPlacePhoto, makeRequest, type PlacesSearchResult } from "./_core/map";
 import { TRPCError } from "@trpc/server";
@@ -355,6 +355,31 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const removed = await deleteFavoriteRestaurant(ctx.user.openId, input.id);
         if (!removed) throw new TRPCError({ code: "NOT_FOUND", message: "Restaurante favorito não encontrado." });
+        return { success: true };
+      }),
+  }),
+  travelLibrary: router({
+    list: protectedProcedure
+      .input(z.object({ category: z.enum(["hotel", "tour", "transfer"]).optional() }).optional())
+      .query(({ ctx, input }) => listTravelLibraryItems(ctx.user.openId, input?.category)),
+    create: protectedProcedure
+      .input(z.object({
+        category: z.enum(["hotel", "tour", "transfer"]),
+        folderName: z.string().trim().min(1, "Informe uma pasta.").max(120),
+        name: z.string().trim().min(1, "Informe o nome.").max(255),
+        destination: z.string().trim().max(255).optional(),
+        contactName: z.string().trim().max(255).optional(),
+        phone: z.string().trim().max(80).optional(),
+        linkUrl: z.string().url().max(2048).optional(),
+        imageUrl: z.string().url().max(2048).optional(),
+        notes: z.string().trim().max(4000).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => ({ id: await createTravelLibraryItem({ ...input, ownerOpenId: ctx.user.openId }) })),
+    delete: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .mutation(async ({ ctx, input }) => {
+        const removed = await deleteTravelLibraryItem(ctx.user.openId, input.id);
+        if (!removed) throw new TRPCError({ code: "NOT_FOUND", message: "Item da biblioteca não encontrado." });
         return { success: true };
       }),
   }),

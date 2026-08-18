@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff, CalendarDays, MapPinned, FolderOpen, Save, Pencil, Search, Trash2 } from "lucide-react";
+import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff, CalendarDays, MapPinned, FolderOpen, Save, Pencil, Search, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 
@@ -259,8 +259,18 @@ function BuilderContent() {
 
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
+        <aside className="hidden w-48 shrink-0 flex-col border-r border-slate-200 bg-white p-3 lg:flex">
+          <div className="mb-3 border-b border-slate-100 pb-3"><p className="text-xs font-bold text-[#1a2e4a]">Acesso rápido</p><p className="mt-1 text-[11px] leading-relaxed text-slate-500">Cadastros e atalhos do orçamento.</p></div>
+          <div className="space-y-1">
+            <Button type="button" variant="ghost" onClick={() => setActiveTab("trip")} className={`h-9 w-full justify-start px-2 text-xs ${activeTab === "trip" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><Users className="mr-2 h-4 w-4" />Cliente e viagem</Button>
+            <Button type="button" variant="ghost" onClick={() => setActiveTab("hotels")} className={`h-9 w-full justify-start px-2 text-xs ${activeTab === "hotels" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><Building2 className="mr-2 h-4 w-4" />Hotéis</Button>
+            <Button type="button" variant="ghost" onClick={() => { setActiveTab("itinerary"); setItineraryMode("proposal"); }} className={`h-9 w-full justify-start px-2 text-xs ${activeTab === "itinerary" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><FolderOpen className="mr-2 h-4 w-4" />Biblioteca</Button>
+            <Button type="button" variant="ghost" onClick={openDrafts} className="h-9 w-full justify-start px-2 text-xs text-slate-600"><Save className="mr-2 h-4 w-4" />Rascunhos</Button>
+          </div>
+          <div className="mt-auto rounded-md border border-blue-100 bg-blue-50 p-2.5 text-[11px] leading-relaxed text-[#1a2e4a]">A aba <strong>Roteiro</strong> reúne propostas, restaurantes favoritos e a Biblioteca de Viagem.</div>
+        </aside>
         {/* Left: Forms */}
-        <div className={`${showPreview ? "w-1/2" : "w-full"} flex flex-col overflow-hidden border-r border-slate-200`}>
+        <div className={`${showPreview ? "w-full md:w-1/2" : "w-full"} flex flex-col overflow-hidden border-r border-slate-200`}>
           <ScrollArea className="flex-1">
             <div className="p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -387,7 +397,7 @@ function BuilderContent() {
 
         {/* Right: PDF Preview */}
         {showPreview && (
-          <div className="w-1/2 flex flex-col overflow-hidden bg-slate-200">
+          <div className="hidden w-1/2 flex-col overflow-hidden bg-slate-200 md:flex">
             <div className="bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between flex-shrink-0">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 {showingItinerary ? (showingFinalItinerary ? "Visualização do roteiro final" : "Visualização da proposta de passeios") : "Preview do PDF"}
