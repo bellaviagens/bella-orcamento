@@ -670,3 +670,4 @@
 - [x] Permitir importar PDF ou print para preencher o cadastro de transfers na Biblioteca
 - [x] Validar agrupamento de passageiros e pré-cadastros por documento, incluindo tipagem, testes, build e responsividade
 - [x] Corrigir a sobreposição entre Modelo da capa e Imagem do destino no editor do Roteiro Final
+- [x] Mover as regras de bagagem para dentro do cartão de cada voo, junto aos passageiros e documentos
