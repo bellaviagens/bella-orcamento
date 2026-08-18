@@ -564,6 +564,6 @@
 - [x] Permitir registrar e editar notas pessoais em cada restaurante favorito.
 - [x] Validar persistência, tipagem, testes, build e visualização.
 
-- [ ] Restaurar voos e hotéis nas respectivas abas ao abrir um rascunho salvo.
-- [ ] Tornar claros e distintos os controles de Salvar rascunho de orçamento e Salvar proposta de passeios.
-- [ ] Validar carregamento, edição, testes, build, visualização e publicação sem alterar os demais módulos.
+- [x] Restaurar voos e hotéis nas respectivas abas ao abrir um rascunho salvo.
+- [x] Tornar claros e distintos os controles de Salvar rascunho de orçamento e Salvar proposta de passeios.
+- [x] Validar carregamento, edição, testes, build, visualização e publicação sem alterar os demais módulos.
