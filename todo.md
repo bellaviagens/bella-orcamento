@@ -651,3 +651,7 @@
 - [x] Adicionar filtro por bairro na lista de hotéis da Biblioteca
 - [x] Preencher automaticamente o bairro quando ele estiver visível no voucher do hotel
 - [x] Validar cartão, filtro e leitura do voucher, incluindo tipagem, testes, build e responsividade
+- [x] Permitir ordenar os hotéis da Biblioteca por bairro
+- [x] Adicionar busca textual de hotéis por nome, endereço ou bairro
+- [x] Exibir bairro na confirmação de importação do hotel para a aba Hotéis
+- [x] Validar ordenação, busca e importação, incluindo tipagem, testes, build e responsividade
