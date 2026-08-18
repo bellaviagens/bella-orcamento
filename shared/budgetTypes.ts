@@ -222,6 +222,8 @@ export interface FinalItinerary {
   shareToken?: string;
   shareExpiresAt?: string;
   passengers?: FinalItineraryPassenger[];
+  /** Página oficial da companhia com regras de bagagem e itens permitidos. */
+  baggageRulesUrl?: string;
   usefulLinks?: FinalItineraryUsefulLink[];
   events: FinalItineraryEvent[];
 }

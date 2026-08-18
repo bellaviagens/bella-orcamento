@@ -606,3 +606,7 @@
 - [x] Extrair automaticamente portão de embarque e horário do voo quando estiverem disponíveis no documento
 - [x] Aproximar a associação do passageiro do anexo e indicar claramente o status de check-in por passageiro
 - [x] Validar rótulos, dados extraídos, status, testes, build e prévia visual
+
+- [x] Remover checklist de bagagem individual por passageiro e incluir um link único da companhia aérea para consulta
+- [x] Agrupar cada passageiro com a seleção e o anexo de seu documento de voo no editor
+- [x] Preservar a apresentação atual dos documentos no PDF e validar edição, testes, build e prévia
