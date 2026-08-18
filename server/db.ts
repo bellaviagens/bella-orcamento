@@ -480,6 +480,32 @@ export async function createTravelLibraryItem(input: TravelLibraryItemInput) {
   return id;
 }
 
+export async function updateTravelLibraryItem(input: TravelLibraryItemInput & { id: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para atualizar a biblioteca.");
+
+  const result = await db.update(travelLibraryItems)
+    .set({
+      category: input.category,
+      folderName: input.folderName.trim(),
+      name: input.name.trim(),
+      destination: input.destination?.trim() || null,
+      country: input.country?.trim() || null,
+      city: input.city?.trim() || null,
+      contactName: input.contactName?.trim() || null,
+      phone: input.phone?.trim() || null,
+      responsibleName: input.responsibleName?.trim() || null,
+      whatsapp: input.whatsapp?.trim() || null,
+      linkUrl: input.linkUrl?.trim() || null,
+      imageUrl: input.imageUrl?.trim() || null,
+      documentUrl: input.documentUrl?.trim() || null,
+      notes: input.notes?.trim() || null,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(travelLibraryItems.id, input.id), eq(travelLibraryItems.ownerOpenId, input.ownerOpenId)));
+  return (result[0]?.affectedRows ?? 0) > 0;
+}
+
 export async function listTravelLibraryItems(ownerOpenId: string, category?: TravelLibraryCategory) {
   const db = await getDb();
   if (!db) return [];

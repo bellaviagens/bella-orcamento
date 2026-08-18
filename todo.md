@@ -639,3 +639,7 @@
 - [x] Permitir anexar documentos e fotos aos fornecedores cadastrados na Biblioteca
 - [x] Adicionar filtros avançados de país, cidade e tipo de serviço à Biblioteca
 - [x] Validar extração, importação, anexos, filtros, tipagem, testes, build e responsividade
+- [x] Permitir abrir e editar itens já salvos na Biblioteca, sem criar duplicatas
+- [x] Preencher a edição da Biblioteca com dados do hotel, transfer ou restaurante favoritado
+- [x] Salvar informações de voucher de hospedagem e dados do Roteiro Final na Biblioteca quando solicitado
+- [x] Validar edição, reaproveitamento dos dados, tipagem, testes, build e responsividade

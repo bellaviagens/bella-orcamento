@@ -7,11 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Building2, CalendarDays, CarFront, ChevronDown, Copy, ExternalLink, FileText, GripVertical, Hotel, Link2, Luggage, Mail, MessageCircle, Phone, Plane, Plus, QrCode, Share2, Trash2, Upload, UserRound, Users, X } from "lucide-react";
+import { Building2, CalendarDays, CarFront, ChevronDown, Copy, ExternalLink, FileText, FolderPlus, GripVertical, Hotel, Link2, Luggage, Mail, MessageCircle, Phone, Plane, Plus, QrCode, Share2, Trash2, Upload, UserRound, Users, X } from "lucide-react";
 import { DEFAULT_FINAL_ITINERARY_SHARE_MESSAGE, DEFAULT_FINAL_ITINERARY_WELCOME_MESSAGE } from "@shared/budgetTypes";
 import type { FinalItineraryAttachment, FinalItineraryEvent, FinalItineraryEventKind } from "@shared/budgetTypes";
 import { boardingPassAttachmentUpdates, boardingPassUpdates } from "./finalItineraryBoardingPass";
 import { hotelVoucherUpdates } from "./finalItineraryHotelVoucher";
+import { finalItineraryEventToLibraryInput } from "./finalItineraryLibraryItem";
 import QRCode from "qrcode";
 
 const EVENT_LABELS: Record<FinalItineraryEventKind, string> = {
@@ -95,12 +96,14 @@ export function FinalItineraryForm() {
   const [selectedWelcomeTemplateId, setSelectedWelcomeTemplateId] = useState("");
   const [newWelcomeTemplateName, setNewWelcomeTemplateName] = useState("");
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(() => new Set());
+  const [savedLibraryEventIds, setSavedLibraryEventIds] = useState<Set<string>>(() => new Set());
   const attachmentInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const eventVisualInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const coverImageInput = useRef<HTMLInputElement | null>(null);
   const uploadAttachment = trpc.itineraryAttachments.upload.useMutation();
   const parseBoardingPass = trpc.parseBoardingPass.useMutation();
   const parseHotelVoucher = trpc.parseHotelVoucher.useMutation();
+  const saveEventToLibraryMutation = trpc.travelLibrary.create.useMutation();
   const createSharedItinerary = trpc.sharedItineraries.create.useMutation();
   const revokeSharedItinerary = trpc.sharedItineraries.revoke.useMutation();
   const finalItinerary = budget.finalItinerary;
@@ -118,6 +121,19 @@ export function FinalItineraryForm() {
     ? `mailto:?subject=${encodeURIComponent(`Roteiro de viagem — ${finalItinerary.title || "Bella Viagens e Milhas"}`)}&body=${encodeURIComponent(shareMessage)}`
     : "";
   const toggleSection = (sectionId: string) => setCollapsedSections((current) => toggleCollapsedSection(current, sectionId));
+
+  const saveEventToLibrary = async (event: FinalItineraryEvent) => {
+    if ((event.kind !== "hotel" && event.kind !== "transfer") || savedLibraryEventIds.has(event.id)) return;
+    const libraryInput = finalItineraryEventToLibraryInput(event, budget.tripInfo.destination);
+    if (!libraryInput) return;
+    try {
+      await saveEventToLibraryMutation.mutateAsync(libraryInput);
+      setSavedLibraryEventIds((current) => new Set(Array.from(current).concat(event.id)));
+      setBoardingPassMessageByEvent((current) => ({ ...current, [event.id]: `${libraryInput.category === "hotel" ? "Hotel" : "Transfer"} salvo na Biblioteca. Abra Biblioteca de Viagem e clique em Editar para complementar ou alterar os dados.` }));
+    } catch (error) {
+      setBoardingPassMessageByEvent((current) => ({ ...current, [event.id]: error instanceof Error ? error.message : "Não foi possível salvar este item na Biblioteca agora." }));
+    }
+  };
 
   const handleClearFinalItinerary = () => {
     clearFinalItinerary();
@@ -498,7 +514,7 @@ export function FinalItineraryForm() {
         >
           <div className="mb-3 flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2"><button type="button" draggable onDragStart={(nativeEvent) => { nativeEvent.dataTransfer.effectAllowed = "move"; setDraggedEventId(event.id); }} onDragEnd={() => { setDraggedEventId(null); setDragOverEventId(null); }} className="cursor-grab text-slate-400 hover:text-[#1a2e4a]" title={`Arraste para reordenar dentro do Dia ${event.day}`}><GripVertical className="h-5 w-5" /></button><span className="rounded-full bg-[#1a2e4a] px-2 py-1 text-xs font-bold text-white">Dia {event.day}</span><span className="shrink-0 text-sm font-bold text-[#1a2e4a]">{EVENT_LABELS[event.kind]}</span>{isEventCollapsed && <span className="truncate text-xs font-semibold text-slate-600">{event.title || "Sem título"}</span>}{isEventCollapsed && event.time && <span className="shrink-0 rounded bg-white px-1.5 py-0.5 text-[11px] font-semibold text-[#1a2e4a]">{event.time}</span>}</div>
-            <div className="flex shrink-0 items-center gap-1"><Button type="button" variant="ghost" size="sm" onClick={() => toggleSection(eventSectionId)} aria-expanded={!isEventCollapsed} className="h-11 min-w-24 px-3 text-xs text-slate-500 hover:bg-white hover:text-[#1a2e4a] sm:h-8 sm:min-w-0 sm:px-2"><ChevronDown className={`mr-1 h-4 w-4 transition-transform ${isEventCollapsed ? "" : "rotate-180"}`} />{isEventCollapsed ? "Abrir" : "Recolher"}</Button><Button type="button" variant="ghost" size="sm" onClick={() => removeFinalItineraryEvent(event.id)} className="h-8 w-8 p-0 text-red-500 hover:text-red-700" title="Remover item"><Trash2 className="h-4 w-4" /></Button></div>
+            <div className="flex shrink-0 items-center gap-1">{(event.kind === "hotel" || event.kind === "transfer") && <Button type="button" variant="outline" size="sm" onClick={() => void saveEventToLibrary(event)} disabled={saveEventToLibraryMutation.isPending || savedLibraryEventIds.has(event.id)} className="h-8 bg-white px-2 text-[11px] text-[#1a2e4a]" title="Salvar dados deste fornecedor na Biblioteca de Viagem"><FolderPlus className="mr-1 h-3.5 w-3.5" />{savedLibraryEventIds.has(event.id) ? "Salvo" : "Biblioteca"}</Button>}<Button type="button" variant="ghost" size="sm" onClick={() => toggleSection(eventSectionId)} aria-expanded={!isEventCollapsed} className="h-11 min-w-24 px-3 text-xs text-slate-500 hover:bg-white hover:text-[#1a2e4a] sm:h-8 sm:min-w-0 sm:px-2"><ChevronDown className={`mr-1 h-4 w-4 transition-transform ${isEventCollapsed ? "" : "rotate-180"}`} />{isEventCollapsed ? "Abrir" : "Recolher"}</Button><Button type="button" variant="ghost" size="sm" onClick={() => removeFinalItineraryEvent(event.id)} className="h-8 w-8 p-0 text-red-500 hover:text-red-700" title="Remover item"><Trash2 className="h-4 w-4" /></Button></div>
           </div>
           {!isEventCollapsed && <div className="grid gap-3 sm:grid-cols-2">
             <div><Label>Tipo</Label><Select value={event.kind} onValueChange={(value) => updateFinalItineraryEvent(event.id, { kind: value as FinalItineraryEventKind })}><SelectTrigger className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent>{Object.entries(EVENT_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></div>

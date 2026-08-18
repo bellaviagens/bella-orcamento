@@ -4,7 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { buildImportDocumentContent } from "./importDocument";
-import { createSharedFavoriteList, createSharedItinerary, createTravelClient, createTravelLibraryItem, deleteBudgetDraft, deleteFavoriteRestaurant, deleteTourProposal, deleteTravelClient, deleteTravelLibraryItem, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, getTravelClientHistory, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, listTravelClients, listTravelLibraryItems, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, updateFavoriteRestaurantDetails, updateFavoriteRestaurantTags, updateTourProposalStatus } from "./db";
+import { createSharedFavoriteList, createSharedItinerary, createTravelClient, createTravelLibraryItem, deleteBudgetDraft, deleteFavoriteRestaurant, deleteTourProposal, deleteTravelClient, deleteTravelLibraryItem, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, getTravelClientHistory, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, listTravelClients, listTravelLibraryItems, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, updateFavoriteRestaurantDetails, updateFavoriteRestaurantTags, updateTourProposalStatus, updateTravelLibraryItem } from "./db";
 import { storagePut } from "./storage";
 import { fetchPlacePhoto, makeRequest, type PlacesSearchResult } from "./_core/map";
 import { TRPCError } from "@trpc/server";
@@ -380,6 +380,29 @@ export const appRouter = router({
         notes: z.string().trim().max(4000).optional(),
       }))
       .mutation(async ({ ctx, input }) => ({ id: await createTravelLibraryItem({ ...input, ownerOpenId: ctx.user.openId }) })),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.string().uuid(),
+        category: z.enum(["hotel", "tour", "restaurant", "transfer"]),
+        folderName: z.string().trim().min(1, "Informe uma pasta.").max(120),
+        name: z.string().trim().min(1, "Informe o nome.").max(255),
+        destination: z.string().trim().max(255).optional(),
+        country: z.string().trim().max(120).optional(),
+        city: z.string().trim().max(120).optional(),
+        contactName: z.string().trim().max(255).optional(),
+        phone: z.string().trim().max(80).optional(),
+        responsibleName: z.string().trim().max(255).optional(),
+        whatsapp: z.string().trim().max(80).optional(),
+        linkUrl: z.string().url().max(2048).optional(),
+        imageUrl: z.string().max(2048).refine((url) => url.startsWith("/manus-storage/") || /^https:\/\//.test(url), "Informe um link HTTPS válido.").optional(),
+        documentUrl: z.string().max(2048).refine((url) => url.startsWith("/manus-storage/") || /^https:\/\//.test(url), "Informe um link HTTPS válido.").optional(),
+        notes: z.string().trim().max(4000).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const updated = await updateTravelLibraryItem({ ...input, ownerOpenId: ctx.user.openId });
+        if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Item da biblioteca não encontrado." });
+        return { success: true };
+      }),
     delete: protectedProcedure
       .input(z.object({ id: z.string().uuid() }))
       .mutation(async ({ ctx, input }) => {
