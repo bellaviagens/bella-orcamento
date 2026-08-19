@@ -91,6 +91,10 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
     })),
   })).filter((day) => day.activities.length > 0);
   const selectedCoverDayIds = proposal.coverSummaryDayIds;
+  const driverWhatsappDigits = proposal.airportHotelTransferDriverContact?.replace(/\D/g, "") || "";
+  const driverWhatsappUrl = driverWhatsappDigits.length >= 10
+    ? `https://wa.me/${driverWhatsappDigits.startsWith("55") ? driverWhatsappDigits : `55${driverWhatsappDigits}`}`
+    : undefined;
   const visibleCoverSummaryDays = (selectedCoverDayIds?.length
     ? coverSummaryDays.filter((day) => selectedCoverDayIds.includes(day.id))
     : coverSummaryDays
@@ -127,7 +131,8 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
             <div className="min-w-0 space-y-1.5">
               {arrivalSegment?.arrivalTime && <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-slate-600"><PlaneTakeoff className="h-3.5 w-3.5 text-[#1a2e4a]" /><span className="font-semibold text-[#1a2e4a]">Chegada do voo:</span> {arrivalSegment.arrivalTime}{arrivalSegment.arrivalCity || arrivalSegment.arrivalAirport ? ` — ${arrivalSegment.arrivalCity || arrivalSegment.arrivalAirport}` : ""}</p>}
               {(proposal.airportHotelTransfer || proposal.airportHotelTransferTime) && <p className="text-xs text-slate-600"><span className="font-semibold text-[#1a2e4a]">Transfer aeroporto → hotel:</span> {proposal.airportHotelTransferTime ? `${proposal.airportHotelTransferTime}${proposal.airportHotelTransfer ? " • " : ""}` : ""}{proposal.airportHotelTransfer || "A confirmar"}</p>}
-              {proposal.airportHotelTransferDriverContact && <p className="text-xs text-slate-600"><span className="font-semibold text-[#1a2e4a]">Motorista / WhatsApp:</span> {proposal.airportHotelTransferDriverContact}</p>}
+	              {proposal.airportHotelTransferDuration && <p className="text-xs text-slate-600"><span className="font-semibold text-[#1a2e4a]">Duração estimada do transfer:</span> {proposal.airportHotelTransferDuration}</p>}
+	              {proposal.airportHotelTransferDriverContact && <p className="text-xs text-slate-600"><span className="font-semibold text-[#1a2e4a]">Motorista / WhatsApp:</span> {driverWhatsappUrl ? <a href={driverWhatsappUrl} target="_blank" rel="noreferrer" data-pdf-link={driverWhatsappUrl} className="font-semibold text-[#1a2e4a] underline underline-offset-2">{proposal.airportHotelTransferDriverContact}</a> : proposal.airportHotelTransferDriverContact}</p>}
               {proposal.hotelArrivalTime && <p className="text-xs text-slate-600"><span className="font-semibold text-[#1a2e4a]">Previsão de chegada ao hotel:</span> {proposal.hotelArrivalTime}</p>}
               <p className="text-sm font-bold text-[#1a2e4a]">{selectedHotel.name || "Hospedagem"}</p>
               {(proposal.hotelCheckInTime || proposal.hotelCheckOutTime) && <p className="text-xs text-slate-600"><span className="font-semibold text-[#1a2e4a]">Hospedagem:</span> {proposal.hotelCheckInTime ? `Check-in ${proposal.hotelCheckInTime}` : ""}{proposal.hotelCheckInTime && proposal.hotelCheckOutTime ? " • " : ""}{proposal.hotelCheckOutTime ? `Check-out ${proposal.hotelCheckOutTime}` : ""}</p>}

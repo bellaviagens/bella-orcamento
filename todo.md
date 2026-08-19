@@ -739,3 +739,6 @@
 - [x] Adicionar contato ou WhatsApp do motorista na seção de transfer da Proposta de passeios
 - [x] Exibir alerta visual quando a chegada ao hotel conflitar com passeio do mesmo dia
 - [x] Permitir salvar e reutilizar modelos de transfer em propostas futuras
+- [x] Permitir categorizar modelos de transfer salvos por destino na Biblioteca de Viagem
+- [x] Tornar o WhatsApp do motorista clicável na proposta e no PDF
+- [x] Permitir informar a duração estimada do transfer entre aeroporto e hotel

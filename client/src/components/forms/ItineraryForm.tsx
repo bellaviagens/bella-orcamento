@@ -118,8 +118,14 @@ export function ItineraryForm() {
     { enabled: Boolean(selectedProposalId) },
   );
   const transferTemplates = useMemo(
-    () => (transferTemplatesQuery.data || []).filter((item) => item.category === "transfer"),
-    [transferTemplatesQuery.data],
+    () => {
+      const templates = (transferTemplatesQuery.data || []).filter((item) => item.category === "transfer");
+      const currentDestination = budget.tripInfo.destination.trim().toLocaleLowerCase("pt-BR");
+      if (!currentDestination) return templates;
+      const templatesForDestination = templates.filter((item) => item.destination?.trim().toLocaleLowerCase("pt-BR") === currentDestination);
+      return templatesForDestination.length > 0 ? templatesForDestination : templates;
+    },
+    [budget.tripInfo.destination, transferTemplatesQuery.data],
   );
   const arrivalConflicts = useMemo(
     () => getProposalArrivalConflicts(itinerary, arrivalSegment?.date, budget.tourProposal.hotelArrivalTime),
@@ -181,14 +187,17 @@ export function ItineraryForm() {
       const location = travelLibraryLocationFromDestination(destination);
       await saveToLibraryMutation.mutateAsync({
         category: "transfer",
-        folderName: "Transfers",
+        folderName: destination || "Transfers sem destino",
         destination: destination || undefined,
         country: location.country || undefined,
         city: location.city || undefined,
         name: transferName,
         responsibleName: budget.tourProposal.airportHotelTransferDriverContact?.trim() || undefined,
         whatsapp: budget.tourProposal.airportHotelTransferDriverContact?.trim() || undefined,
-        notes: budget.tourProposal.airportHotelTransferTime ? `Horário sugerido: ${budget.tourProposal.airportHotelTransferTime}` : undefined,
+        notes: [
+          budget.tourProposal.airportHotelTransferTime ? `Horário sugerido: ${budget.tourProposal.airportHotelTransferTime}` : "",
+          budget.tourProposal.airportHotelTransferDuration ? `Duração estimada: ${budget.tourProposal.airportHotelTransferDuration}` : "",
+        ].filter(Boolean).join("\n") || undefined,
       });
       await utils.travelLibrary.list.invalidate();
       toast.success("Modelo de transfer salvo na Biblioteca de Viagem.");
@@ -199,9 +208,13 @@ export function ItineraryForm() {
   };
 
   const handleUseTransferTemplate = (template: NonNullable<typeof transferTemplatesQuery.data>[number]) => {
+    const suggestedTime = template.notes?.match(/Horário sugerido:\s*([^\n]+)/i)?.[1]?.trim();
+    const estimatedDuration = template.notes?.match(/Duração estimada:\s*([^\n]+)/i)?.[1]?.trim();
     updateTourProposal({
       airportHotelTransfer: template.name,
       airportHotelTransferDriverContact: template.whatsapp || template.responsibleName || "",
+      airportHotelTransferTime: suggestedTime || undefined,
+      airportHotelTransferDuration: estimatedDuration || undefined,
     });
     toast.success("Modelo de transfer aplicado à proposta.");
   };
@@ -627,10 +640,14 @@ export function ItineraryForm() {
 		                  <Input id="proposal-hotel-arrival" type="time" value={budget.tourProposal.hotelArrivalTime || ""} onChange={(event) => updateTourProposal({ hotelArrivalTime: event.target.value })} className="mt-1 bg-white" />
 		                  <p className="mt-1 text-[11px] text-slate-500">Informe o horário estimado após aeroporto e transfer.</p>
 		                </div>
-		                <div>
-		                  <Label htmlFor="proposal-transfer-time">Horário do transfer</Label>
-		                  <Input id="proposal-transfer-time" type="time" value={budget.tourProposal.airportHotelTransferTime || ""} onChange={(event) => updateTourProposal({ airportHotelTransferTime: event.target.value })} className="mt-1 bg-white" />
-		                </div>
+			                <div>
+			                  <Label htmlFor="proposal-transfer-time">Horário do transfer</Label>
+			                  <Input id="proposal-transfer-time" type="time" value={budget.tourProposal.airportHotelTransferTime || ""} onChange={(event) => updateTourProposal({ airportHotelTransferTime: event.target.value })} className="mt-1 bg-white" />
+			                </div>
+			                <div>
+			                  <Label htmlFor="proposal-transfer-duration">Duração estimada do transfer</Label>
+			                  <Input id="proposal-transfer-duration" value={budget.tourProposal.airportHotelTransferDuration || ""} onChange={(event) => updateTourProposal({ airportHotelTransferDuration: event.target.value })} placeholder="Ex.: 45 minutos" className="mt-1 bg-white" />
+			                </div>
 			                <div className="sm:col-span-2">
 			                  <Label htmlFor="proposal-transfer">Transfer aeroporto → hotel</Label>
 			                  <Input id="proposal-transfer" value={budget.tourProposal.airportHotelTransfer || ""} onChange={(event) => updateTourProposal({ airportHotelTransfer: event.target.value })} placeholder="Ex.: Transfer privativo confirmado com a agência" className="mt-1 bg-white" />
@@ -645,7 +662,7 @@ export function ItineraryForm() {
 			                    <Select onValueChange={(value) => { const template = transferTemplates.find((item) => item.id === value); if (template) handleUseTransferTemplate(template); }}>
 			                      <SelectTrigger id="proposal-transfer-template" className="min-w-0 flex-1 bg-white"><SelectValue placeholder="Aplicar modelo" /></SelectTrigger>
 			                      <SelectContent>
-			                        {transferTemplates.length === 0 ? <SelectItem value="no-transfer-template" disabled>Nenhum modelo salvo</SelectItem> : transferTemplates.map((template) => <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>)}
+			                    {transferTemplates.length === 0 ? <SelectItem value="no-transfer-template" disabled>Nenhum modelo salvo</SelectItem> : transferTemplates.map((template) => <SelectItem key={template.id} value={template.id}>{template.name}{template.destination ? ` • ${template.destination}` : ""}</SelectItem>)}
 			                      </SelectContent>
 			                    </Select>
 			                    <Button type="button" variant="outline" onClick={handleSaveTransferTemplate} disabled={saveToLibraryMutation.isPending} className="shrink-0 bg-white px-2 text-xs"><Save className="mr-1 h-3.5 w-3.5" />Salvar</Button>
