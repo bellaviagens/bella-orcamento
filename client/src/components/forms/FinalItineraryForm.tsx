@@ -78,6 +78,7 @@ export function FinalItineraryForm() {
     budget,
     updateFinalItinerary,
     clearFinalItinerary,
+    resetTourProposal,
     addFinalItineraryEvent,
     updateFinalItineraryEvent,
     updateFinalItineraryDayDate,
@@ -168,6 +169,7 @@ export function FinalItineraryForm() {
 
   const handleClearFinalItinerary = () => {
     clearFinalItinerary();
+    resetTourProposal();
     setDraggedEventId(null);
     setDragOverEventId(null);
     setDraggedDay(null);
@@ -182,6 +184,9 @@ export function FinalItineraryForm() {
     setShowSharePreview(false);
     setSelectedWelcomeTemplateId("");
     setNewWelcomeTemplateName("");
+    setShowSavedProposalPicker(false);
+    setSelectedSavedProposalId("");
+    setSavedProposalImportMessage("");
     const defaultCollapsedSections = initialCollapsedSections([]);
     setCollapsedSections(defaultCollapsedSections);
     knownCollapsedSectionIds.current = new Set(defaultCollapsedSections);

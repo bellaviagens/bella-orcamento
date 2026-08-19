@@ -700,3 +700,4 @@
 - [x] Permitir reordenar dias do Roteiro Final por arrastar e soltar, atualizando dias e datas
 - [x] Simplificar o cabeçalho diário para Dia, dia da semana e data completa, sem “Compromissos do dia”
 - [x] Aplicar pequeno recuo visual aos compromissos dentro de cada dia aberto do Roteiro Final
+- [x] Corrigir Limpar roteiro para remover também os passeios importados da proposta

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rehydrateBudgetDraft, reorderFinalItineraryDaysInBudget, restoreLastBudgetFromStorage, updateFareTierInBudget, updateFinalItineraryDayDateInBudget } from "./BudgetContext";
+import { clearFinalItineraryInBudget, rehydrateBudgetDraft, reorderFinalItineraryDaysInBudget, resetTourProposalInBudget, restoreLastBudgetFromStorage, updateFareTierInBudget, updateFinalItineraryDayDateInBudget } from "./BudgetContext";
 import { defaultBudgetData } from "@shared/budgetTypes";
 
 describe("updateFareTierInBudget", () => {
@@ -105,5 +105,46 @@ describe("dias do Roteiro Final", () => {
       ["Primeiro dia", 2, "2026-08-31"],
       ["Segundo compromisso", 2, "2026-08-31"],
     ]);
+  });
+});
+
+describe("limpeza do Roteiro Final", () => {
+  it("remove os eventos finais e os passeios da proposta atual sem afetar propostas salvas", () => {
+    const budget = {
+      ...defaultBudgetData,
+      finalItinerary: {
+        ...defaultBudgetData.finalItinerary,
+        events: [{ id: "evento-atual", day: 1, proposalDayDate: "2026-08-30", kind: "tour" as const, title: "Evento atual", time: "", description: "", linkUrl: "", addressUrl: "", photoUrl: "", attachments: [] }],
+      },
+      tours: [{
+        id: "passeio-cadastrado",
+        name: "Passeio cadastrado",
+        location: "Destino",
+        duration: "2 horas",
+        description: "",
+        totalPrice: 0,
+      }],
+      itinerary: [{
+        id: "dia-atual",
+        day: 1,
+        title: "Dia 1",
+        notes: "",
+        activities: [{
+          id: "passeio-atual",
+          kind: "tour" as const,
+          title: "Passeio atual",
+          time: "",
+          description: "",
+          linkUrl: "",
+          photoUrl: "",
+        }],
+      }],
+    };
+
+    const cleared = resetTourProposalInBudget(clearFinalItineraryInBudget(budget));
+
+    expect(cleared.finalItinerary.events).toEqual([]);
+    expect(cleared.tours).toEqual([]);
+    expect(cleared.itinerary).toEqual([]);
   });
 });
