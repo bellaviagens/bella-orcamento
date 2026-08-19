@@ -6,6 +6,7 @@ import { HotelForm } from "@/components/forms/HotelForm";
 import { ItineraryForm } from "@/components/forms/ItineraryForm";
 import { FinalItineraryForm } from "@/components/forms/FinalItineraryForm";
 import { TravelClientsPanel } from "@/components/forms/TravelClientsPanel";
+import { HomeClientDocumentAlerts } from "@/components/forms/HomeClientDocumentAlerts";
 import { TravelLibraryPanel } from "@/components/forms/TravelLibraryPanel";
 import { TravelDraftsPanel } from "@/components/forms/TravelDraftsPanel";
 import { FareForm } from "@/components/forms/FareForm";
@@ -474,7 +475,7 @@ function BuilderContent() {
           </div>
           <ScrollArea className="flex-1">
             <div className="p-6">
-              {sideView === "budget" && <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              {sideView === "budget" && <><HomeClientDocumentAlerts tripPeriod={budget.tripInfo.period} onOpenClients={() => setSideView("clients")} /><Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <div className="mb-4 overflow-x-auto pb-1 [scrollbar-width:thin]">
                   <TabsList className="flex h-auto min-w-max w-full flex-nowrap gap-1.5 rounded-lg bg-slate-200 p-1.5">
                   <TabsTrigger value="trip" className="min-h-10 shrink-0 whitespace-nowrap rounded-md px-3 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-white data-[state=active]:text-[#1a2e4a] data-[state=active]:shadow-sm">
@@ -619,9 +620,9 @@ function BuilderContent() {
                     </div>
                   </div>
                 </TabsContent>
-              </Tabs>}
+              </Tabs></>}
               {sideView === "library" && <TravelLibraryPanel initiallyOpen />}
-              {sideView === "clients" && <TravelClientsPanel tripPeriod={budget.tripInfo.period} onUseClient={(name) => { updateTripInfo("clientName", name); setSideView("budget"); setActiveTab("trip"); toast.success("Cliente aplicado ao orçamento atual."); }} />}
+              {sideView === "clients" && <TravelClientsPanel tripPeriod={budget.tripInfo.period} tripDestination={budget.tripInfo.destination} passengerNames={budget.finalItinerary.passengers?.map((passenger) => passenger.name) || []} onUseClient={(name) => { updateTripInfo("clientName", name); setSideView("budget"); setActiveTab("trip"); toast.success("Cliente aplicado ao orçamento atual."); }} />}
               {sideView === "drafts" && <TravelDraftsPanel
                 currentDraftId={currentDraftId}
                 draftLabel={draftLabel}

@@ -746,3 +746,6 @@
 - [x] Permitir anexar documentos de viagem ao cadastro de cada cliente
 - [x] Permitir importar e exportar dados de clientes em formato estruturado
 - [x] Exibir alertas de documentos vencidos ou próximos do vencimento em relação às datas de ida e volta
+- [x] Permitir vincular anexos de documentos a passageiros ou acompanhantes específicos no cadastro do cliente
+- [x] Adicionar checklist documental adaptado ao destino da viagem
+- [x] Criar painel de alertas documentais na tela inicial
