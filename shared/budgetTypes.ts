@@ -115,6 +115,8 @@ export interface TourProposal {
   airportHotelTransfer?: string;
   /** Horário previsto para saída do transfer do aeroporto. */
   airportHotelTransferTime?: string;
+  /** Contato ou WhatsApp do motorista responsável pelo transfer. */
+  airportHotelTransferDriverContact?: string;
   /** Horário de check-in informado pela hospedagem. */
   hotelCheckInTime?: string;
   /** Horário de check-out informado pela hospedagem. */

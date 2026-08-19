@@ -117,13 +117,15 @@ describe("ItineraryPreview — agenda de dia extenso", () => {
       hotels: [{ id: "hotel-selected", name: "Hotel Lastarria", address: "Calle Lastarria 50", description: "", photoUrl: "" }],
       tours: [],
       itinerary: [],
-      tourProposal: { title: "Proposta de passeios", introMessage: "", paymentDetails: "", includedHotelId: "hotel-selected", airportHotelTransfer: "Transfer privativo", airportHotelTransferTime: "15:30", hotelCheckInTime: "15:00", hotelCheckOutTime: "11:00" },
+      tourProposal: { title: "Proposta de passeios", introMessage: "", paymentDetails: "", includedHotelId: "hotel-selected", airportHotelTransfer: "Transfer privativo", airportHotelTransferTime: "15:30", airportHotelTransferDriverContact: "João • (11) 99999-9999", hotelCheckInTime: "15:00", hotelCheckOutTime: "11:00" },
     } as unknown as BudgetData;
 
     const markup = renderToStaticMarkup(<ItineraryPreview data={data} />);
 
     expect(markup).toContain("Transfer aeroporto → hotel:");
     expect(markup).toContain("Transfer privativo");
+    expect(markup).toContain("Motorista / WhatsApp:");
+    expect(markup).toContain("João • (11) 99999-9999");
     expect(markup).toContain("Check-in 15:00");
     expect(markup).toContain("Check-out 11:00");
   });

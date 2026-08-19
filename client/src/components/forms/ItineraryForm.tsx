@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { CalendarDays, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, FolderPlus, GripVertical, Heart, Link2, Loader2, Plus, Save, Search, Share2, Tag, Trash2, UtensilsCrossed, X } from "lucide-react";
+import { AlertTriangle, CalendarDays, ChevronDown, ChevronUp, Copy, FilePlus2, FolderOpen, FolderPlus, GripVertical, Heart, Link2, Loader2, Plus, Save, Search, Share2, Tag, Trash2, UtensilsCrossed, X } from "lucide-react";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
 import { createEmptyGastronomySearchDraft, createProposalTourFromActivity, favoriteRestaurantToGastronomyOption, filterRestaurantFavorites, sortRestaurantFavorites, type FavoriteRestaurantSort } from "./itineraryFormState";
@@ -16,6 +16,7 @@ import { travelLibraryLocationFromDestination } from "./travelLibraryLocation";
 import { filterSavedTourProposals } from "./tourProposalListState";
 import { validTravelLibraryImageUrl } from "./travelLibraryRestaurantSave";
 import { formatBrazilianCurrencyInput, parseBrazilianCurrencyInput } from "./installmentsCashValue";
+import { getProposalArrivalConflicts } from "./proposalArrivalConflicts";
 
 function CurrencyInput({
   value,
@@ -75,6 +76,7 @@ export function ItineraryForm() {
   const updateProposalStatusMutation = trpc.tourProposals.updateStatus.useMutation();
   const deleteProposalMutation = trpc.tourProposals.delete.useMutation();
   const saveToLibraryMutation = trpc.travelLibrary.create.useMutation();
+  const transferTemplatesQuery = trpc.travelLibrary.list.useQuery();
   const [savedProposalSearch, setSavedProposalSearch] = useState("");
   const savedProposalsQuery = trpc.tourProposals.list.useQuery();
   const filteredSavedProposals = useMemo(
@@ -114,6 +116,14 @@ export function ItineraryForm() {
   const selectedProposalQuery = trpc.tourProposals.get.useQuery(
     { id: selectedProposalId || "00000000-0000-0000-0000-000000000000" },
     { enabled: Boolean(selectedProposalId) },
+  );
+  const transferTemplates = useMemo(
+    () => (transferTemplatesQuery.data || []).filter((item) => item.category === "transfer"),
+    [transferTemplatesQuery.data],
+  );
+  const arrivalConflicts = useMemo(
+    () => getProposalArrivalConflicts(itinerary, arrivalSegment?.date, budget.tourProposal.hotelArrivalTime),
+    [arrivalSegment?.date, budget.tourProposal.hotelArrivalTime, itinerary],
   );
 
   const handleGastronomySearch = async () => {
@@ -158,6 +168,42 @@ export function ItineraryForm() {
       console.error("Save restaurant to library error:", error);
       toast.error(error instanceof Error ? error.message : "Não foi possível salvar este restaurante na Biblioteca de Viagem.");
     }
+  };
+
+  const handleSaveTransferTemplate = async () => {
+    const transferName = budget.tourProposal.airportHotelTransfer?.trim();
+    if (!transferName) {
+      toast.error("Informe o nome ou a descrição do transfer antes de salvar o modelo.");
+      return;
+    }
+    try {
+      const destination = budget.tripInfo.destination.trim();
+      const location = travelLibraryLocationFromDestination(destination);
+      await saveToLibraryMutation.mutateAsync({
+        category: "transfer",
+        folderName: "Transfers",
+        destination: destination || undefined,
+        country: location.country || undefined,
+        city: location.city || undefined,
+        name: transferName,
+        responsibleName: budget.tourProposal.airportHotelTransferDriverContact?.trim() || undefined,
+        whatsapp: budget.tourProposal.airportHotelTransferDriverContact?.trim() || undefined,
+        notes: budget.tourProposal.airportHotelTransferTime ? `Horário sugerido: ${budget.tourProposal.airportHotelTransferTime}` : undefined,
+      });
+      await utils.travelLibrary.list.invalidate();
+      toast.success("Modelo de transfer salvo na Biblioteca de Viagem.");
+    } catch (error) {
+      console.error("Save transfer template error:", error);
+      toast.error(error instanceof Error ? error.message : "Não foi possível salvar este modelo de transfer.");
+    }
+  };
+
+  const handleUseTransferTemplate = (template: NonNullable<typeof transferTemplatesQuery.data>[number]) => {
+    updateTourProposal({
+      airportHotelTransfer: template.name,
+      airportHotelTransferDriverContact: template.whatsapp || template.responsibleName || "",
+    });
+    toast.success("Modelo de transfer aplicado à proposta.");
   };
 
   const handleSaveFavoriteRestaurant = async (restaurant: { id: string; name: string; location: string; address: string; description: string; rating?: number; mapsUrl: string; website?: string; photoUrl?: string }) => {
@@ -585,10 +631,26 @@ export function ItineraryForm() {
 		                  <Label htmlFor="proposal-transfer-time">Horário do transfer</Label>
 		                  <Input id="proposal-transfer-time" type="time" value={budget.tourProposal.airportHotelTransferTime || ""} onChange={(event) => updateTourProposal({ airportHotelTransferTime: event.target.value })} className="mt-1 bg-white" />
 		                </div>
-		                <div className="sm:col-span-2">
-		                  <Label htmlFor="proposal-transfer">Transfer aeroporto → hotel</Label>
-		                  <Input id="proposal-transfer" value={budget.tourProposal.airportHotelTransfer || ""} onChange={(event) => updateTourProposal({ airportHotelTransfer: event.target.value })} placeholder="Ex.: Transfer privativo confirmado com a agência" className="mt-1 bg-white" />
-		                </div>
+			                <div className="sm:col-span-2">
+			                  <Label htmlFor="proposal-transfer">Transfer aeroporto → hotel</Label>
+			                  <Input id="proposal-transfer" value={budget.tourProposal.airportHotelTransfer || ""} onChange={(event) => updateTourProposal({ airportHotelTransfer: event.target.value })} placeholder="Ex.: Transfer privativo confirmado com a agência" className="mt-1 bg-white" />
+			                </div>
+			                <div>
+			                  <Label htmlFor="proposal-transfer-driver">Contato ou WhatsApp do motorista</Label>
+			                  <Input id="proposal-transfer-driver" value={budget.tourProposal.airportHotelTransferDriverContact || ""} onChange={(event) => updateTourProposal({ airportHotelTransferDriverContact: event.target.value })} placeholder="Ex.: João • (11) 99999-9999" className="mt-1 bg-white" />
+			                </div>
+			                <div>
+			                  <Label htmlFor="proposal-transfer-template">Modelos de transfer</Label>
+			                  <div className="mt-1 flex gap-2">
+			                    <Select onValueChange={(value) => { const template = transferTemplates.find((item) => item.id === value); if (template) handleUseTransferTemplate(template); }}>
+			                      <SelectTrigger id="proposal-transfer-template" className="min-w-0 flex-1 bg-white"><SelectValue placeholder="Aplicar modelo" /></SelectTrigger>
+			                      <SelectContent>
+			                        {transferTemplates.length === 0 ? <SelectItem value="no-transfer-template" disabled>Nenhum modelo salvo</SelectItem> : transferTemplates.map((template) => <SelectItem key={template.id} value={template.id}>{template.name}</SelectItem>)}
+			                      </SelectContent>
+			                    </Select>
+			                    <Button type="button" variant="outline" onClick={handleSaveTransferTemplate} disabled={saveToLibraryMutation.isPending} className="shrink-0 bg-white px-2 text-xs"><Save className="mr-1 h-3.5 w-3.5" />Salvar</Button>
+			                  </div>
+			                </div>
 		                <div>
 		                  <Label htmlFor="proposal-hotel-check-in">Check-in do hotel</Label>
 		                  <Input id="proposal-hotel-check-in" type="time" value={budget.tourProposal.hotelCheckInTime || ""} onChange={(event) => updateTourProposal({ hotelCheckInTime: event.target.value })} className="mt-1 bg-white" />
@@ -599,8 +661,11 @@ export function ItineraryForm() {
 		                </div>
 		              </>}
 		            </div>
-	            {selectedProposalHotel && <p className="mt-2 text-[11px] text-slate-600"><span className="font-semibold text-[#1a2e4a]">{selectedProposalHotel.name}</span>{selectedProposalHotel.address ? ` • ${selectedProposalHotel.address}` : ""}</p>}
-	          </div>
+		            {selectedProposalHotel && <p className="mt-2 text-[11px] text-slate-600"><span className="font-semibold text-[#1a2e4a]">{selectedProposalHotel.name}</span>{selectedProposalHotel.address ? ` • ${selectedProposalHotel.address}` : ""}</p>}
+		            {selectedProposalHotel && arrivalConflicts.length > 0 && <div className="mt-2 rounded-md border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-950">
+		              <div className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" /><div><p className="font-bold">Atenção ao horário de chegada</p><p className="mt-0.5 leading-relaxed">A chegada ao hotel está prevista para {budget.tourProposal.hotelArrivalTime}, mas há passeio(s) antes desse horário no dia de chegada.</p><ul className="mt-1 list-disc pl-4">{arrivalConflicts.map((conflict) => <li key={conflict.activityId}>Dia {conflict.dayNumber}: {conflict.activityTitle} às {conflict.activityTime}</li>)}</ul></div></div>
+		            </div>}
+		          </div>
 	          <div className="sm:col-span-2 rounded-md border border-slate-200 bg-white/70 p-2.5">
 	            <p className="text-xs font-bold text-[#1a2e4a]">Pagamento da proposta</p>
 	            <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">Sugestão: selecione a forma e registre abaixo somente as condições que precisam aparecer para o cliente.</p>

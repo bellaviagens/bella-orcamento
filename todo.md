@@ -736,3 +736,6 @@
 - [x] Oferecer encaminhamento guiado ao marcar uma Proposta de passeios como aprovada
 - [x] Permitir incluir o transfer entre aeroporto e hotel na Proposta de passeios
 - [x] Permitir informar check-in e check-out do hotel selecionado na Proposta de passeios
+- [x] Adicionar contato ou WhatsApp do motorista na seção de transfer da Proposta de passeios
+- [x] Exibir alerta visual quando a chegada ao hotel conflitar com passeio do mesmo dia
+- [x] Permitir salvar e reutilizar modelos de transfer em propostas futuras
