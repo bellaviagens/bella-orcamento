@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPassengerDocumentReminder, buildWhatsAppReminderUrl, getConsolidatedPassengerDocumentReports, getDestinationDocumentationChecklist, getPassengerDocumentationChecklist, groupClientAttachments, summarizeClientDocumentAlerts } from "./clientDocumentManagement";
+import { buildPassengerDocumentReminder, buildWhatsAppReminderUrl, getConsolidatedPassengerDocumentReports, getDestinationDocumentationChecklist, getPassengerDocumentationChecklist, getPassengerWhatsapp, groupClientAttachments, parseClientDocumentStorage, serializeClientDocumentStorage, summarizeClientDocumentAlerts } from "./clientDocumentManagement";
 
 describe("client document management helpers", () => {
   it("organizes linked attachments by passenger while retaining legacy documents", () => {
@@ -92,5 +92,18 @@ describe("client document management helpers", () => {
     expect(message).toContain("Olá, Ana");
     expect(message).toContain("Passaporte");
     expect(buildWhatsAppReminderUrl("(11) 99999-9999", message)).toContain("https://wa.me/5511999999999?text=");
+  });
+
+  it("retains legacy attachments and persists a WhatsApp contact per companion", () => {
+    const legacy = parseClientDocumentStorage(JSON.stringify([{ id: "attachment-1", name: "passaporte.pdf", url: "/arquivo", contentType: "application/pdf", size: 10 }]));
+    expect(legacy.attachments).toHaveLength(1);
+    expect(legacy.passengerWhatsapps).toEqual({});
+
+    const restored = parseClientDocumentStorage(serializeClientDocumentStorage({
+      attachments: legacy.attachments,
+      passengerWhatsapps: { "Maria Silva": "(21) 98888-7777" },
+    }));
+    expect(getPassengerWhatsapp(restored.passengerWhatsapps, "maria silva", "(11) 99999-9999")).toBe("(21) 98888-7777");
+    expect(getPassengerWhatsapp(restored.passengerWhatsapps, "João", "(11) 99999-9999")).toBe("(11) 99999-9999");
   });
 });

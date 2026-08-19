@@ -756,3 +756,4 @@
 - [x] Criar relatório consolidado de pendências documentais por passageiro da viagem
 - [x] Permitir editar diretamente validade e status de aprovação de anexos documentais já salvos
 - [x] Adicionar lembrete de pendências documentais por WhatsApp para cada passageiro
+- [x] Permitir cadastrar e selecionar um WhatsApp específico para cada acompanhante nos lembretes documentais

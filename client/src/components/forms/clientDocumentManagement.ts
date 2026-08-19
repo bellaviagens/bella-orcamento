@@ -17,6 +17,11 @@ export type ClientAttachment = {
   approvalStatus?: DocumentApprovalStatus;
 };
 
+export type ClientDocumentStorage = {
+  attachments: ClientAttachment[];
+  passengerWhatsapps: Record<string, string>;
+};
+
 export type DestinationChecklistItem = {
   id: ChecklistDocumentType;
   label: string;
@@ -61,6 +66,40 @@ const APPROVAL_REQUIRED_TYPES: ChecklistDocumentType[] = ["visa", "eta"];
 
 function normalize(value = "") {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+function isClientAttachment(value: unknown): value is ClientAttachment {
+  return Boolean(value && typeof value === "object" && typeof (value as ClientAttachment).id === "string" && typeof (value as ClientAttachment).name === "string" && typeof (value as ClientAttachment).url === "string");
+}
+
+export function parseClientDocumentStorage(value?: string | null): ClientDocumentStorage {
+  try {
+    const parsed = JSON.parse(value || "[]") as unknown;
+    if (Array.isArray(parsed)) return { attachments: parsed.filter(isClientAttachment), passengerWhatsapps: {} };
+    if (parsed && typeof parsed === "object") {
+      const data = parsed as { attachments?: unknown; passengerWhatsapps?: unknown };
+      const attachments = Array.isArray(data.attachments) ? data.attachments.filter(isClientAttachment) : [];
+      const passengerWhatsapps = data.passengerWhatsapps && typeof data.passengerWhatsapps === "object" && !Array.isArray(data.passengerWhatsapps)
+        ? Object.entries(data.passengerWhatsapps).reduce<Record<string, string>>((contacts, [passengerName, whatsapp]) => {
+          if (typeof whatsapp === "string" && whatsapp.trim()) contacts[passengerName] = whatsapp.trim();
+          return contacts;
+        }, {})
+        : {};
+      return { attachments, passengerWhatsapps };
+    }
+  } catch {
+    // Legacy or malformed data remains empty without interrupting the client record.
+  }
+  return { attachments: [], passengerWhatsapps: {} };
+}
+
+export function serializeClientDocumentStorage(storage: ClientDocumentStorage) {
+  return JSON.stringify({ attachments: storage.attachments, passengerWhatsapps: storage.passengerWhatsapps });
+}
+
+export function getPassengerWhatsapp(passengerWhatsapps: Record<string, string>, passengerName: string, fallback?: string | null) {
+  const contact = Object.entries(passengerWhatsapps).find(([savedName]) => normalize(savedName.trim()) === normalize(passengerName.trim()))?.[1];
+  return contact || fallback || "";
 }
 
 function hasDestination(destination: string, destinations: string[]) {

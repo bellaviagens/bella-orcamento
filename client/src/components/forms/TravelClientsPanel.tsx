@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getClientDocumentAlerts } from "./clientDocumentAlerts";
-import { buildPassengerDocumentReminder, buildWhatsAppReminderUrl, getConsolidatedPassengerDocumentReports, groupClientAttachments, type ClientAttachment, type ClientAttachmentDocumentType, type DocumentApprovalStatus } from "./clientDocumentManagement";
+import { buildPassengerDocumentReminder, buildWhatsAppReminderUrl, getConsolidatedPassengerDocumentReports, getPassengerWhatsapp, groupClientAttachments, parseClientDocumentStorage, serializeClientDocumentStorage, type ClientAttachment, type ClientAttachmentDocumentType, type DocumentApprovalStatus } from "./clientDocumentManagement";
 
 type TravelClientsPanelProps = {
   onUseClient: (name: string) => void;
@@ -64,17 +64,6 @@ function toDraft(client: Record<string, unknown>): ClientDraft {
   };
 }
 
-function parseAttachments(value?: string | null): ClientAttachment[] {
-  try {
-    const parsed = JSON.parse(value || "[]");
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is ClientAttachment => Boolean(item && typeof item.id === "string" && typeof item.name === "string" && typeof item.url === "string"))
-      : [];
-  } catch {
-    return [];
-  }
-}
-
 function readAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -106,6 +95,7 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
   const [editingAttachmentId, setEditingAttachmentId] = useState<string | null>(null);
   const [editingAttachmentExpiresAt, setEditingAttachmentExpiresAt] = useState("");
   const [editingAttachmentApprovalStatus, setEditingAttachmentApprovalStatus] = useState<DocumentApprovalStatus>("pending");
+  const [passengerWhatsappDrafts, setPassengerWhatsappDrafts] = useState<Record<string, string>>({});
   const importInputRef = useRef<HTMLInputElement>(null);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const clients = clientsQuery.data || [];
@@ -116,7 +106,9 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
     ...(historyQuery.data?.drafts || []).map((savedDraft) => ({ id: savedDraft.id, kind: "draft" as const, label: savedDraft.label, updatedAt: savedDraft.updatedAt })),
   ].sort((first, second) => new Date(second.updatedAt).getTime() - new Date(first.updatedAt).getTime()), [historyQuery.data]);
   const selectedDraft = useMemo(() => selectedClient ? toDraft(selectedClient as unknown as Record<string, unknown>) : EMPTY_CLIENT, [selectedClient]);
-  const attachments = useMemo(() => parseAttachments(selectedClient?.documentsJson), [selectedClient?.documentsJson]);
+  const documentStorage = useMemo(() => parseClientDocumentStorage(selectedClient?.documentsJson), [selectedClient?.documentsJson]);
+  const attachments = documentStorage.attachments;
+  const passengerWhatsapps = documentStorage.passengerWhatsapps;
   const groupedAttachments = useMemo(() => groupClientAttachments(attachments, selectedClient?.name), [attachments, selectedClient?.name]);
   const alerts = useMemo(() => getClientDocumentAlerts(selectedClient || {}, tripPeriod), [selectedClient, tripPeriod]);
   const passengerOptions = useMemo(() => Array.from(new Set([
@@ -176,13 +168,13 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
     }
   };
 
-  const updateAttachments = async (nextAttachments: ClientAttachment[]) => {
+  const updateAttachments = async (nextAttachments: ClientAttachment[], nextPassengerWhatsapps = passengerWhatsapps) => {
     if (!selectedClient) return;
     try {
       await updateMutation.mutateAsync({
         id: selectedClient.id,
         ...toPayload(selectedDraft),
-        documentsJson: JSON.stringify(nextAttachments),
+        documentsJson: serializeClientDocumentStorage({ attachments: nextAttachments, passengerWhatsapps: nextPassengerWhatsapps }),
       });
       await refreshClients();
       toast.success("Documentos do cliente atualizados.");
@@ -207,9 +199,21 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
     setEditingAttachmentId(null);
   };
 
-  const openWhatsappReminder = (report: (typeof passengerReports)[number]) => {
-    if (!selectedClient?.whatsapp) {
-      toast.error("Cadastre o WhatsApp do cliente para enviar o lembrete.");
+  const savePassengerWhatsapp = async (passengerName: string, value: string) => {
+    const nextPassengerWhatsapps = { ...passengerWhatsapps };
+    if (value.trim()) nextPassengerWhatsapps[passengerName] = value.trim();
+    else delete nextPassengerWhatsapps[passengerName];
+    await updateAttachments(attachments, nextPassengerWhatsapps);
+    setPassengerWhatsappDrafts((current) => {
+      const next = { ...current };
+      delete next[passengerName];
+      return next;
+    });
+  };
+
+  const openWhatsappReminder = (report: (typeof passengerReports)[number], whatsapp: string) => {
+    if (!whatsapp.trim()) {
+      toast.error(`Informe o WhatsApp de ${report.passengerName} para enviar o lembrete.`);
       return;
     }
     const message = buildPassengerDocumentReminder({
@@ -217,7 +221,7 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
       destination: tripDestination,
       items: report.items,
     });
-    window.open(buildWhatsAppReminderUrl(selectedClient.whatsapp, message), "_blank", "noopener,noreferrer");
+    window.open(buildWhatsAppReminderUrl(whatsapp, message), "_blank", "noopener,noreferrer");
   };
 
   const uploadAttachment = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -427,8 +431,16 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
 
             {passengerReports.some((report) => report.pendingCount > 0 || report.attentionCount > 0) && <div className="mt-3 rounded-md border border-green-200 bg-green-50/60 p-2.5">
               <div className="flex flex-wrap items-center justify-between gap-2"><div><h5 className="text-xs font-bold text-[#1a2e4a]">Lembretes de pendências</h5><p className="mt-0.5 text-[11px] text-slate-600">O botão abre o WhatsApp com uma mensagem preparada para a pendência de cada passageiro.</p></div><MessageCircle className="h-4 w-4 text-green-700" /></div>
-              <div className="mt-2 flex flex-wrap gap-2">{passengerReports.filter((report) => report.pendingCount > 0 || report.attentionCount > 0).map((report) => <Button key={`whatsapp-${report.passengerName}`} type="button" variant="outline" onClick={() => openWhatsappReminder(report)} disabled={!selectedClient.whatsapp} className="h-8 border-green-200 bg-white px-2 text-[11px] text-green-800 hover:bg-green-100"><MessageCircle className="mr-1 h-3.5 w-3.5" />Lembrar {report.passengerName}</Button>)}</div>
-              {!selectedClient.whatsapp && <p className="mt-2 text-[11px] text-amber-800">Cadastre o WhatsApp do cliente para habilitar os lembretes.</p>}
+              <div className="mt-2 space-y-2">{passengerReports.filter((report) => report.pendingCount > 0 || report.attentionCount > 0).map((report) => {
+                const storedWhatsapp = getPassengerWhatsapp(passengerWhatsapps, report.passengerName, report.passengerName === selectedClient.name ? selectedClient.whatsapp : "");
+                const reminderWhatsapp = passengerWhatsappDrafts[report.passengerName] ?? storedWhatsapp;
+                return <div key={`whatsapp-${report.passengerName}`} className="flex flex-wrap items-end gap-2 rounded border border-green-100 bg-white p-2">
+                  <div className="min-w-48 flex-1"><Label className="text-[10px]">WhatsApp de {report.passengerName}</Label><Input value={reminderWhatsapp} onChange={(event) => setPassengerWhatsappDrafts((current) => ({ ...current, [report.passengerName]: event.target.value }))} placeholder="(11) 99999-9999" className="mt-1 h-8 bg-white text-xs" /></div>
+                  <Button type="button" variant="outline" onClick={() => void savePassengerWhatsapp(report.passengerName, reminderWhatsapp)} disabled={updateMutation.isPending} className="h-8 bg-white px-2 text-[11px]"><CheckCircle2 className="mr-1 h-3.5 w-3.5" />Salvar contato</Button>
+                  <Button type="button" variant="outline" onClick={() => openWhatsappReminder(report, reminderWhatsapp)} disabled={!reminderWhatsapp.trim()} className="h-8 border-green-200 bg-white px-2 text-[11px] text-green-800 hover:bg-green-100"><MessageCircle className="mr-1 h-3.5 w-3.5" />Lembrar {report.passengerName}</Button>
+                </div>;
+              })}</div>
+              <p className="mt-2 text-[11px] text-slate-600">Para acompanhantes, informe e salve o WhatsApp próprio antes de enviar. O número do passageiro principal permanece disponível como contato principal.</p>
             </div>}
 
             <div className="mt-3 space-y-2">
