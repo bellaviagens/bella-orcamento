@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getClientDocumentAlerts } from "./clientDocumentAlerts";
-import { getConsolidatedPassengerDocumentReports, groupClientAttachments, type ClientAttachment, type ClientAttachmentDocumentType, type DocumentApprovalStatus } from "./clientDocumentManagement";
+import { buildPassengerDocumentReminder, buildWhatsAppReminderUrl, getConsolidatedPassengerDocumentReports, groupClientAttachments, type ClientAttachment, type ClientAttachmentDocumentType, type DocumentApprovalStatus } from "./clientDocumentManagement";
 
 type TravelClientsPanelProps = {
   onUseClient: (name: string) => void;
@@ -103,6 +103,9 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
   const [attachmentDocumentType, setAttachmentDocumentType] = useState<ClientAttachmentDocumentType>("other");
   const [attachmentExpiresAt, setAttachmentExpiresAt] = useState("");
   const [attachmentApprovalStatus, setAttachmentApprovalStatus] = useState<DocumentApprovalStatus>("pending");
+  const [editingAttachmentId, setEditingAttachmentId] = useState<string | null>(null);
+  const [editingAttachmentExpiresAt, setEditingAttachmentExpiresAt] = useState("");
+  const [editingAttachmentApprovalStatus, setEditingAttachmentApprovalStatus] = useState<DocumentApprovalStatus>("pending");
   const importInputRef = useRef<HTMLInputElement>(null);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const clients = clientsQuery.data || [];
@@ -186,6 +189,35 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível atualizar os documentos.");
     }
+  };
+
+  const startAttachmentEditing = (attachment: ClientAttachment) => {
+    setEditingAttachmentId(attachment.id);
+    setEditingAttachmentExpiresAt(attachment.expiresAt || "");
+    setEditingAttachmentApprovalStatus(attachment.approvalStatus || "pending");
+  };
+
+  const saveAttachmentMetadata = async (attachment: ClientAttachment) => {
+    const requiresApproval = attachment.documentType === "visa" || attachment.documentType === "eta";
+    await updateAttachments(attachments.map((item) => item.id === attachment.id ? {
+      ...item,
+      expiresAt: editingAttachmentExpiresAt || undefined,
+      approvalStatus: requiresApproval ? editingAttachmentApprovalStatus : undefined,
+    } : item));
+    setEditingAttachmentId(null);
+  };
+
+  const openWhatsappReminder = (report: (typeof passengerReports)[number]) => {
+    if (!selectedClient?.whatsapp) {
+      toast.error("Cadastre o WhatsApp do cliente para enviar o lembrete.");
+      return;
+    }
+    const message = buildPassengerDocumentReminder({
+      passengerName: report.passengerName,
+      destination: tripDestination,
+      items: report.items,
+    });
+    window.open(buildWhatsAppReminderUrl(selectedClient.whatsapp, message), "_blank", "noopener,noreferrer");
   };
 
   const uploadAttachment = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -393,12 +425,28 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
 
             {alerts.length > 0 && <div className="mt-3 space-y-2">{alerts.map((alert) => <div key={`${alert.document}-${alert.expiresAt}`} className="flex gap-2 rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" /><p>{alert.message}</p></div>)}</div>}
 
+            {passengerReports.some((report) => report.pendingCount > 0 || report.attentionCount > 0) && <div className="mt-3 rounded-md border border-green-200 bg-green-50/60 p-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2"><div><h5 className="text-xs font-bold text-[#1a2e4a]">Lembretes de pendências</h5><p className="mt-0.5 text-[11px] text-slate-600">O botão abre o WhatsApp com uma mensagem preparada para a pendência de cada passageiro.</p></div><MessageCircle className="h-4 w-4 text-green-700" /></div>
+              <div className="mt-2 flex flex-wrap gap-2">{passengerReports.filter((report) => report.pendingCount > 0 || report.attentionCount > 0).map((report) => <Button key={`whatsapp-${report.passengerName}`} type="button" variant="outline" onClick={() => openWhatsappReminder(report)} disabled={!selectedClient.whatsapp} className="h-8 border-green-200 bg-white px-2 text-[11px] text-green-800 hover:bg-green-100"><MessageCircle className="mr-1 h-3.5 w-3.5" />Lembrar {report.passengerName}</Button>)}</div>
+              {!selectedClient.whatsapp && <p className="mt-2 text-[11px] text-amber-800">Cadastre o WhatsApp do cliente para habilitar os lembretes.</p>}
+            </div>}
+
             <div className="mt-3 space-y-2">
               {groupedAttachments.length ? groupedAttachments.map((group) => <div key={group.passengerName} className="rounded-md border border-slate-200 bg-slate-50 p-2">
                 <p className="mb-1.5 text-xs font-bold text-[#1a2e4a]">{group.passengerName}</p>
                 <div className="space-y-1.5">{group.attachments.map((attachment) => <div key={attachment.id} className="flex items-center justify-between gap-2 rounded border border-slate-200 bg-white px-2 py-1.5"><div className="min-w-0"><a href={attachment.url} target="_blank" rel="noreferrer" className="block truncate text-xs font-medium text-[#1a2e4a] underline">{attachment.name}</a>{(attachment.documentType === "visa" || attachment.documentType === "eta") && <p className="mt-0.5 text-[10px] text-slate-500">{attachment.documentType === "eta" ? "Autorização eletrônica" : "Visto"} • {attachment.approvalStatus === "approved" ? "Aprovado" : attachment.approvalStatus === "denied" ? "Não aprovado" : attachment.approvalStatus === "not-required" ? "Não aplicável" : "Aguardando aprovação"}{attachment.expiresAt ? ` • validade ${formatDate(attachment.expiresAt)}` : ""}</p>}</div><Button type="button" variant="ghost" onClick={() => void updateAttachments(attachments.filter((item) => item.id !== attachment.id))} className="h-7 px-1.5 text-red-600 hover:bg-red-50 hover:text-red-700" aria-label={`Excluir ${attachment.name}`}><Trash2 className="h-3.5 w-3.5" /></Button></div>)}</div>
               </div>) : <p className="rounded border border-dashed border-slate-200 p-2 text-xs text-slate-500">Anexe passaporte, RG, visto ou outros comprovantes em PDF ou imagem de até 8 MB.</p>}
             </div>
+
+            {attachments.length > 0 && <div className="mt-3 rounded-md border border-slate-200 bg-white p-2.5">
+              <div className="flex flex-wrap items-baseline justify-between gap-2"><h5 className="text-xs font-bold text-[#1a2e4a]">Editar dados dos anexos</h5><span className="text-[11px] text-slate-500">Atualize validade e aprovação sem enviar o arquivo novamente</span></div>
+              <div className="mt-2 space-y-2">{attachments.map((attachment) => {
+                const requiresApproval = attachment.documentType === "visa" || attachment.documentType === "eta";
+                const isEditingAttachment = editingAttachmentId === attachment.id;
+                const statusLabel = attachment.approvalStatus === "approved" ? "Aprovado" : attachment.approvalStatus === "denied" ? "Não aprovado" : attachment.approvalStatus === "not-required" ? "Não aplicável" : "Aguardando aprovação";
+                return <div key={`metadata-${attachment.id}`} className="rounded border border-slate-200 bg-slate-50 p-2"><div className="flex flex-wrap items-center justify-between gap-2"><div className="min-w-0"><p className="truncate text-xs font-semibold text-[#1a2e4a]">{attachment.name}</p><p className="mt-0.5 text-[11px] text-slate-500">{attachment.expiresAt ? `Validade: ${formatDate(attachment.expiresAt)}` : "Validade não informada"}{requiresApproval ? ` • ${statusLabel}` : ""}</p></div><Button type="button" variant="outline" onClick={() => startAttachmentEditing(attachment)} className="h-7 bg-white px-2 text-[11px]"><Pencil className="mr-1 h-3 w-3" />Editar</Button></div>{isEditingAttachment && <div className="mt-2 flex flex-wrap items-end gap-2 rounded border border-blue-100 bg-blue-50/60 p-2"><div><Label className="text-[10px]">Validade</Label><Input type="date" value={editingAttachmentExpiresAt} onChange={(event) => setEditingAttachmentExpiresAt(event.target.value)} className="mt-1 h-8 w-36 bg-white text-xs" /></div>{requiresApproval && <div><Label className="text-[10px]">Status de aprovação</Label><select value={editingAttachmentApprovalStatus} onChange={(event) => setEditingAttachmentApprovalStatus(event.target.value as DocumentApprovalStatus)} className="mt-1 h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700"><option value="pending">Aguardando aprovação</option><option value="approved">Aprovado</option><option value="denied">Não aprovado</option><option value="not-required">Não aplicável</option></select></div>}<Button type="button" onClick={() => void saveAttachmentMetadata(attachment)} disabled={updateMutation.isPending} className="h-8 bg-[#1a2e4a] px-2 text-xs text-white hover:bg-[#233f67]"><CheckCircle2 className="mr-1 h-3.5 w-3.5" />Salvar</Button><Button type="button" variant="outline" onClick={() => setEditingAttachmentId(null)} className="h-8 bg-white px-2 text-xs">Cancelar</Button></div>}</div>;
+              })}</div>
+            </div>}
           </div>
 
           <div className="mt-4">

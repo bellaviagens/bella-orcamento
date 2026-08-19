@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getConsolidatedPassengerDocumentReports, getDestinationDocumentationChecklist, getPassengerDocumentationChecklist, groupClientAttachments, summarizeClientDocumentAlerts } from "./clientDocumentManagement";
+import { buildPassengerDocumentReminder, buildWhatsAppReminderUrl, getConsolidatedPassengerDocumentReports, getDestinationDocumentationChecklist, getPassengerDocumentationChecklist, groupClientAttachments, summarizeClientDocumentAlerts } from "./clientDocumentManagement";
 
 describe("client document management helpers", () => {
   it("organizes linked attachments by passenger while retaining legacy documents", () => {
@@ -77,5 +77,20 @@ describe("client document management helpers", () => {
     expect(reports[0].items.map((item) => [item.id, item.status])).toEqual([["passport", "near-expiry"], ["visa", "awaiting-approval"]]);
     expect(reports[1]).toMatchObject({ passengerName: "Bruno", pendingCount: 1, attentionCount: 0 });
     expect(reports[1].items.map((item) => [item.id, item.status])).toEqual([["passport", "missing"], ["visa", "ready"]]);
+  });
+
+  it("builds a WhatsApp reminder with the passenger's outstanding documents", () => {
+    const reports = getConsolidatedPassengerDocumentReports({
+      destination: "Orlando, Estados Unidos",
+      passengerNames: ["Ana"],
+      primaryPassengerName: "Ana",
+      attachments: [],
+      now: new Date("2026-08-19T12:00:00"),
+    });
+
+    const message = buildPassengerDocumentReminder({ passengerName: "Ana", destination: "Orlando, Estados Unidos", items: reports[0].items });
+    expect(message).toContain("Olá, Ana");
+    expect(message).toContain("Passaporte");
+    expect(buildWhatsAppReminderUrl("(11) 99999-9999", message)).toContain("https://wa.me/5511999999999?text=");
   });
 });

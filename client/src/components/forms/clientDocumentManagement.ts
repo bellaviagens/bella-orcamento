@@ -295,6 +295,35 @@ export function getConsolidatedPassengerDocumentReports({
   }));
 }
 
+export function buildPassengerDocumentReminder({
+  passengerName,
+  destination,
+  items,
+}: {
+  passengerName: string;
+  destination?: string;
+  items: PassengerDocumentReportItem[];
+}) {
+  const outstandingItems = items.filter((item) => item.status !== "ready");
+  const destinationLabel = destination?.trim() || "a viagem";
+  if (!outstandingItems.length) {
+    return `Olá, ${passengerName}! Sua documentação para ${destinationLabel} está regular. Qualquer dúvida, estamos à disposição.`;
+  }
+
+  const lines = outstandingItems.map((item) => `• ${item.label}: ${item.message}`);
+  return [
+    `Olá, ${passengerName}! Identificamos pendências ou pontos de atenção na sua documentação para ${destinationLabel}:`,
+    ...lines,
+    "Por favor, envie ou atualize os documentos assim que possível. Em caso de dúvida, conte conosco.",
+  ].join("\n");
+}
+
+export function buildWhatsAppReminderUrl(whatsapp: string, message: string) {
+  const digits = whatsapp.replace(/\D/g, "");
+  const phone = digits.startsWith("55") ? digits : `55${digits}`;
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+}
+
 export function groupClientAttachments(attachments: ClientAttachment[], fallbackPassengerName?: string): GroupedClientAttachments[] {
   const groups = new Map<string, ClientAttachment[]>();
   attachments.forEach((attachment) => {
