@@ -722,3 +722,6 @@
 - [x] Substituir a janela de rascunhos por uma tela ampla no padrão da Biblioteca
 - [x] Manter busca, status, abertura, edição e exclusão na nova tela de rascunhos
 - [x] Manter o acesso à gestão de rascunhos pelo botão superior e pelo menu lateral
+- [x] Adicionar data de retorno persistente aos rascunhos pendentes
+- [x] Criar aba Todos com busca única para orçamentos, propostas e roteiros
+- [x] Exibir contadores de pendentes, enviadas e aprovadas na gestão de rascunhos

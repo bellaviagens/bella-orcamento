@@ -141,6 +141,7 @@ export async function listBudgetDrafts(ownerOpenId: string, search = "") {
     id: savedBudgetDrafts.id,
     label: savedBudgetDrafts.label,
     status: savedBudgetDrafts.status,
+    followUpAt: savedBudgetDrafts.followUpAt,
     snapshot: savedBudgetDrafts.snapshot,
     updatedAt: savedBudgetDrafts.updatedAt,
   }).from(savedBudgetDrafts)
@@ -153,6 +154,7 @@ export async function listBudgetDrafts(ownerOpenId: string, search = "") {
       id: draft.id,
       label: draft.label,
       status: draft.status,
+      followUpAt: draft.followUpAt,
       updatedAt: draft.updatedAt,
       ...getBudgetDraftMetadata(draft.snapshot),
     }))
@@ -186,6 +188,16 @@ export async function updateBudgetDraftStatus(ownerOpenId: string, id: string, s
 
   const result = await db.update(savedBudgetDrafts)
     .set({ status, updatedAt: new Date() })
+    .where(and(eq(savedBudgetDrafts.id, id), eq(savedBudgetDrafts.ownerOpenId, ownerOpenId)));
+  return (result[0]?.affectedRows ?? 0) > 0;
+}
+
+export async function updateBudgetDraftFollowUp(ownerOpenId: string, id: string, followUpAt: Date | null) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para atualizar a data de retorno.");
+
+  const result = await db.update(savedBudgetDrafts)
+    .set({ followUpAt, updatedAt: new Date() })
     .where(and(eq(savedBudgetDrafts.id, id), eq(savedBudgetDrafts.ownerOpenId, ownerOpenId)));
   return (result[0]?.affectedRows ?? 0) > 0;
 }
@@ -235,6 +247,7 @@ export async function listTourProposals(ownerOpenId: string, search = "") {
     clientName: savedTourProposals.clientName,
     proposalTitle: savedTourProposals.proposalTitle,
     status: savedTourProposals.status,
+    followUpAt: savedTourProposals.followUpAt,
     snapshot: savedTourProposals.snapshot,
     updatedAt: savedTourProposals.updatedAt,
   }).from(savedTourProposals)
@@ -296,6 +309,16 @@ export async function updateTourProposalStatus(ownerOpenId: string, id: string, 
     .set({ status, updatedAt: new Date() })
     .where(and(eq(savedTourProposals.id, id), eq(savedTourProposals.ownerOpenId, ownerOpenId)));
   return result[0]?.affectedRows ?? 0;
+}
+
+export async function updateTourProposalFollowUp(ownerOpenId: string, id: string, followUpAt: Date | null) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para atualizar a data de retorno.");
+
+  const result = await db.update(savedTourProposals)
+    .set({ followUpAt, updatedAt: new Date() })
+    .where(and(eq(savedTourProposals.id, id), eq(savedTourProposals.ownerOpenId, ownerOpenId)));
+  return (result[0]?.affectedRows ?? 0) > 0;
 }
 
 export async function deleteTourProposal(ownerOpenId: string, id: string) {

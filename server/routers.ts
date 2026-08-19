@@ -4,7 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { buildImportDocumentContent } from "./importDocument";
-import { createSharedFavoriteList, createSharedItinerary, createTravelClient, createTravelLibraryItem, deleteBudgetDraft, deleteFavoriteRestaurant, deleteTourProposal, deleteTravelClient, deleteTravelLibraryItem, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, getTravelClientHistory, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, listTravelClients, listTravelLibraryItems, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, setTravelLibraryItemFavorite, updateBudgetDraftStatus, updateFavoriteRestaurantDetails, updateFavoriteRestaurantTags, updateTourProposalStatus, updateTravelLibraryItem } from "./db";
+import { createSharedFavoriteList, createSharedItinerary, createTravelClient, createTravelLibraryItem, deleteBudgetDraft, deleteFavoriteRestaurant, deleteTourProposal, deleteTravelClient, deleteTravelLibraryItem, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, getTravelClientHistory, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, listTravelClients, listTravelLibraryItems, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, setTravelLibraryItemFavorite, updateBudgetDraftFollowUp, updateBudgetDraftStatus, updateFavoriteRestaurantDetails, updateFavoriteRestaurantTags, updateTourProposalFollowUp, updateTourProposalStatus, updateTravelLibraryItem } from "./db";
 import { storagePut } from "./storage";
 import { fetchPlacePhoto, makeRequest, type PlacesSearchResult } from "./_core/map";
 import { TRPCError } from "@trpc/server";
@@ -476,6 +476,13 @@ export const appRouter = router({
         if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Proposta não encontrada." });
         return { success: true };
       }),
+    updateFollowUp: protectedProcedure
+      .input(z.object({ id: z.string().uuid(), followUpAt: z.date().nullable() }))
+      .mutation(async ({ ctx, input }) => {
+        const updated = await updateTourProposalFollowUp(ctx.user.openId, input.id, input.followUpAt);
+        if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Proposta não encontrada." });
+        return { success: true };
+      }),
     delete: protectedProcedure
       .input(z.object({ id: z.string().uuid() }))
       .mutation(async ({ ctx, input }) => {
@@ -521,6 +528,13 @@ export const appRouter = router({
       .input(z.object({ id: z.string().uuid(), status: z.enum(["pending", "sent", "approved"]) }))
       .mutation(async ({ ctx, input }) => {
         const updated = await updateBudgetDraftStatus(ctx.user.openId, input.id, input.status);
+        if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Rascunho não encontrado." });
+        return { success: true };
+      }),
+    updateFollowUp: protectedProcedure
+      .input(z.object({ id: z.string().uuid(), followUpAt: z.date().nullable() }))
+      .mutation(async ({ ctx, input }) => {
+        const updated = await updateBudgetDraftFollowUp(ctx.user.openId, input.id, input.followUpAt);
         if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Rascunho não encontrado." });
         return { success: true };
       }),
