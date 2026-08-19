@@ -512,6 +512,7 @@ export function addFinalItineraryEventToBudget(budget: BudgetData, event: Partia
   const newEvent: FinalItineraryEvent = {
     id: nanoid(),
     day: event.day || nextFinalItineraryDay(currentEvents),
+    proposalDayDate: event.proposalDayDate || "",
     kind: event.kind || "custom",
     title: event.title || "Novo compromisso",
     time: event.time || "",
@@ -611,6 +612,7 @@ export function addTourToFinalItineraryInBudget(budget: BudgetData, tourId: stri
   ].filter(Boolean).join("\n\n");
   return addFinalItineraryEventToBudget(budget, {
     day: itineraryDay?.day || nextFinalItineraryDay(budget.finalItinerary.events),
+    proposalDayDate: itineraryDay?.date || "",
     kind: "tour",
     title: tour.name,
     time: sourceActivity?.time || "",

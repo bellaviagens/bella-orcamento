@@ -103,6 +103,23 @@ describe("FinalItineraryPreview — capa institucional", () => {
     expect(markup).toContain("break-inside:avoid");
   });
 
+  it("exibe a data e o dia da semana importados da Proposta no cabeçalho diário", () => {
+    const data = {
+      tripInfo: { destination: "Santiago", period: "30/08/2026 a 05/09/2026", passengers: "2 viajantes" },
+      finalItinerary: {
+        title: "Roteiro Santiago",
+        introMessage: "",
+        passengers: [],
+        usefulLinks: [],
+        events: [{ id: "tour-date", day: 1, proposalDayDate: "2026-08-30", time: "10:00", kind: "tour", title: "Passeio", description: "", linkUrl: "" }],
+      },
+    } as unknown as BudgetData;
+
+    const markup = renderToStaticMarkup(<FinalItineraryPreview data={data} />);
+
+    expect(markup).toContain("Dia 1 • domingo, 30/08");
+  });
+
   it("usa o visual personalizado da atividade no resumo cronológico", () => {
     const data = {
       tripInfo: { destination: "Santiago", period: "10/09/2026 a 17/09/2026", passengers: "2 viajantes" },

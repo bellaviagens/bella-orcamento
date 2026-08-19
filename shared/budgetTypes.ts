@@ -182,6 +182,8 @@ export interface FinalItineraryWelcomeMessageTemplate {
 export interface FinalItineraryEvent {
   id: string;
   day: number;
+  /** Data planejada do dia importada da Proposta de Passeios. */
+  proposalDayDate?: string;
   kind: FinalItineraryEventKind;
   title: string;
   time: string;

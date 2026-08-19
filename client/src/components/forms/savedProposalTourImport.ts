@@ -32,6 +32,7 @@ export function savedProposalTourEvents(
     return [{
       id: crypto.randomUUID(),
       day: itineraryMatch?.day.day || fallbackDay,
+      proposalDayDate: itineraryMatch?.day.date || "",
       kind: "tour" as const,
       title: tour.name,
       time: sourceActivity?.time || "",

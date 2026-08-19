@@ -695,3 +695,4 @@
 - [x] Permitir recolher novamente a lista de propostas/clientes depois de aberta
 - [x] Manter o filtro Transfer na mesma linha dos demais filtros da Biblioteca
 - [x] Padronizar campos monetários editáveis para aceitar valores inteiros e exibir reais com duas casas decimais
+- [x] Exibir data e dia da semana da Proposta no cabeçalho de cada dia do Roteiro Final

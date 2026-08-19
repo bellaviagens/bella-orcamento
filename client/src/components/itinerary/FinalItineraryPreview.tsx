@@ -2,6 +2,7 @@ import type { BudgetData, FinalItineraryAttachment, FinalItineraryEvent, FinalIt
 import { useMemo } from "react";
 import { AlertTriangle, CalendarDays, CarFront, Cloud, CloudLightning, CloudRain, CloudSun, Clock3, ExternalLink, FileText, Hotel, Images, Loader2, MapPin, Phone, Plane, ShieldAlert, Sparkles, Sun, ThermometerSun, UserRound } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { formatFinalItineraryDayDate, getFinalItineraryDayDate } from "./finalItineraryDayDate";
 
 const EVENT_ICONS: Record<FinalItineraryEventKind, typeof CalendarDays> = {
   arrival: MapPin,
@@ -109,7 +110,7 @@ function getPeriodRange(period: string | undefined) {
 }
 
 function getEventRange(events: FinalItineraryEvent[]) {
-  const dates = events.flatMap((event) => [event.flightDate, event.hotelCheckIn, event.hotelCheckOut]).filter((value): value is string => Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value))).sort();
+  const dates = events.flatMap((event) => [event.proposalDayDate, event.flightDate, event.hotelCheckIn, event.hotelCheckOut]).filter((value): value is string => Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value))).sort();
   return dates.length >= 2 ? { startDate: dates[0], endDate: dates[dates.length - 1] } : undefined;
 }
 
@@ -144,7 +145,7 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
   const coverMode = finalItinerary.coverMode || "detailed";
   const dailySummary = Array.from(eventsByDay.entries()).map(([day, dayEvents]) => ({
     day,
-    date: dayEvents.map((event) => event.flightDate || event.hotelCheckIn || event.hotelCheckOut).find(Boolean),
+    date: getFinalItineraryDayDate(dayEvents),
     activities: dayEvents.map((event) => ({
       id: event.id,
       kind: event.kind,
@@ -188,9 +189,9 @@ export function FinalItineraryPreview({ data }: { data: BudgetData }) {
       </header>
 
       {events.length === 0 ? <div className="py-12 text-center text-sm text-slate-500">Inclua chegada, transfers, hospedagem, voos e passeios na aba <strong>Roteiro Final</strong> para gerar o documento pós-aprovação.</div> : <div className="mt-3"><div className="mb-4 flex items-center gap-2"><Clock3 className="h-5 w-5 text-[#1a2e4a]" /><h3 className="text-sm font-bold uppercase tracking-[0.16em] text-[#1a2e4a]">Linha do tempo diária</h3></div><div className="space-y-5">{Array.from(eventsByDay.entries()).map(([day, dayEvents]) => {
-        const dayDate = dayEvents.map((event) => event.flightDate || event.hotelCheckIn || event.hotelCheckOut).find(Boolean);
+        const dayDate = getFinalItineraryDayDate(dayEvents);
         return <section key={day} data-pdf-keep-together="true" style={{ breakInside: "avoid", pageBreakInside: "avoid" }}>
-          <div className="mb-3 flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day}</span><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-600">Dia {day}</p>{dayDate && <p className="mt-0.5 text-[11px] font-medium text-slate-500">{formatDate(dayDate)}</p>}</div><div className="h-px flex-1 bg-amber-200" /></div>
+          <div className="mb-3 flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1a2e4a] text-xs font-bold text-white">{day}</span><div><p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-600">Dia {day}{dayDate ? ` • ${formatFinalItineraryDayDate(dayDate)}` : ""}</p></div><div className="h-px flex-1 bg-amber-200" /></div>
           <div className="relative ml-4 space-y-3 border-l-2 border-[#1a2e4a]/15 pb-1 pl-5">{dayEvents.map((event) => {
         const Icon = EVENT_ICONS[event.kind];
         const isFlight = event.kind === "flight" || event.kind === "return";

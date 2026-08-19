@@ -14,6 +14,7 @@ import { boardingPassAttachmentUpdates, boardingPassUpdates } from "./finalItine
 import { hotelVoucherUpdates } from "./finalItineraryHotelVoucher";
 import { finalItineraryEventToLibraryInput } from "./finalItineraryLibraryItem";
 import { savedProposalTourEvents } from "./savedProposalTourImport";
+import { formatFinalItineraryDayDate, getFinalItineraryDayDate } from "../itinerary/finalItineraryDayDate";
 import QRCode from "qrcode";
 
 const EVENT_LABELS: Record<FinalItineraryEventKind, string> = {
@@ -553,10 +554,12 @@ export function FinalItineraryForm() {
         const eventSectionId = `event-${event.id}`;
         const isDayCollapsed = collapsedSections.has(daySectionId);
         const isEventCollapsed = collapsedSections.has(eventSectionId);
+        const eventsForDay = events.filter((currentEvent) => currentEvent.day === event.day);
+        const dayDateLabel = formatFinalItineraryDayDate(getFinalItineraryDayDate(eventsForDay));
 
         return (
           <div key={event.id} className="space-y-2">
-            {isFirstEventOfDay && <section className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#1a2e4a]/15 bg-blue-50/60 px-3 py-2"><div className="flex items-center gap-2"><span className="rounded-full bg-[#1a2e4a] px-2 py-1 text-xs font-bold text-white">Dia {event.day}</span><span className="text-xs font-bold text-[#1a2e4a]">Compromissos do dia</span></div><Button type="button" variant="ghost" size="sm" onClick={() => toggleSection(daySectionId)} aria-expanded={!isDayCollapsed} className="h-11 min-w-28 px-3 text-xs text-slate-500 hover:bg-white hover:text-[#1a2e4a] sm:h-8 sm:min-w-0 sm:px-2"><ChevronDown className={`mr-1 h-4 w-4 transition-transform ${isDayCollapsed ? "" : "rotate-180"}`} />{isDayCollapsed ? "Abrir dia" : "Recolher dia"}</Button></section>}
+            {isFirstEventOfDay && <section className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#1a2e4a]/15 bg-blue-50/60 px-3 py-2"><div className="flex items-center gap-2"><span className="rounded-full bg-[#1a2e4a] px-2 py-1 text-xs font-bold text-white">Dia {event.day}</span><span className="text-xs font-bold text-[#1a2e4a]">{dayDateLabel ? `Compromissos do dia • ${dayDateLabel}` : "Compromissos do dia"}</span></div><Button type="button" variant="ghost" size="sm" onClick={() => toggleSection(daySectionId)} aria-expanded={!isDayCollapsed} className="h-11 min-w-28 px-3 text-xs text-slate-500 hover:bg-white hover:text-[#1a2e4a] sm:h-8 sm:min-w-0 sm:px-2"><ChevronDown className={`mr-1 h-4 w-4 transition-transform ${isDayCollapsed ? "" : "rotate-180"}`} />{isDayCollapsed ? "Abrir dia" : "Recolher dia"}</Button></section>}
             {!isDayCollapsed && <article
           key={event.id}
           onDragOver={(nativeEvent) => { if (!canReorderAt(event.id)) return; nativeEvent.preventDefault(); setDragOverEventId(event.id); }}
