@@ -505,7 +505,11 @@ export function ItineraryForm() {
             </div>
             <Button type="button" variant="ghost" size="sm" onClick={() => setProposalOpeningCollapsed((current) => !current)} aria-expanded={!proposalOpeningCollapsed} className="h-10 min-w-24 shrink-0 px-3 text-xs text-slate-600 hover:bg-white hover:text-[#1a2e4a]"><ChevronDown className={`mr-1.5 h-4 w-4 transition-transform ${proposalOpeningCollapsed ? "" : "rotate-180"}`} />{proposalOpeningCollapsed ? "Abrir" : "Recolher"}</Button>
           </div>
-          <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+          <div className="mt-3 flex flex-wrap items-end justify-end gap-2">
+            <div className="min-w-34">
+              <Label htmlFor="proposal-summary-font" className="text-[11px]">Fonte do resumo da capa</Label>
+              <Select value={budget.tourProposal.coverSummaryFontSize || "medium"} onValueChange={(value) => updateTourProposal({ coverSummaryFontSize: value as "small" | "medium" | "large" })}><SelectTrigger id="proposal-summary-font" className="mt-1 h-9 bg-white text-xs"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="small">Compacta</SelectItem><SelectItem value="medium">Padrão</SelectItem><SelectItem value="large">Maior</SelectItem></SelectContent></Select>
+            </div>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button type="button" variant="outline" className="h-9 bg-white text-xs font-bold"><FilePlus2 className="mr-1.5 h-4 w-4" />Nova proposta</Button>
@@ -551,7 +555,7 @@ export function ItineraryForm() {
 	          <div className="sm:col-span-2 rounded-md border border-slate-200 bg-white/70 p-2.5">
 	            <p className="text-xs font-bold text-[#1a2e4a]">Pagamento da proposta</p>
 	            <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">Sugestão: selecione a forma e registre abaixo somente as condições que precisam aparecer para o cliente.</p>
-	            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+	            <div className="mt-2 grid gap-2 sm:grid-cols-4">
 	              <div><Label htmlFor="proposal-installments">Parcelamento</Label><Select value={String(budget.tourProposal.installments || 1)} onValueChange={(value) => updateTourProposal({ installments: Number(value) })}><SelectTrigger id="proposal-installments" className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="1">À vista</SelectItem><SelectItem value="2">2x</SelectItem><SelectItem value="3">3x</SelectItem><SelectItem value="4">4x</SelectItem><SelectItem value="5">5x</SelectItem><SelectItem value="6">6x</SelectItem><SelectItem value="8">8x</SelectItem><SelectItem value="10">10x</SelectItem><SelectItem value="12">12x</SelectItem></SelectContent></Select></div>
 	              <div><Label htmlFor="proposal-payment-method">Forma de pagamento</Label><Select value={budget.tourProposal.paymentMethod || "none"} onValueChange={(value) => updateTourProposal({ paymentMethod: value === "none" ? undefined : value as "card" | "cash" | "pix" | "other" })}><SelectTrigger id="proposal-payment-method" className="mt-1 bg-white"><SelectValue placeholder="Selecionar forma" /></SelectTrigger><SelectContent><SelectItem value="none">Selecionar forma</SelectItem><SelectItem value="card">Cartão</SelectItem><SelectItem value="cash">Dinheiro</SelectItem><SelectItem value="pix">PIX</SelectItem><SelectItem value="other">Outro</SelectItem></SelectContent></Select></div>
 	              <div><Label htmlFor="proposal-entry">Possui entrada?</Label><Select value={budget.tourProposal.hasEntry ? "yes" : "no"} onValueChange={(value) => updateTourProposal({ hasEntry: value === "yes", entryAmount: value === "yes" ? budget.tourProposal.entryAmount || 0 : 0 })}><SelectTrigger id="proposal-entry" className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="no">Não</SelectItem><SelectItem value="yes">Sim</SelectItem></SelectContent></Select></div>
@@ -560,7 +564,6 @@ export function ItineraryForm() {
 	              <div className="sm:col-span-3 max-w-2xl"><Label htmlFor="proposal-payment">Detalhes da condição de pagamento</Label><Textarea id="proposal-payment" value={budget.tourProposal.paymentDetails} onChange={(event) => updateTourProposal({ paymentDetails: event.target.value })} placeholder="Ex.: Taxa inclusa, vencimento ou condições combinadas" className="mt-1 min-h-12 resize-none bg-white text-sm" /></div>
 	            </div>
 	          </div>
-	          <div><Label htmlFor="proposal-summary-font">Fonte do resumo da capa</Label><Select value={budget.tourProposal.coverSummaryFontSize || "medium"} onValueChange={(value) => updateTourProposal({ coverSummaryFontSize: value as "small" | "medium" | "large" })}><SelectTrigger id="proposal-summary-font" className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="small">Compacta</SelectItem><SelectItem value="medium">Padrão</SelectItem><SelectItem value="large">Maior</SelectItem></SelectContent></Select></div>
 	          {itinerary.length > 6 && (() => {
 	            const defaultDayIds = itinerary.slice(0, 6).map((day) => day.id);
 	            const selectedDayIds = budget.tourProposal.coverSummaryDayIds || defaultDayIds;
@@ -580,7 +583,7 @@ export function ItineraryForm() {
 	            </div>;
 	          })()}
 	          <div className="sm:col-span-2 rounded-md border border-slate-200 bg-white p-2.5">
-	            <div className="grid gap-2 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-start">
+	            <div className={`grid gap-2 sm:items-end ${showSavedProposals ? "sm:grid-cols-[auto_minmax(0,1fr)]" : "sm:grid-cols-[auto_minmax(0,1fr)_auto]"}`}>
 	            <div>
 	              <Button type="button" onClick={handleSaveProposal} disabled={saveProposalMutation.isPending} className="h-10 font-bold"><Save className="mr-2 h-4 w-4" />{saveProposalMutation.isPending ? "Salvando..." : "Salvar proposta de passeios"}</Button>
 	              <p className="mt-1 max-w-xs text-[10px] leading-relaxed text-slate-500">Salva somente os passeios para aprovação. Para guardar também voos e hotéis, use “Orçamento completo”.</p>
@@ -592,8 +595,8 @@ export function ItineraryForm() {
 	              <SelectContent>{filteredSavedProposals.map((saved) => <SelectItem key={saved.id} value={saved.id}>{saved.clientName} — {saved.proposalTitle}</SelectItem>)}</SelectContent>
 	            </Select>
 	            </div>
+	            {!showSavedProposals && <Button type="button" variant="outline" size="sm" onClick={() => setShowSavedProposals(true)} className="h-10 bg-white text-xs font-semibold"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Ver propostas e clientes salvos</Button>}
 	            </div>
-	            {!showSavedProposals && <div className="mt-2 flex justify-end"><Button type="button" variant="outline" size="sm" onClick={() => setShowSavedProposals(true)} className="h-9 bg-white text-xs font-semibold"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Ver propostas e clientes salvos</Button></div>}
 	            {showSavedProposals && <><div className="mt-2 flex items-center justify-between gap-2"><p className="text-xs font-bold text-[#1a2e4a]">Propostas e clientes salvos</p><Button type="button" variant="outline" size="sm" onClick={() => setShowSavedProposals(false)} className="h-8 bg-white px-2 text-xs font-semibold"><ChevronUp className="mr-1 h-3.5 w-3.5" />Recolher</Button></div><div className="relative mt-2">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input value={savedProposalSearch} onChange={(event) => setSavedProposalSearch(event.target.value)} placeholder="Buscar proposta pelo nome do cliente" className="h-9 bg-slate-50 pl-8 text-sm" />

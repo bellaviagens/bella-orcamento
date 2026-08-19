@@ -703,3 +703,6 @@
 - [x] Corrigir Limpar roteiro para remover também os passeios importados da proposta
 - [x] Fazer Limpar roteiro remover também voos e hospedagens do orçamento atual
 - [x] Iniciar recolhida a seção Adicionar informações já cadastradas após limpar o roteiro
+- [x] Manter o campo Valor da entrada na mesma linha dos campos de pagamento da proposta
+- [x] Posicionar Fonte do resumo da capa ao lado de Nova proposta
+- [x] Alinhar os controles de salvar, abrir e listar propostas de passeios
