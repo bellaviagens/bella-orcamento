@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clearBudgetOnlyInBudget, clearFinalItineraryWithRegisteredDataInBudget, rehydrateBudgetDraft, reorderFinalItineraryDaysInBudget, restoreLastBudgetFromStorage, updateFareTierInBudget, updateFinalItineraryDayDateInBudget } from "./BudgetContext";
+import { clearBudgetOnlyInBudget, clearFinalItineraryWithRegisteredDataInBudget, createBudgetClearUndoSnapshot, rehydrateBudgetDraft, reorderFinalItineraryDaysInBudget, restoreLastBudgetFromStorage, updateFareTierInBudget, updateFinalItineraryDayDateInBudget } from "./BudgetContext";
 import { defaultBudgetData } from "@shared/budgetTypes";
 
 describe("updateFareTierInBudget", () => {
@@ -193,5 +193,23 @@ describe("limpeza do orçamento de viagem", () => {
     expect(cleared.itinerary).toEqual(budget.itinerary);
     expect(cleared.tourProposal).toEqual(budget.tourProposal);
     expect(cleared.finalItinerary).toEqual(budget.finalItinerary);
+  });
+
+  it("mantém uma cópia independente para desfazer a limpeza recém-confirmada", () => {
+    const budget = {
+      ...defaultBudgetData,
+      tripInfo: { ...defaultBudgetData.tripInfo, destination: "Lisboa" },
+      flights: [{ ...defaultBudgetData.flights[0], id: "voo-para-restaurar" }],
+    };
+
+    const snapshot = createBudgetClearUndoSnapshot(budget);
+    const cleared = clearBudgetOnlyInBudget(budget);
+
+    expect(snapshot).toEqual(budget);
+    expect(snapshot).not.toBe(budget);
+    expect(snapshot.tripInfo).not.toBe(budget.tripInfo);
+    expect(snapshot.flights).not.toBe(budget.flights);
+    expect(cleared.flights).toEqual([]);
+    expect(snapshot.flights).toHaveLength(1);
   });
 });

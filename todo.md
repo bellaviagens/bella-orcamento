@@ -727,3 +727,6 @@
 - [x] Exibir contadores de pendentes, enviadas e aprovadas na gestão de rascunhos
 - [x] Adicionar botão Limpar orçamento com confirmação para Viagem, Voos, Tarifas, Hotéis, Bagagens e Parcelamento
 - [x] Renomear o atalho lateral Cliente e viagem para Orçamento
+- [x] Transformar o acesso Rascunhos do cabeçalho em seletor compacto para abrir documentos sem sair da tela atual
+- [x] Renomear o acesso lateral Rascunhos para Acompanhamento de propostas, mantendo a tela ampla atual
+- [x] Permitir desfazer a limpeza do orçamento logo após a confirmação

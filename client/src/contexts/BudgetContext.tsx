@@ -526,6 +526,11 @@ export function clearBudgetOnlyInBudget(budget: BudgetData): BudgetData {
   };
 }
 
+/** Cria uma cópia independente do orçamento para permitir desfazer uma limpeza recém-confirmada. */
+export function createBudgetClearUndoSnapshot(budget: BudgetData): BudgetData {
+  return structuredClone(budget);
+}
+
 function nextFinalItineraryDay(events: FinalItineraryEvent[]) {
   return Math.max(0, ...events.map((event) => event.day)) + 1;
 }

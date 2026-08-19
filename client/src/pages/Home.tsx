@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { BudgetProvider, useBudget } from "@/contexts/BudgetContext";
+import { BudgetProvider, createBudgetClearUndoSnapshot, useBudget } from "@/contexts/BudgetContext";
 import { TripInfoForm } from "@/components/forms/TripInfoForm";
 import { FlightForm } from "@/components/forms/FlightForm";
 import { HotelForm } from "@/components/forms/HotelForm";
@@ -59,6 +59,7 @@ function BuilderContent() {
   const [finalItineraryStatusFilter, setFinalItineraryStatusFilter] = useState<SavedTourProposalStatusFilter>("all");
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
   const [editingDraftLabel, setEditingDraftLabel] = useState("");
+  const [lastClearedBudget, setLastClearedBudget] = useState<typeof budget | null>(null);
   const draftsQuery = trpc.budgetDrafts.list.useQuery({ search: draftSearch });
   const finalItineraryDraftsQuery = trpc.budgetDrafts.list.useQuery({ search: finalItineraryDraftSearch });
   const tourProposalsQuery = trpc.tourProposals.list.useQuery();
@@ -127,11 +128,41 @@ function BuilderContent() {
     }
   }, [replaceBudget, selectedTourProposalId, selectedTourProposalQuery.data]);
 
-  const openDrafts = () => {
+  const prepareDraftLabel = () => {
     if (!draftLabel.trim()) {
       setDraftLabel(budget.tripInfo.destination ? `Orçamento de viagem — ${budget.tripInfo.destination}` : "Orçamento de viagem em rascunho");
     }
+  };
+
+  const openDrafts = () => {
+    prepareDraftLabel();
     setSideView("drafts");
+  };
+
+  const openCompactDraftSelector = () => {
+    prepareDraftLabel();
+    setDraftDialogOpen(true);
+  };
+
+  const restoreClearedBudget = () => {
+    if (!lastClearedBudget) return;
+    replaceBudget(lastClearedBudget);
+    setLastClearedBudget(null);
+    setBudgetLoadKey((currentKey) => currentKey + 1);
+    setActiveTab("trip");
+    toast.success("Limpeza desfeita. O orçamento foi restaurado.");
+  };
+
+  const clearCurrentBudget = () => {
+    const snapshot = createBudgetClearUndoSnapshot(budget);
+    setLastClearedBudget(snapshot);
+    clearBudgetOnly();
+    setBudgetLoadKey((currentKey) => currentKey + 1);
+    setActiveTab("trip");
+    toast.success("Orçamento de viagem limpo.", {
+      duration: 10000,
+      action: { label: "Desfazer", onClick: () => { replaceBudget(snapshot); setLastClearedBudget(null); setBudgetLoadKey((currentKey) => currentKey + 1); setActiveTab("trip"); toast.success("Limpeza desfeita. O orçamento foi restaurado."); } },
+    });
   };
 
   const saveDraft = async () => {
@@ -216,7 +247,7 @@ function BuilderContent() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={openDrafts}
+            onClick={openCompactDraftSelector}
             className="text-white hover:bg-white/10"
           >
             <Save className="h-4 w-4 mr-2" />
@@ -427,7 +458,7 @@ function BuilderContent() {
             <Button type="button" variant="ghost" onClick={() => { setSideView("clients"); }} className={`h-9 w-full justify-start px-2 text-xs ${sideView === "clients" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><Users className="mr-2 h-4 w-4" />Clientes</Button>
             <Button type="button" variant="ghost" onClick={() => { setSideView("budget"); setActiveTab("hotels"); }} className={`h-9 w-full justify-start px-2 text-xs ${sideView === "budget" && activeTab === "hotels" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><Building2 className="mr-2 h-4 w-4" />Hotéis</Button>
             <Button type="button" variant="ghost" onClick={() => setSideView("library")} className={`h-9 w-full justify-start px-2 text-xs ${sideView === "library" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><FolderOpen className="mr-2 h-4 w-4" />Biblioteca</Button>
-            <Button type="button" variant="ghost" onClick={openDrafts} className={`h-9 w-full justify-start px-2 text-xs ${sideView === "drafts" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><Save className="mr-2 h-4 w-4" />Rascunhos</Button>
+            <Button type="button" variant="ghost" onClick={openDrafts} className={`h-9 w-full justify-start px-2 text-xs ${sideView === "drafts" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><Save className="mr-2 h-4 w-4" />Acompanhamento</Button>
           </div>
           <div className="mt-auto rounded-md border border-blue-100 bg-blue-50 p-2.5 text-[11px] leading-relaxed text-[#1a2e4a]">A <strong>Biblioteca</strong> reúne hotéis, passeios, restaurantes e transfers por destino. A aba <strong>Roteiro</strong> continua dedicada às propostas e ao roteiro final.</div>
         </aside>
@@ -437,7 +468,7 @@ function BuilderContent() {
             <Button type="button" variant="ghost" size="sm" onClick={() => setSideView("budget")} className={`h-10 shrink-0 px-3 text-xs ${sideView === "budget" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}>Orçamento</Button>
             <Button type="button" variant="ghost" size="sm" onClick={() => setSideView("clients")} className={`h-10 shrink-0 px-3 text-xs ${sideView === "clients" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}>Clientes</Button>
             <Button type="button" variant="ghost" size="sm" onClick={() => setSideView("library")} className={`h-10 shrink-0 px-3 text-xs ${sideView === "library" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}>Biblioteca</Button>
-            <Button type="button" variant="ghost" size="sm" onClick={openDrafts} className={`h-10 shrink-0 px-3 text-xs ${sideView === "drafts" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}>Rascunhos</Button>
+            <Button type="button" variant="ghost" size="sm" onClick={openDrafts} className={`h-10 shrink-0 px-3 text-xs ${sideView === "drafts" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}>Acompanhamento</Button>
           </div>
           <ScrollArea className="flex-1">
             <div className="p-6">
@@ -475,7 +506,10 @@ function BuilderContent() {
                   </TabsList>
                 </div>
 
-                <div className="mb-4 flex justify-end">
+                <div className="mb-4 flex flex-wrap justify-end gap-2">
+                  {lastClearedBudget && <Button type="button" variant="outline" onClick={restoreClearedBudget} className="min-h-10 border-[#1a2e4a] bg-white px-3 text-sm font-semibold text-[#1a2e4a] hover:bg-blue-50">
+                    Desfazer limpeza
+                  </Button>}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button type="button" variant="outline" className="min-h-10 border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900">
@@ -492,7 +526,7 @@ function BuilderContent() {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => { clearBudgetOnly(); setBudgetLoadKey((currentKey) => currentKey + 1); setActiveTab("trip"); toast.success("Orçamento de viagem limpo."); }}>
+                        <AlertDialogAction onClick={clearCurrentBudget}>
                           Limpar orçamento
                         </AlertDialogAction>
                       </AlertDialogFooter>

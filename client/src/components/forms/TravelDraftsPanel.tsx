@@ -372,7 +372,7 @@ export function TravelDraftsPanel({
   return (
     <section className="rounded-xl border border-slate-200 bg-slate-50 shadow-sm">
       <div className="flex flex-col gap-3 border-b border-slate-200 bg-white px-4 py-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-start gap-2.5"><FolderOpen className="mt-0.5 h-5 w-5 text-[#1a2e4a]" /><div><h2 className="text-sm font-bold text-[#1a2e4a]">Gestão de rascunhos</h2><p className="mt-0.5 text-[11px] text-slate-500">Organize orçamentos de viagem, propostas de passeios e roteiros finais em uma única tela.</p></div></div>
+        <div className="flex items-start gap-2.5"><FolderOpen className="mt-0.5 h-5 w-5 text-[#1a2e4a]" /><div><h2 className="text-sm font-bold text-[#1a2e4a]">Acompanhamento de propostas</h2><p className="mt-0.5 text-[11px] text-slate-500">Organize orçamentos de viagem, propostas de passeios e roteiros finais em uma única tela.</p></div></div>
         <StatusCounters counts={statusCounts} />
       </div>
 
