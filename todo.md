@@ -749,3 +749,5 @@
 - [x] Permitir vincular anexos de documentos a passageiros ou acompanhantes específicos no cadastro do cliente
 - [x] Adicionar checklist documental adaptado ao destino da viagem
 - [x] Criar painel de alertas documentais na tela inicial
+- [x] Expandir o checklist documental com regras de visto específicas por país de destino
+- [x] Permitir checklist de documentos individualizado para cada acompanhante do cliente

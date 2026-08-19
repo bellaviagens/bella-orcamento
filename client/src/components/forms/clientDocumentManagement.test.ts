@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getDestinationDocumentationChecklist, groupClientAttachments, summarizeClientDocumentAlerts } from "./clientDocumentManagement";
+import { getDestinationDocumentationChecklist, getPassengerDocumentationChecklist, groupClientAttachments, summarizeClientDocumentAlerts } from "./clientDocumentManagement";
 
 describe("client document management helpers", () => {
   it("organizes linked attachments by passenger while retaining legacy documents", () => {
@@ -16,9 +16,38 @@ describe("client document management helpers", () => {
     ]);
   });
 
-  it("uses RG for domestic destinations and passport plus visa for international destinations", () => {
+  it("applies documentation rules that identify domestic, Mercosur, visa and electronic authorization destinations", () => {
     expect(getDestinationDocumentationChecklist("Maceió, Brasil").map((item) => item.id)).toEqual(["rg"]);
-    expect(getDestinationDocumentationChecklist("Santiago, Chile").map((item) => item.id)).toEqual(["passport", "visa"]);
+    expect(getDestinationDocumentationChecklist("Santiago, Chile")[0]).toMatchObject({ id: "passport", acceptedDocumentTypes: ["passport", "rg"] });
+    expect(getDestinationDocumentationChecklist("Orlando, Estados Unidos").map((item) => item.id)).toEqual(["passport", "visa"]);
+    expect(getDestinationDocumentationChecklist("Londres, Reino Unido").map((item) => item.id)).toEqual(["passport", "eta"]);
+    expect(getDestinationDocumentationChecklist("Toronto, Canadá")[1].description).toContain("eTA");
+    expect(getDestinationDocumentationChecklist("Paris, França")[1]).toMatchObject({ id: "visa", label: "Visto ou autorização, se aplicável" });
+  });
+
+  it("generates independent checklist completion for the primary passenger and each companion", () => {
+    const attachments = [
+      { id: "ana-passport", name: "passaporte-ana.pdf", url: "/ana", contentType: "application/pdf", size: 1, passengerName: "Ana", documentType: "passport" as const },
+      { id: "bruno-visa", name: "visto-bruno.pdf", url: "/bruno", contentType: "application/pdf", size: 1, passengerName: "Bruno", documentType: "visa" as const },
+    ];
+
+    const anaChecklist = getPassengerDocumentationChecklist({
+      destination: "Orlando, Estados Unidos",
+      passengerName: "Ana",
+      primaryPassengerName: "Ana",
+      clientDocuments: { passportNumber: "AB123" },
+      attachments,
+    });
+    const brunoChecklist = getPassengerDocumentationChecklist({
+      destination: "Orlando, Estados Unidos",
+      passengerName: "Bruno",
+      primaryPassengerName: "Ana",
+      clientDocuments: { passportNumber: "AB123" },
+      attachments,
+    });
+
+    expect(anaChecklist.map((item) => [item.id, item.complete])).toEqual([["passport", true], ["visa", false]]);
+    expect(brunoChecklist.map((item) => [item.id, item.complete])).toEqual([["passport", false], ["visa", true]]);
   });
 
   it("summarizes existing document alerts with client and days until expiration", () => {

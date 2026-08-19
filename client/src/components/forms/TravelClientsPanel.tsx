@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getClientDocumentAlerts } from "./clientDocumentAlerts";
-import { getDestinationDocumentationChecklist, groupClientAttachments, type ClientAttachment } from "./clientDocumentManagement";
+import { getPassengerDocumentationChecklist, groupClientAttachments, type ClientAttachment, type ClientAttachmentDocumentType } from "./clientDocumentManagement";
 
 type TravelClientsPanelProps = {
   onUseClient: (name: string) => void;
@@ -100,6 +100,7 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedName, setSelectedName] = useState("");
   const [attachmentPassengerName, setAttachmentPassengerName] = useState("");
+  const [attachmentDocumentType, setAttachmentDocumentType] = useState<ClientAttachmentDocumentType>("other");
   const importInputRef = useRef<HTMLInputElement>(null);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const clients = clientsQuery.data || [];
@@ -113,11 +114,20 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
   const attachments = useMemo(() => parseAttachments(selectedClient?.documentsJson), [selectedClient?.documentsJson]);
   const groupedAttachments = useMemo(() => groupClientAttachments(attachments, selectedClient?.name), [attachments, selectedClient?.name]);
   const alerts = useMemo(() => getClientDocumentAlerts(selectedClient || {}, tripPeriod), [selectedClient, tripPeriod]);
-  const checklist = useMemo(() => getDestinationDocumentationChecklist(tripDestination), [tripDestination]);
   const passengerOptions = useMemo(() => Array.from(new Set([
     selectedClient?.name,
     ...passengerNames.map((passenger) => passenger.trim()),
   ].filter((passenger): passenger is string => Boolean(passenger?.trim())))), [passengerNames, selectedClient?.name]);
+  const individualChecklists = useMemo(() => passengerOptions.map((passengerName) => ({
+    passengerName,
+    items: getPassengerDocumentationChecklist({
+      destination: tripDestination,
+      passengerName,
+      primaryPassengerName: selectedClient?.name,
+      clientDocuments: selectedClient,
+      attachments,
+    }),
+  })), [attachments, passengerOptions, selectedClient, tripDestination]);
 
   const refreshClients = async () => {
     await utils.travelClients.list.invalidate();
@@ -195,8 +205,9 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
       const dataBase64 = await readAsDataUrl(file);
       const uploaded = await uploadMutation.mutateAsync({ fileName: file.name, contentType: file.type as (typeof ACCEPTED_DOCUMENT_TYPES)[number], dataBase64 });
       const passengerName = attachmentPassengerName.trim() || selectedClient.name;
-      await updateAttachments([...attachments, { ...uploaded, passengerName }]);
+      await updateAttachments([...attachments, { ...uploaded, passengerName, documentType: attachmentDocumentType === "other" ? undefined : attachmentDocumentType }]);
       setAttachmentPassengerName("");
+      setAttachmentDocumentType("other");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível anexar o documento.");
     }
@@ -316,11 +327,18 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h4 className="text-sm font-bold text-[#1a2e4a]">Documentos e validade</h4>
               <div className="flex items-center gap-2">
-                <div className="min-w-44">
+                <div className="min-w-40">
                   <Label htmlFor="attachment-passenger" className="sr-only">Vincular anexo a passageiro</Label>
                   <Input id="attachment-passenger" list="client-passengers" value={attachmentPassengerName} onChange={(event) => setAttachmentPassengerName(event.target.value)} placeholder={`Vincular a: ${selectedClient.name}`} className="h-8 bg-white text-xs" />
                   <datalist id="client-passengers">{passengerOptions.map((passenger) => <option key={passenger} value={passenger} />)}</datalist>
                 </div>
+                <select aria-label="Tipo do documento anexado" value={attachmentDocumentType} onChange={(event) => setAttachmentDocumentType(event.target.value as ClientAttachmentDocumentType)} className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700">
+                  <option value="other">Tipo: outro documento</option>
+                  <option value="passport">Passaporte</option>
+                  <option value="rg">RG</option>
+                  <option value="visa">Visto</option>
+                  <option value="eta">Autorização eletrônica</option>
+                </select>
                 <Button type="button" variant="outline" onClick={() => attachmentInputRef.current?.click()} disabled={uploadMutation.isPending || updateMutation.isPending} className="h-8 bg-white px-2 text-xs"><Paperclip className="mr-1 h-3.5 w-3.5" />Anexar documento</Button>
                 <input ref={attachmentInputRef} type="file" accept=".pdf,image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => void uploadAttachment(event)} />
               </div>
@@ -333,15 +351,16 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
             </div>
 
             <div className="mt-3 rounded-md border border-blue-100 bg-blue-50/60 p-2.5">
-              <div className="flex flex-wrap items-baseline justify-between gap-2"><h5 className="text-xs font-bold text-[#1a2e4a]">Checklist de documentação</h5><span className="text-[11px] text-slate-500">{tripDestination || "Informe o destino no orçamento"}</span></div>
-              <div className="mt-2 grid gap-1.5">
-                {checklist.map((item) => {
-                  const complete = Boolean(selectedClient[item.field]);
-                  return <div key={item.id} className="flex items-start gap-2 rounded border border-blue-100 bg-white px-2 py-1.5 text-xs">
-                    {complete ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#1a2e4a]" /> : <Circle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />}
-                    <div><p className="font-semibold text-[#1a2e4a]">{item.label}{complete ? " — informado" : " — pendente"}</p><p className="text-[11px] text-slate-500">{item.description}</p></div>
-                  </div>;
-                })}
+              <div className="flex flex-wrap items-baseline justify-between gap-2"><h5 className="text-xs font-bold text-[#1a2e4a]">Checklists individuais de documentação</h5><span className="text-[11px] text-slate-500">{tripDestination || "Informe o destino no orçamento"}</span></div>
+              <p className="mt-1 text-[11px] text-slate-500">As regras são uma triagem operacional. Antes da emissão, confirme requisitos e elegibilidade na fonte oficial do país de destino.</p>
+              <div className="mt-2 space-y-2">
+                {individualChecklists.map(({ passengerName, items }) => <div key={passengerName} className="rounded border border-blue-100 bg-white p-2">
+                  <p className="mb-1.5 text-xs font-bold text-[#1a2e4a]">{passengerName}{passengerName === selectedClient.name ? " — passageiro principal" : " — acompanhante"}</p>
+                  <div className="grid gap-1.5">{items.map((item) => <div key={item.id} className="flex items-start gap-2 rounded border border-slate-100 bg-slate-50 px-2 py-1.5 text-xs">
+                    {item.complete ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#1a2e4a]" /> : <Circle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />}
+                    <div><p className="font-semibold text-[#1a2e4a]">{item.label}{item.complete ? " — informado" : " — pendente"}</p><p className="text-[11px] text-slate-500">{item.description}</p></div>
+                  </div>)}</div>
+                </div>)}
               </div>
             </div>
 
