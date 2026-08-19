@@ -578,7 +578,7 @@ export function FinalItineraryForm() {
           onDragOver={(nativeEvent) => { if (!canReorderAt(event.id)) return; nativeEvent.preventDefault(); setDragOverEventId(event.id); }}
           onDragLeave={() => dragOverEventId === event.id && setDragOverEventId(null)}
           onDrop={(nativeEvent) => { if (!canReorderAt(event.id)) return; nativeEvent.preventDefault(); reorder(event.id); setDraggedEventId(null); setDragOverEventId(null); }}
-          className={`rounded-lg border p-3 ${dragOverEventId === event.id ? "border-[#1a2e4a] bg-blue-50" : "border-slate-200 bg-slate-50"}`}
+          className={`ml-3 rounded-lg border p-3 sm:ml-4 ${dragOverEventId === event.id ? "border-[#1a2e4a] bg-blue-50" : "border-slate-200 bg-slate-50"}`}
         >
           <div className="mb-3 flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2"><button type="button" draggable onDragStart={(nativeEvent) => { nativeEvent.dataTransfer.effectAllowed = "move"; setDraggedEventId(event.id); }} onDragEnd={() => { setDraggedEventId(null); setDragOverEventId(null); }} className="cursor-grab text-slate-400 hover:text-[#1a2e4a]" title={`Arraste para reordenar dentro do Dia ${event.day}`}><GripVertical className="h-5 w-5" /></button><span className="rounded-full bg-[#1a2e4a] px-2 py-1 text-xs font-bold text-white">Dia {event.day}</span><span className="shrink-0 text-sm font-bold text-[#1a2e4a]">{EVENT_LABELS[event.kind]}</span>{isEventCollapsed && <span className="truncate text-xs font-semibold text-slate-600">{event.title || "Sem título"}</span>}{isEventCollapsed && event.time && <span className="shrink-0 rounded bg-white px-1.5 py-0.5 text-[11px] font-semibold text-[#1a2e4a]">{event.time}</span>}</div>
