@@ -353,7 +353,7 @@ function BuilderContent() {
                       <div><h3 className="text-sm font-bold text-[#1a2e4a]" style={{ fontFamily: "Poppins, sans-serif" }}>{itineraryMode === "proposal" ? "Proposta de passeios" : "Roteiro final pós-aprovação"}</h3><p className="mt-1 text-xs text-slate-500">{itineraryMode === "proposal" ? "Cadastre e organize cada passeio diretamente no respectivo dia para enviar uma proposta de aprovação." : "Inclua chegada, transfer, hospedagem, voos, retorno e os passeios já aprovados."}</p></div>
                       <div className="inline-flex rounded-lg bg-slate-200 p-1"><Button type="button" size="sm" variant="ghost" onClick={() => setItineraryMode("proposal")} className={`h-8 text-xs ${itineraryMode === "proposal" ? "bg-white text-[#1a2e4a] shadow-sm" : "text-slate-600"}`}>Proposta</Button><Button type="button" size="sm" variant="ghost" onClick={() => setItineraryMode("final")} className={`h-8 text-xs ${itineraryMode === "final" ? "bg-white text-[#1a2e4a] shadow-sm" : "text-slate-600"}`}>Roteiro final</Button></div>
                     </div>
-                    <div className="h-[calc(100dvh-16rem)] min-h-[32rem] space-y-6 overflow-y-auto overscroll-contain pr-3 [scrollbar-gutter:stable]">
+                    <div className="h-[calc(100dvh-14rem)] min-h-[36rem] space-y-6 overflow-y-auto overscroll-contain pb-16 pr-3 [scrollbar-gutter:stable]">
                       {itineraryMode === "proposal" ? <><section aria-labelledby="proposta-abertura">
                         <div className="mb-3 border-b border-slate-200 pb-3">
                           <h4 id="proposta-abertura" className="text-sm font-bold text-[#1a2e4a]">Abertura da proposta</h4>

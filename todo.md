@@ -708,3 +708,5 @@
 - [x] Alinhar os controles de salvar, abrir e listar propostas de passeios
 - [x] Organizar os botões e filtros da Biblioteca de Viagem
 - [x] Adicionar campo de busca com ícone de lupa na Biblioteca de Viagem
+- [x] Ampliar a área rolável da Biblioteca para manter espaço após o último item
+- [x] Alinhar o botão Abrir de Adicionar informações já cadastradas à direita do título
