@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getDestinationDocumentationChecklist, getPassengerDocumentationChecklist, groupClientAttachments, summarizeClientDocumentAlerts } from "./clientDocumentManagement";
+import { getConsolidatedPassengerDocumentReports, getDestinationDocumentationChecklist, getPassengerDocumentationChecklist, groupClientAttachments, summarizeClientDocumentAlerts } from "./clientDocumentManagement";
 
 describe("client document management helpers", () => {
   it("organizes linked attachments by passenger while retaining legacy documents", () => {
@@ -58,5 +58,24 @@ describe("client document management helpers", () => {
 
     expect(alerts).toHaveLength(1);
     expect(alerts[0]).toMatchObject({ clientName: "Ana", daysUntilExpiry: 10, alert: { document: "Passaporte" } });
+  });
+
+  it("reports missing, pending approval and expiring documents independently by passenger", () => {
+    const reports = getConsolidatedPassengerDocumentReports({
+      destination: "Orlando, Estados Unidos",
+      passengerNames: ["Ana", "Bruno"],
+      primaryPassengerName: "Ana",
+      clientDocuments: { passportNumber: "AB123", passportExpiresAt: "2026-02-15" },
+      attachments: [
+        { id: "ana-visa", name: "visto-ana.pdf", url: "/ana-visa", contentType: "application/pdf", size: 1, passengerName: "Ana", documentType: "visa", approvalStatus: "pending", expiresAt: "2027-06-30" },
+        { id: "bruno-visa", name: "visto-bruno.pdf", url: "/bruno-visa", contentType: "application/pdf", size: 1, passengerName: "Bruno", documentType: "visa", approvalStatus: "approved", expiresAt: "2027-06-30" },
+      ],
+      now: new Date("2026-01-20T10:00:00"),
+    });
+
+    expect(reports[0]).toMatchObject({ passengerName: "Ana", pendingCount: 1, attentionCount: 1 });
+    expect(reports[0].items.map((item) => [item.id, item.status])).toEqual([["passport", "near-expiry"], ["visa", "awaiting-approval"]]);
+    expect(reports[1]).toMatchObject({ passengerName: "Bruno", pendingCount: 1, attentionCount: 0 });
+    expect(reports[1].items.map((item) => [item.id, item.status])).toEqual([["passport", "missing"], ["visa", "ready"]]);
   });
 });

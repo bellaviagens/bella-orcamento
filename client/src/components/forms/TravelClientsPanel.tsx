@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getClientDocumentAlerts } from "./clientDocumentAlerts";
-import { getPassengerDocumentationChecklist, groupClientAttachments, type ClientAttachment, type ClientAttachmentDocumentType } from "./clientDocumentManagement";
+import { getConsolidatedPassengerDocumentReports, groupClientAttachments, type ClientAttachment, type ClientAttachmentDocumentType, type DocumentApprovalStatus } from "./clientDocumentManagement";
 
 type TravelClientsPanelProps = {
   onUseClient: (name: string) => void;
@@ -101,6 +101,8 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
   const [selectedName, setSelectedName] = useState("");
   const [attachmentPassengerName, setAttachmentPassengerName] = useState("");
   const [attachmentDocumentType, setAttachmentDocumentType] = useState<ClientAttachmentDocumentType>("other");
+  const [attachmentExpiresAt, setAttachmentExpiresAt] = useState("");
+  const [attachmentApprovalStatus, setAttachmentApprovalStatus] = useState<DocumentApprovalStatus>("pending");
   const importInputRef = useRef<HTMLInputElement>(null);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const clients = clientsQuery.data || [];
@@ -118,16 +120,13 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
     selectedClient?.name,
     ...passengerNames.map((passenger) => passenger.trim()),
   ].filter((passenger): passenger is string => Boolean(passenger?.trim())))), [passengerNames, selectedClient?.name]);
-  const individualChecklists = useMemo(() => passengerOptions.map((passengerName) => ({
-    passengerName,
-    items: getPassengerDocumentationChecklist({
-      destination: tripDestination,
-      passengerName,
-      primaryPassengerName: selectedClient?.name,
-      clientDocuments: selectedClient,
-      attachments,
-    }),
-  })), [attachments, passengerOptions, selectedClient, tripDestination]);
+  const passengerReports = useMemo(() => getConsolidatedPassengerDocumentReports({
+    destination: tripDestination,
+    passengerNames: passengerOptions,
+    primaryPassengerName: selectedClient?.name,
+    clientDocuments: selectedClient,
+    attachments,
+  }), [attachments, passengerOptions, selectedClient, tripDestination]);
 
   const refreshClients = async () => {
     await utils.travelClients.list.invalidate();
@@ -205,9 +204,18 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
       const dataBase64 = await readAsDataUrl(file);
       const uploaded = await uploadMutation.mutateAsync({ fileName: file.name, contentType: file.type as (typeof ACCEPTED_DOCUMENT_TYPES)[number], dataBase64 });
       const passengerName = attachmentPassengerName.trim() || selectedClient.name;
-      await updateAttachments([...attachments, { ...uploaded, passengerName, documentType: attachmentDocumentType === "other" ? undefined : attachmentDocumentType }]);
+      const needsApproval = attachmentDocumentType === "visa" || attachmentDocumentType === "eta";
+      await updateAttachments([...attachments, {
+        ...uploaded,
+        passengerName,
+        documentType: attachmentDocumentType === "other" ? undefined : attachmentDocumentType,
+        expiresAt: attachmentExpiresAt || undefined,
+        approvalStatus: needsApproval ? attachmentApprovalStatus : undefined,
+      }]);
       setAttachmentPassengerName("");
       setAttachmentDocumentType("other");
+      setAttachmentExpiresAt("");
+      setAttachmentApprovalStatus("pending");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível anexar o documento.");
     }
@@ -339,27 +347,46 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
                   <option value="visa">Visto</option>
                   <option value="eta">Autorização eletrônica</option>
                 </select>
+                {(attachmentDocumentType === "visa" || attachmentDocumentType === "eta") && <>
+                  <Input aria-label="Validade do visto ou autorização" type="date" value={attachmentExpiresAt} onChange={(event) => setAttachmentExpiresAt(event.target.value)} className="h-8 w-36 bg-white text-xs" />
+                  <select aria-label="Status de aprovação" value={attachmentApprovalStatus} onChange={(event) => setAttachmentApprovalStatus(event.target.value as DocumentApprovalStatus)} className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700">
+                    <option value="pending">Aguardando aprovação</option>
+                    <option value="approved">Aprovado</option>
+                    <option value="denied">Não aprovado</option>
+                    <option value="not-required">Não aplicável</option>
+                  </select>
+                </>}
                 <Button type="button" variant="outline" onClick={() => attachmentInputRef.current?.click()} disabled={uploadMutation.isPending || updateMutation.isPending} className="h-8 bg-white px-2 text-xs"><Paperclip className="mr-1 h-3.5 w-3.5" />Anexar documento</Button>
                 <input ref={attachmentInputRef} type="file" accept=".pdf,image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => void uploadAttachment(event)} />
               </div>
             </div>
 
-            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+              <div className="mt-2 grid gap-2 sm:grid-cols-3">
               <div className="rounded border border-slate-100 p-2 text-xs"><p className="font-bold text-[#1a2e4a]">Passaporte</p><p className="mt-1 text-slate-600">{selectedClient.passportNumber || "Não informado"}</p><p className="text-slate-500">Validade: {formatDate(selectedClient.passportExpiresAt)}</p></div>
               <div className="rounded border border-slate-100 p-2 text-xs"><p className="font-bold text-[#1a2e4a]">RG</p><p className="mt-1 text-slate-600">{selectedClient.rgNumber || "Não informado"}</p><p className="text-slate-500">Validade: {formatDate(selectedClient.rgExpiresAt)}</p></div>
               <div className="rounded border border-slate-100 p-2 text-xs"><p className="font-bold text-[#1a2e4a]">Visto</p><p className="mt-1 text-slate-600">{selectedClient.visaNumber || "Não informado"}</p><p className="text-slate-500">Validade: {formatDate(selectedClient.visaExpiresAt)}</p></div>
             </div>
 
-            <div className="mt-3 rounded-md border border-blue-100 bg-blue-50/60 p-2.5">
+              <div className="mt-3 rounded-md border border-blue-100 bg-blue-50/60 p-2.5">
               <div className="flex flex-wrap items-baseline justify-between gap-2"><h5 className="text-xs font-bold text-[#1a2e4a]">Checklists individuais de documentação</h5><span className="text-[11px] text-slate-500">{tripDestination || "Informe o destino no orçamento"}</span></div>
               <p className="mt-1 text-[11px] text-slate-500">As regras são uma triagem operacional. Antes da emissão, confirme requisitos e elegibilidade na fonte oficial do país de destino.</p>
               <div className="mt-2 space-y-2">
-                {individualChecklists.map(({ passengerName, items }) => <div key={passengerName} className="rounded border border-blue-100 bg-white p-2">
+                {passengerReports.map(({ passengerName, items }) => <div key={passengerName} className="rounded border border-blue-100 bg-white p-2">
                   <p className="mb-1.5 text-xs font-bold text-[#1a2e4a]">{passengerName}{passengerName === selectedClient.name ? " — passageiro principal" : " — acompanhante"}</p>
-                  <div className="grid gap-1.5">{items.map((item) => <div key={item.id} className="flex items-start gap-2 rounded border border-slate-100 bg-slate-50 px-2 py-1.5 text-xs">
-                    {item.complete ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#1a2e4a]" /> : <Circle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />}
-                    <div><p className="font-semibold text-[#1a2e4a]">{item.label}{item.complete ? " — informado" : " — pendente"}</p><p className="text-[11px] text-slate-500">{item.description}</p></div>
+                  <div className="grid gap-1.5">{items.map((item) => <div key={item.id} className={`flex items-start gap-2 rounded border px-2 py-1.5 text-xs ${item.status === "ready" ? "border-blue-100 bg-slate-50" : item.status === "missing" || item.status === "denied" || item.status === "expired" ? "border-red-200 bg-red-50 text-red-900" : "border-amber-200 bg-amber-50 text-amber-900"}`}>
+                    {item.status === "ready" ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#1a2e4a]" /> : item.status === "missing" ? <Circle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> : <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />}
+                    <div><p className="font-semibold">{item.label}{item.status === "ready" ? " — regular" : item.status === "missing" ? " — pendente" : " — requer atenção"}</p><p className="text-[11px] opacity-80">{item.message}</p></div>
                   </div>)}</div>
+                </div>)}
+              </div>
+            </div>
+
+            <div className="mt-3 rounded-md border border-slate-200 bg-white p-2.5">
+              <div className="flex flex-wrap items-baseline justify-between gap-2"><h5 className="text-xs font-bold text-[#1a2e4a]">Relatório consolidado da viagem</h5><span className="text-[11px] text-slate-500">Pendências por passageiro</span></div>
+              <div className="mt-2 space-y-2">
+                {passengerReports.map((report) => <div key={`report-${report.passengerName}`} className={`rounded border p-2 ${report.pendingCount > 0 || report.attentionCount > 0 ? "border-amber-200 bg-amber-50/60" : "border-blue-100 bg-blue-50/50"}`}>
+                  <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-bold text-[#1a2e4a]">{report.passengerName}</p><span className="text-[11px] font-semibold text-slate-600">{report.pendingCount ? `${report.pendingCount} pendência(s)` : "Sem pendências"}{report.attentionCount ? ` • ${report.attentionCount} alerta(s) de validade` : ""}</span></div>
+                  {(report.pendingCount > 0 || report.attentionCount > 0) && <ul className="mt-1.5 space-y-1 text-[11px] text-slate-700">{report.items.filter((item) => item.status !== "ready").map((item) => <li key={`report-item-${item.id}`} className="flex gap-1.5"><AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-700" /><span><strong>{item.label}:</strong> {item.message}</span></li>)}</ul>}
                 </div>)}
               </div>
             </div>
@@ -369,7 +396,7 @@ export function TravelClientsPanel({ onUseClient, tripPeriod, tripDestination, p
             <div className="mt-3 space-y-2">
               {groupedAttachments.length ? groupedAttachments.map((group) => <div key={group.passengerName} className="rounded-md border border-slate-200 bg-slate-50 p-2">
                 <p className="mb-1.5 text-xs font-bold text-[#1a2e4a]">{group.passengerName}</p>
-                <div className="space-y-1.5">{group.attachments.map((attachment) => <div key={attachment.id} className="flex items-center justify-between gap-2 rounded border border-slate-200 bg-white px-2 py-1.5"><a href={attachment.url} target="_blank" rel="noreferrer" className="min-w-0 truncate text-xs font-medium text-[#1a2e4a] underline">{attachment.name}</a><Button type="button" variant="ghost" onClick={() => void updateAttachments(attachments.filter((item) => item.id !== attachment.id))} className="h-7 px-1.5 text-red-600 hover:bg-red-50 hover:text-red-700" aria-label={`Excluir ${attachment.name}`}><Trash2 className="h-3.5 w-3.5" /></Button></div>)}</div>
+                <div className="space-y-1.5">{group.attachments.map((attachment) => <div key={attachment.id} className="flex items-center justify-between gap-2 rounded border border-slate-200 bg-white px-2 py-1.5"><div className="min-w-0"><a href={attachment.url} target="_blank" rel="noreferrer" className="block truncate text-xs font-medium text-[#1a2e4a] underline">{attachment.name}</a>{(attachment.documentType === "visa" || attachment.documentType === "eta") && <p className="mt-0.5 text-[10px] text-slate-500">{attachment.documentType === "eta" ? "Autorização eletrônica" : "Visto"} • {attachment.approvalStatus === "approved" ? "Aprovado" : attachment.approvalStatus === "denied" ? "Não aprovado" : attachment.approvalStatus === "not-required" ? "Não aplicável" : "Aguardando aprovação"}{attachment.expiresAt ? ` • validade ${formatDate(attachment.expiresAt)}` : ""}</p>}</div><Button type="button" variant="ghost" onClick={() => void updateAttachments(attachments.filter((item) => item.id !== attachment.id))} className="h-7 px-1.5 text-red-600 hover:bg-red-50 hover:text-red-700" aria-label={`Excluir ${attachment.name}`}><Trash2 className="h-3.5 w-3.5" /></Button></div>)}</div>
               </div>) : <p className="rounded border border-dashed border-slate-200 p-2 text-xs text-slate-500">Anexe passaporte, RG, visto ou outros comprovantes em PDF ou imagem de até 8 MB.</p>}
             </div>
           </div>

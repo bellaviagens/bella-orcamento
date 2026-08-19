@@ -751,3 +751,6 @@
 - [x] Criar painel de alertas documentais na tela inicial
 - [x] Expandir o checklist documental com regras de visto específicas por país de destino
 - [x] Permitir checklist de documentos individualizado para cada acompanhante do cliente
+- [x] Destacar visualmente documentos pendentes e próximos do vencimento na interface
+- [x] Registrar validade e status de aprovação de vistos e autorizações eletrônicas por passageiro
+- [x] Criar relatório consolidado de pendências documentais por passageiro da viagem
