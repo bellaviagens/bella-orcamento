@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { filterSavedTourProposals } from "./tourProposalListState";
+import { filterSavedTourProposals, filterSavedTourProposalsByStatus } from "./tourProposalListState";
 
 const proposals = [
-  { clientName: "Suelen Vieira", proposalTitle: "Santiago" },
-  { clientName: "Família Anderson", proposalTitle: "Vale Nevado" },
+  { clientName: "Suelen Vieira", proposalTitle: "Santiago", status: "pending" as const },
+  { clientName: "Família Anderson", proposalTitle: "Vale Nevado", status: "approved" as const },
 ];
 
 describe("filterSavedTourProposals", () => {
@@ -14,5 +14,11 @@ describe("filterSavedTourProposals", () => {
 
   it("mantém todas as propostas quando a busca está vazia", () => {
     expect(filterSavedTourProposals(proposals, "   ")).toEqual(proposals);
+  });
+
+  it("filtra as propostas pelo status selecionado sem afetar a busca por cliente", () => {
+    expect(filterSavedTourProposalsByStatus(proposals, "pending")).toEqual([proposals[0]]);
+    expect(filterSavedTourProposalsByStatus(proposals, "approved")).toEqual([proposals[1]]);
+    expect(filterSavedTourProposalsByStatus(proposals, "all")).toEqual(proposals);
   });
 });

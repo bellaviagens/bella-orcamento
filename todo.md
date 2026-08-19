@@ -714,3 +714,5 @@
 - [x] Alinhar os controles de exibição, categorias e limpar filtros da Biblioteca na mesma linha
 - [x] Separar a abertura de rascunhos entre Orçamento completo, Proposta de passeios e Roteiro final
 - [x] Adicionar busca própria para cada tipo de rascunho
+- [x] Renomear Orçamento completo para Orçamento de viagem no seletor de rascunhos
+- [x] Adicionar filtro por status nas propostas de passeios do seletor de rascunhos

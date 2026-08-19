@@ -24,7 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff, CalendarDays, MapPinned, FolderOpen, Save, Pencil, Search, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
-import { filterSavedTourProposals } from "@/components/forms/tourProposalListState";
+import { filterSavedTourProposals, filterSavedTourProposalsByStatus, type SavedTourProposalStatusFilter } from "@/components/forms/tourProposalListState";
 
 function BuilderContent() {
   const { budget, replaceBudget, updateTripInfo } = useBudget();
@@ -45,6 +45,7 @@ function BuilderContent() {
   const [draftKind, setDraftKind] = useState<"complete-budget" | "tour-proposal" | "final-itinerary">("complete-budget");
   const [draftSearch, setDraftSearch] = useState("");
   const [tourProposalSearch, setTourProposalSearch] = useState("");
+  const [tourProposalStatusFilter, setTourProposalStatusFilter] = useState<SavedTourProposalStatusFilter>("all");
   const [finalItineraryDraftSearch, setFinalItineraryDraftSearch] = useState("");
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
   const [editingDraftLabel, setEditingDraftLabel] = useState("");
@@ -65,8 +66,11 @@ function BuilderContent() {
   const completeBudgetDrafts = (draftsQuery.data || []).filter((draft) => draft.kind !== "final-itinerary");
   const finalItineraryDrafts = (finalItineraryDraftsQuery.data || []).filter((draft) => draft.kind === "final-itinerary");
   const filteredTourProposals = useMemo(
-    () => filterSavedTourProposals(tourProposalsQuery.data || [], tourProposalSearch),
-    [tourProposalSearch, tourProposalsQuery.data],
+    () => filterSavedTourProposalsByStatus(
+      filterSavedTourProposals(tourProposalsQuery.data || [], tourProposalSearch),
+      tourProposalStatusFilter,
+    ),
+    [tourProposalSearch, tourProposalStatusFilter, tourProposalsQuery.data],
   );
   const showingItinerary = sideView === "budget" && activeTab === "itinerary";
   const showingFinalItinerary = showingItinerary && itineraryMode === "final";
@@ -113,7 +117,7 @@ function BuilderContent() {
 
   const openDrafts = () => {
     if (!draftLabel.trim()) {
-      setDraftLabel(budget.tripInfo.destination ? `Orçamento — ${budget.tripInfo.destination}` : "Orçamento em rascunho");
+      setDraftLabel(budget.tripInfo.destination ? `Orçamento de viagem — ${budget.tripInfo.destination}` : "Orçamento de viagem em rascunho");
     }
     setDraftKind("complete-budget");
     setDraftDialogOpen(true);
@@ -185,7 +189,7 @@ function BuilderContent() {
             className="text-white hover:bg-white/10"
           >
             <Save className="h-4 w-4 mr-2" />
-            Orçamento completo
+            Rascunhos
           </Button>
           <Button
             variant="ghost"
@@ -246,7 +250,7 @@ function BuilderContent() {
           </DialogHeader>
           <Tabs value={draftKind} onValueChange={(value) => setDraftKind(value as "complete-budget" | "tour-proposal" | "final-itinerary")}>
             <TabsList className="grid h-auto w-full grid-cols-3 bg-slate-100 p-1">
-              <TabsTrigger value="complete-budget" className="px-2 py-2 text-[11px] leading-tight data-[state=active]:text-[#1a2e4a]">Orçamento completo</TabsTrigger>
+              <TabsTrigger value="complete-budget" className="px-2 py-2 text-[11px] leading-tight data-[state=active]:text-[#1a2e4a]">Orçamento de viagem</TabsTrigger>
               <TabsTrigger value="tour-proposal" className="px-2 py-2 text-[11px] leading-tight data-[state=active]:text-[#1a2e4a]">Proposta de passeios</TabsTrigger>
               <TabsTrigger value="final-itinerary" className="px-2 py-2 text-[11px] leading-tight data-[state=active]:text-[#1a2e4a]">Roteiro final</TabsTrigger>
             </TabsList>
@@ -257,18 +261,18 @@ function BuilderContent() {
                 <Input id="draft-label" value={draftLabel} onChange={(event) => setDraftLabel(event.target.value)} placeholder="Ex.: Orçamento — Santiago" />
                 <Button type="button" className="w-full bg-[#1a2e4a] text-white hover:bg-[#243c62]" onClick={saveDraft} disabled={saveDraftMutation.isPending}>
                   <Save className="mr-2 h-4 w-4" />
-                  {saveDraftMutation.isPending ? "Salvando..." : "Salvar orçamento completo (rascunho)"}
+                  {saveDraftMutation.isPending ? "Salvando..." : "Salvar orçamento de viagem (rascunho)"}
                 </Button>
-                <p className="text-[11px] leading-relaxed text-slate-500">Este tipo guarda todo o orçamento — cliente, viagem, voos, hotéis, tarifas e pagamentos. Propostas de passeios e roteiros finais aparecem nas abas ao lado.</p>
+                <p className="text-[11px] leading-relaxed text-slate-500">Este tipo guarda as informações da viagem — cliente, voos, hotéis, tarifas e pagamentos. Propostas de passeios e roteiros finais aparecem nas abas ao lado.</p>
               </div>
               <div className="border-t border-slate-200 pt-4">
-                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#1a2e4a]"><FolderOpen className="h-4 w-4" /> Orçamentos completos salvos</div>
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#1a2e4a]"><FolderOpen className="h-4 w-4" /> Orçamentos de viagem salvos</div>
                 <div className="relative mb-3">
                   <Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
                   <Input value={draftSearch} onChange={(event) => setDraftSearch(event.target.value)} placeholder="Buscar por cliente, destino ou nome" className="h-9 pl-8 text-xs" />
                 </div>
                 {draftsQuery.isLoading ? (
-                  <p className="text-xs text-slate-500">Carregando orçamentos...</p>
+                  <p className="text-xs text-slate-500">Carregando orçamentos de viagem...</p>
                 ) : completeBudgetDrafts.length ? (
                   <div className="max-h-48 space-y-2 overflow-y-auto pr-1">
                     {completeBudgetDrafts.map((draft) => (
@@ -285,7 +289,7 @@ function BuilderContent() {
                       </div>
                     ))}
                   </div>
-                ) : <p className="text-xs text-slate-500">{draftSearch ? "Nenhum orçamento completo encontrado." : "Nenhum orçamento completo salvo ainda."}</p>}
+                ) : <p className="text-xs text-slate-500">{draftSearch ? "Nenhum orçamento de viagem encontrado." : "Nenhum orçamento de viagem salvo ainda."}</p>}
               </div>
             </TabsContent>
 
@@ -298,6 +302,26 @@ function BuilderContent() {
                 <Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
                 <Input value={tourProposalSearch} onChange={(event) => setTourProposalSearch(event.target.value)} placeholder="Buscar pelo nome do cliente" className="h-9 pl-8 text-xs" />
               </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="mr-1 text-[11px] font-semibold text-slate-600">Status:</span>
+                {([
+                  ["all", "Todos"],
+                  ["pending", "Pendentes"],
+                  ["sent", "Enviadas"],
+                  ["approved", "Aprovadas"],
+                ] as const).map(([status, label]) => (
+                  <Button
+                    key={status}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setTourProposalStatusFilter(status)}
+                    className={`h-7 px-2.5 text-[10px] ${tourProposalStatusFilter === status ? "border-[#1a2e4a] bg-[#1a2e4a] text-white hover:bg-[#243c62] hover:text-white" : "border-slate-300 bg-white text-slate-600 hover:border-[#1a2e4a] hover:text-[#1a2e4a]"}`}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
               {tourProposalsQuery.isLoading ? (
                 <p className="text-xs text-slate-500">Carregando propostas de passeios...</p>
               ) : filteredTourProposals.length ? (
@@ -309,7 +333,7 @@ function BuilderContent() {
                     </div>
                   ))}
                 </div>
-              ) : <p className="text-xs text-slate-500">{tourProposalSearch ? "Nenhuma proposta de passeios encontrada." : "Nenhuma proposta de passeios salva ainda."}</p>}
+              ) : <p className="text-xs text-slate-500">{tourProposalSearch || tourProposalStatusFilter !== "all" ? "Nenhuma proposta de passeios encontrada com os filtros selecionados." : "Nenhuma proposta de passeios salva ainda."}</p>}
             </TabsContent>
 
             <TabsContent value="final-itinerary" className="mt-4 space-y-3">
