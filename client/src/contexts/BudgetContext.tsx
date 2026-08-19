@@ -38,8 +38,10 @@ interface BudgetContextType {
   clearFinalItinerary: () => void;
   addFinalItineraryEvent: (event?: Partial<FinalItineraryEvent>) => void;
   updateFinalItineraryEvent: (id: string, updates: Partial<FinalItineraryEvent>) => void;
+  updateFinalItineraryDayDate: (day: number, proposalDayDate: string) => void;
   removeFinalItineraryEvent: (id: string) => void;
   reorderFinalItineraryEvents: (events: FinalItineraryEvent[]) => void;
+  reorderFinalItineraryDays: (sourceDay: number, targetDay: number) => void;
   addFlightToFinalItinerary: (flightId: string) => void;
   addHotelToFinalItinerary: (hotelId: string) => void;
   addTourToFinalItinerary: (tourId: string) => void;
@@ -553,6 +555,51 @@ export function addFinalItineraryEventToBudget(budget: BudgetData, event: Partia
   };
 }
 
+function finalItineraryDayDate(events: FinalItineraryEvent[]) {
+  return events
+    .map((event) => event.proposalDayDate || event.flightDate || event.hotelCheckIn || event.hotelCheckOut)
+    .find(Boolean) || "";
+}
+
+/** Atualiza a data planejada de todos os compromissos pertencentes ao mesmo dia. */
+export function updateFinalItineraryDayDateInBudget(budget: BudgetData, day: number, proposalDayDate: string): BudgetData {
+  return {
+    ...budget,
+    finalItinerary: {
+      ...budget.finalItinerary,
+      events: budget.finalItinerary.events.map((event) => event.day === day ? { ...event, proposalDayDate } : event),
+    },
+  };
+}
+
+/** Reorganiza blocos diários completos e redistribui as datas conforme a nova ordem cronológica. */
+export function reorderFinalItineraryDaysInBudget(budget: BudgetData, sourceDay: number, targetDay: number): BudgetData {
+  if (sourceDay === targetDay) return budget;
+
+  const eventsByDay = new Map<number, FinalItineraryEvent[]>();
+  budget.finalItinerary.events.forEach((event) => {
+    const eventsForDay = eventsByDay.get(event.day) || [];
+    eventsForDay.push(event);
+    eventsByDay.set(event.day, eventsForDay);
+  });
+
+  const currentDayOrder = Array.from(eventsByDay.keys()).sort((first, second) => first - second);
+  const sourceIndex = currentDayOrder.indexOf(sourceDay);
+  const targetIndex = currentDayOrder.indexOf(targetDay);
+  if (sourceIndex < 0 || targetIndex < 0) return budget;
+
+  const dateSlots = currentDayOrder.map((day) => finalItineraryDayDate(eventsByDay.get(day) || []));
+  const nextDayOrder = [...currentDayOrder];
+  const [movedDay] = nextDayOrder.splice(sourceIndex, 1);
+  nextDayOrder.splice(targetIndex, 0, movedDay);
+
+  const events = nextDayOrder.flatMap((day, index) => (
+    (eventsByDay.get(day) || []).map((event) => ({ ...event, day: index + 1, proposalDayDate: dateSlots[index] }))
+  ));
+
+  return { ...budget, finalItinerary: { ...budget.finalItinerary, events } };
+}
+
 export function addFlightToFinalItineraryInBudget(budget: BudgetData, flightId: string): BudgetData {
   const flight = budget.flights.find((item) => item.id === flightId);
   if (!flight || budget.finalItinerary.events.some((event) => event.sourceFlightId === flightId)) return budget;
@@ -815,12 +862,20 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     setBudget((prev) => ({ ...prev, finalItinerary: { ...prev.finalItinerary, events: prev.finalItinerary.events.map((event) => event.id === id ? { ...event, ...updates } : event) } }));
   }, []);
 
+  const updateFinalItineraryDayDate = useCallback((day: number, proposalDayDate: string) => {
+    setBudget((prev) => updateFinalItineraryDayDateInBudget(prev, day, proposalDayDate));
+  }, []);
+
   const removeFinalItineraryEvent = useCallback((id: string) => {
     setBudget((prev) => ({ ...prev, finalItinerary: { ...prev.finalItinerary, events: prev.finalItinerary.events.filter((event) => event.id !== id) } }));
   }, []);
 
   const reorderFinalItineraryEvents = useCallback((events: FinalItineraryEvent[]) => {
     setBudget((prev) => ({ ...prev, finalItinerary: { ...prev.finalItinerary, events } }));
+  }, []);
+
+  const reorderFinalItineraryDays = useCallback((sourceDay: number, targetDay: number) => {
+    setBudget((prev) => reorderFinalItineraryDaysInBudget(prev, sourceDay, targetDay));
   }, []);
 
   const addFlightToFinalItinerary = useCallback((flightId: string) => setBudget((prev) => addFlightToFinalItineraryInBudget(prev, flightId)), []);
@@ -956,8 +1011,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         clearFinalItinerary,
         addFinalItineraryEvent,
         updateFinalItineraryEvent,
+        updateFinalItineraryDayDate,
         removeFinalItineraryEvent,
         reorderFinalItineraryEvents,
+        reorderFinalItineraryDays,
         addFlightToFinalItinerary,
         addHotelToFinalItinerary,
         addTourToFinalItinerary,

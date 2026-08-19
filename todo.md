@@ -696,3 +696,5 @@
 - [x] Manter o filtro Transfer na mesma linha dos demais filtros da Biblioteca
 - [x] Padronizar campos monetários editáveis para aceitar valores inteiros e exibir reais com duas casas decimais
 - [x] Exibir data e dia da semana da Proposta no cabeçalho de cada dia do Roteiro Final
+- [x] Permitir editar manualmente a data de cada dia pelo cabeçalho do Roteiro Final
+- [x] Permitir reordenar dias do Roteiro Final por arrastar e soltar, atualizando dias e datas

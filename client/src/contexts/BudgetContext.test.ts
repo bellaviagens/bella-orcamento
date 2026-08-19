@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rehydrateBudgetDraft, restoreLastBudgetFromStorage, updateFareTierInBudget } from "./BudgetContext";
+import { rehydrateBudgetDraft, reorderFinalItineraryDaysInBudget, restoreLastBudgetFromStorage, updateFareTierInBudget, updateFinalItineraryDayDateInBudget } from "./BudgetContext";
 import { defaultBudgetData } from "@shared/budgetTypes";
 
 describe("updateFareTierInBudget", () => {
@@ -73,5 +73,37 @@ describe("restoreLastBudgetFromStorage", () => {
 
   it("usa o orçamento padrão quando o conteúdo local estiver inválido", () => {
     expect(restoreLastBudgetFromStorage("{conteúdo inválido")).toEqual(defaultBudgetData);
+  });
+});
+
+describe("dias do Roteiro Final", () => {
+  const budgetWithFinalDays = {
+    ...defaultBudgetData,
+    finalItinerary: {
+      ...defaultBudgetData.finalItinerary,
+      events: [
+        { id: "dia-1", day: 1, proposalDayDate: "2026-08-30", kind: "tour" as const, title: "Primeiro dia", time: "", description: "", linkUrl: "", addressUrl: "", photoUrl: "", attachments: [] },
+        { id: "dia-1b", day: 1, proposalDayDate: "2026-08-30", kind: "custom" as const, title: "Segundo compromisso", time: "", description: "", linkUrl: "", addressUrl: "", photoUrl: "", attachments: [] },
+        { id: "dia-2", day: 2, proposalDayDate: "2026-08-31", kind: "tour" as const, title: "Segundo dia", time: "", description: "", linkUrl: "", addressUrl: "", photoUrl: "", attachments: [] },
+      ],
+    },
+  };
+
+  it("aplica a data editada a todos os compromissos do mesmo dia", () => {
+    const updated = updateFinalItineraryDayDateInBudget(budgetWithFinalDays, 1, "2026-09-02");
+
+    expect(updated.finalItinerary.events[0].proposalDayDate).toBe("2026-09-02");
+    expect(updated.finalItinerary.events[1].proposalDayDate).toBe("2026-09-02");
+    expect(updated.finalItinerary.events[2].proposalDayDate).toBe("2026-08-31");
+  });
+
+  it("reordena os blocos diários e faz as datas acompanharem a nova posição", () => {
+    const updated = reorderFinalItineraryDaysInBudget(budgetWithFinalDays, 2, 1);
+
+    expect(updated.finalItinerary.events.map((event) => [event.title, event.day, event.proposalDayDate])).toEqual([
+      ["Segundo dia", 1, "2026-08-30"],
+      ["Primeiro dia", 2, "2026-08-31"],
+      ["Segundo compromisso", 2, "2026-08-31"],
+    ]);
   });
 });

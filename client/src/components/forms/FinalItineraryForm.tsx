@@ -80,14 +80,18 @@ export function FinalItineraryForm() {
     clearFinalItinerary,
     addFinalItineraryEvent,
     updateFinalItineraryEvent,
+    updateFinalItineraryDayDate,
     removeFinalItineraryEvent,
     reorderFinalItineraryEvents,
+    reorderFinalItineraryDays,
     addFlightToFinalItinerary,
     addHotelToFinalItinerary,
     addTourToFinalItinerary,
   } = useBudget();
   const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
   const [dragOverEventId, setDragOverEventId] = useState<string | null>(null);
+  const [draggedDay, setDraggedDay] = useState<number | null>(null);
+  const [dragOverDay, setDragOverDay] = useState<number | null>(null);
   const [uploadingEventId, setUploadingEventId] = useState<string | null>(null);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
   const [boardingPassMessageByEvent, setBoardingPassMessageByEvent] = useState<Record<string, string>>({});
@@ -166,6 +170,8 @@ export function FinalItineraryForm() {
     clearFinalItinerary();
     setDraggedEventId(null);
     setDragOverEventId(null);
+    setDraggedDay(null);
+    setDragOverDay(null);
     setAttachmentPassengerByEvent({});
     setNewPassengerName("");
     setShareUrl("");
@@ -266,6 +272,13 @@ export function FinalItineraryForm() {
     const source = events.find((event) => event.id === draggedEventId);
     const target = events.find((event) => event.id === targetId);
     return Boolean(source && target && source.id !== target.id && source.day === target.day);
+  };
+
+  const canReorderDayAt = (targetDay: number) => draggedDay !== null && draggedDay !== targetDay;
+
+  const reorderDay = (targetDay: number) => {
+    if (!canReorderDayAt(targetDay) || draggedDay === null) return;
+    reorderFinalItineraryDays(draggedDay, targetDay);
   };
 
   const buildGoogleMapsUrl = (address: string) => address.trim()
@@ -546,7 +559,7 @@ export function FinalItineraryForm() {
         </div>
       </section>
 
-      {events.length > 1 && <p className="rounded-md border border-dashed border-slate-200 bg-white px-3 py-2 text-xs leading-relaxed text-slate-500"><GripVertical className="mr-1 inline h-3.5 w-3.5 text-[#1a2e4a]" />Arraste as atividades para reorganizá-las <strong className="font-semibold text-[#1a2e4a]">dentro do mesmo dia</strong>. Essa sequência será usada na capa, no roteiro e no PDF.</p>}
+      {events.length > 1 && <p className="rounded-md border border-dashed border-slate-200 bg-white px-3 py-2 text-xs leading-relaxed text-slate-500"><GripVertical className="mr-1 inline h-3.5 w-3.5 text-[#1a2e4a]" />Arraste os compromissos para reorganizá-los <strong className="font-semibold text-[#1a2e4a]">dentro do mesmo dia</strong> ou use o ícone no cabeçalho para mover o <strong className="font-semibold text-[#1a2e4a]">dia inteiro</strong>. A data acompanha a nova posição no roteiro e no PDF.</p>}
       {events.map((event, index) => {
         const previousEvent = events[index - 1];
         const isFirstEventOfDay = !previousEvent || previousEvent.day !== event.day;
@@ -559,7 +572,7 @@ export function FinalItineraryForm() {
 
         return (
           <div key={event.id} className="space-y-2">
-            {isFirstEventOfDay && <section className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#1a2e4a]/15 bg-blue-50/60 px-3 py-2"><div className="flex items-center gap-2"><span className="rounded-full bg-[#1a2e4a] px-2 py-1 text-xs font-bold text-white">Dia {event.day}</span><span className="text-xs font-bold text-[#1a2e4a]">{dayDateLabel ? `Compromissos do dia • ${dayDateLabel}` : "Compromissos do dia"}</span></div><Button type="button" variant="ghost" size="sm" onClick={() => toggleSection(daySectionId)} aria-expanded={!isDayCollapsed} className="h-11 min-w-28 px-3 text-xs text-slate-500 hover:bg-white hover:text-[#1a2e4a] sm:h-8 sm:min-w-0 sm:px-2"><ChevronDown className={`mr-1 h-4 w-4 transition-transform ${isDayCollapsed ? "" : "rotate-180"}`} />{isDayCollapsed ? "Abrir dia" : "Recolher dia"}</Button></section>}
+            {isFirstEventOfDay && <section onDragOver={(nativeEvent) => { if (!canReorderDayAt(event.day)) return; nativeEvent.preventDefault(); setDragOverDay(event.day); }} onDragLeave={() => dragOverDay === event.day && setDragOverDay(null)} onDrop={(nativeEvent) => { if (!canReorderDayAt(event.day)) return; nativeEvent.preventDefault(); reorderDay(event.day); setDraggedDay(null); setDragOverDay(null); }} className={`flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 ${dragOverDay === event.day ? "border-[#1a2e4a] bg-blue-100" : "border-[#1a2e4a]/15 bg-blue-50/60"}`}><div className="flex min-w-0 flex-wrap items-center gap-2"><button type="button" draggable onDragStart={(nativeEvent) => { nativeEvent.dataTransfer.effectAllowed = "move"; setDraggedDay(event.day); }} onDragEnd={() => { setDraggedDay(null); setDragOverDay(null); }} className="cursor-grab text-slate-400 hover:text-[#1a2e4a]" title={`Arraste o Dia ${event.day} para outra posição`} aria-label={`Arraste o Dia ${event.day} para outra posição`}><GripVertical className="h-5 w-5" /></button><span className="rounded-full bg-[#1a2e4a] px-2 py-1 text-xs font-bold text-white">Dia {event.day}</span><span className="text-xs font-bold text-[#1a2e4a]">{dayDateLabel ? `Compromissos do dia • ${dayDateLabel}` : "Compromissos do dia"}</span><label className="sr-only" htmlFor={`final-itinerary-day-date-${event.day}`}>Data do Dia {event.day}</label><Input id={`final-itinerary-day-date-${event.day}`} type="date" value={getFinalItineraryDayDate(eventsForDay) || ""} onChange={(nativeEvent) => updateFinalItineraryDayDate(event.day, nativeEvent.target.value)} className="h-8 w-[142px] bg-white text-xs" title={`Editar data do Dia ${event.day}`} /></div><Button type="button" variant="ghost" size="sm" onClick={() => toggleSection(daySectionId)} aria-expanded={!isDayCollapsed} className="h-11 min-w-28 px-3 text-xs text-slate-500 hover:bg-white hover:text-[#1a2e4a] sm:h-8 sm:min-w-0 sm:px-2"><ChevronDown className={`mr-1 h-4 w-4 transition-transform ${isDayCollapsed ? "" : "rotate-180"}`} />{isDayCollapsed ? "Abrir dia" : "Recolher dia"}</Button></section>}
             {!isDayCollapsed && <article
           key={event.id}
           onDragOver={(nativeEvent) => { if (!canReorderAt(event.id)) return; nativeEvent.preventDefault(); setDragOverEventId(event.id); }}
