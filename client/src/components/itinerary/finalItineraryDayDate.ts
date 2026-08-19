@@ -7,10 +7,11 @@ export function getFinalItineraryDayDate(events: FinalItineraryEvent[]) {
     .find(Boolean);
 }
 
-/** Formata a data no mesmo padrão conciso de dia da semana usado na Proposta. */
+/** Formata a data completa no padrão exibido nos cabeçalhos do Roteiro Final. */
 export function formatFinalItineraryDayDate(date?: string) {
   if (!date) return "";
   const parsed = new Date(`${date}T12:00:00`);
   if (Number.isNaN(parsed.getTime())) return date;
-  return new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "2-digit" }).format(parsed);
+  const formatted = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" }).format(parsed).replace(", ", " ");
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }

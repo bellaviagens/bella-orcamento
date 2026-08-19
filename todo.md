@@ -698,3 +698,4 @@
 - [x] Exibir data e dia da semana da Proposta no cabeçalho de cada dia do Roteiro Final
 - [x] Permitir editar manualmente a data de cada dia pelo cabeçalho do Roteiro Final
 - [x] Permitir reordenar dias do Roteiro Final por arrastar e soltar, atualizando dias e datas
+- [x] Simplificar o cabeçalho diário para Dia, dia da semana e data completa, sem “Compromissos do dia”

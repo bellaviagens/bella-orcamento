@@ -117,7 +117,7 @@ describe("FinalItineraryPreview — capa institucional", () => {
 
     const markup = renderToStaticMarkup(<FinalItineraryPreview data={data} />);
 
-    expect(markup).toContain("Dia 1 • domingo, 30/08");
+    expect(markup).toContain("Dia 1 • Domingo 30/08/2026");
   });
 
   it("usa o visual personalizado da atividade no resumo cronológico", () => {

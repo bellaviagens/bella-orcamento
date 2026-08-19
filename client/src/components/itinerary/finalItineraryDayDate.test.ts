@@ -29,7 +29,7 @@ describe("datas dos dias do Roteiro Final", () => {
     ])).toBe("2026-08-31");
   });
 
-  it("exibe dia da semana e data no padrão brasileiro", () => {
-    expect(formatFinalItineraryDayDate("2026-08-30")).toBe("domingo, 30/08");
+  it("exibe dia da semana e data completa no padrão brasileiro", () => {
+    expect(formatFinalItineraryDayDate("2026-08-30")).toBe("Domingo 30/08/2026");
   });
 });
