@@ -15,6 +15,43 @@ import { TravelLibraryPanel } from "./TravelLibraryPanel";
 import { travelLibraryLocationFromDestination } from "./travelLibraryLocation";
 import { filterSavedTourProposals } from "./tourProposalListState";
 import { validTravelLibraryImageUrl } from "./travelLibraryRestaurantSave";
+import { formatBrazilianCurrencyInput, parseBrazilianCurrencyInput } from "./installmentsCashValue";
+
+function CurrencyInput({
+  value,
+  onValueChange,
+  className,
+  placeholder = "R$ 0,00",
+}: {
+  value?: number;
+  onValueChange: (value: number) => void;
+  className?: string;
+  placeholder?: string;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+
+  return <Input
+    type="text"
+    inputMode="decimal"
+    value={isEditing ? draft : value ? formatBrazilianCurrencyInput(value) : ""}
+    onFocus={() => {
+      setIsEditing(true);
+      setDraft(value ? value.toFixed(2).replace(".", ",") : "");
+    }}
+    onChange={(event) => {
+      const nextDraft = event.target.value;
+      setDraft(nextDraft);
+      onValueChange(parseBrazilianCurrencyInput(nextDraft));
+    }}
+    onBlur={() => {
+      setIsEditing(false);
+      setDraft("");
+    }}
+    placeholder={placeholder}
+    className={className}
+  />;
+}
 
 export function ItineraryForm() {
   const { budget, addGastronomyToDay, addGastronomyToUsefulTips, addItineraryDay, addItineraryActivity, addTour, importItineraryFromQuotation, moveItineraryActivity, removeGastronomyOption, removeItineraryActivity, reorderItineraryActivities, replaceBudget, resetTourProposal, saveGastronomyOption, updateItineraryActivity, updateTour, updateTourProposal, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
@@ -518,7 +555,7 @@ export function ItineraryForm() {
 	              <div><Label htmlFor="proposal-installments">Parcelamento</Label><Select value={String(budget.tourProposal.installments || 1)} onValueChange={(value) => updateTourProposal({ installments: Number(value) })}><SelectTrigger id="proposal-installments" className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="1">À vista</SelectItem><SelectItem value="2">2x</SelectItem><SelectItem value="3">3x</SelectItem><SelectItem value="4">4x</SelectItem><SelectItem value="5">5x</SelectItem><SelectItem value="6">6x</SelectItem><SelectItem value="8">8x</SelectItem><SelectItem value="10">10x</SelectItem><SelectItem value="12">12x</SelectItem></SelectContent></Select></div>
 	              <div><Label htmlFor="proposal-payment-method">Forma de pagamento</Label><Select value={budget.tourProposal.paymentMethod || "none"} onValueChange={(value) => updateTourProposal({ paymentMethod: value === "none" ? undefined : value as "card" | "cash" | "pix" | "other" })}><SelectTrigger id="proposal-payment-method" className="mt-1 bg-white"><SelectValue placeholder="Selecionar forma" /></SelectTrigger><SelectContent><SelectItem value="none">Selecionar forma</SelectItem><SelectItem value="card">Cartão</SelectItem><SelectItem value="cash">Dinheiro</SelectItem><SelectItem value="pix">PIX</SelectItem><SelectItem value="other">Outro</SelectItem></SelectContent></Select></div>
 	              <div><Label htmlFor="proposal-entry">Possui entrada?</Label><Select value={budget.tourProposal.hasEntry ? "yes" : "no"} onValueChange={(value) => updateTourProposal({ hasEntry: value === "yes", entryAmount: value === "yes" ? budget.tourProposal.entryAmount || 0 : 0 })}><SelectTrigger id="proposal-entry" className="mt-1 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="no">Não</SelectItem><SelectItem value="yes">Sim</SelectItem></SelectContent></Select></div>
-	              {budget.tourProposal.hasEntry && <div><Label htmlFor="proposal-entry-amount">Valor da entrada</Label><Input id="proposal-entry-amount" type="number" min="0" step="0.01" value={budget.tourProposal.entryAmount || ""} onChange={(event) => updateTourProposal({ entryAmount: Math.max(0, Number(event.target.value) || 0) })} placeholder="R$ 0,00" className="mt-1 bg-white" /></div>}
+              {budget.tourProposal.hasEntry && <div><Label htmlFor="proposal-entry-amount">Valor da entrada</Label><CurrencyInput value={budget.tourProposal.entryAmount || undefined} onValueChange={(value) => updateTourProposal({ entryAmount: Math.max(0, value) })} placeholder="R$ 0,00" className="mt-1 bg-white" /></div>}
 	              {budget.tourProposal.paymentMethod === "other" && <div className="sm:col-span-3"><Label htmlFor="proposal-payment-other">Identificação da forma de pagamento</Label><Input id="proposal-payment-other" value={budget.tourProposal.paymentMethodOtherLabel || ""} onChange={(event) => updateTourProposal({ paymentMethodOtherLabel: event.target.value })} placeholder="Ex.: Direto com agência" className="mt-1 bg-white" /></div>}
 	              <div className="sm:col-span-3 max-w-2xl"><Label htmlFor="proposal-payment">Detalhes da condição de pagamento</Label><Textarea id="proposal-payment" value={budget.tourProposal.paymentDetails} onChange={(event) => updateTourProposal({ paymentDetails: event.target.value })} placeholder="Ex.: Taxa inclusa, vencimento ou condições combinadas" className="mt-1 min-h-12 resize-none bg-white text-sm" /></div>
 	            </div>
@@ -709,7 +746,7 @@ export function ItineraryForm() {
               <Button variant="ghost" size="sm" onClick={() => removeItineraryDay(day.id)} className="h-8 w-8 p-0 text-red-500 hover:text-red-700" title={`Remover dia ${day.day}`}><Trash2 className="h-4 w-4" /></Button>
             </div>
           </div>
-          {isCollapsed && tour && <div className="mb-3 flex max-w-xs items-end gap-2"><div className="flex-1"><Label className="text-xs">{valueLabel} (R$)</Label><Input type="number" min="0" step="0.01" inputMode="decimal" value={quickValue || ""} onChange={(event) => updateTour(tour.id, { ...tour, [tour.pricingMode === "perPerson" ? "pricePerPerson" : "totalPrice"]: Math.max(0, Number(event.target.value) || 0) })} placeholder="Informe o valor" className="mt-1 h-9 bg-white text-sm font-semibold" /></div>{tour.pricingMode === "perPerson" && <span className="pb-2 text-xs text-slate-500">por adulto</span>}</div>}
+          {isCollapsed && tour && <div className="mb-3 flex max-w-xs items-end gap-2"><div className="flex-1"><Label className="text-xs">{valueLabel} (R$)</Label><CurrencyInput value={quickValue || undefined} onValueChange={(value) => updateTour(tour.id, { ...tour, [tour.pricingMode === "perPerson" ? "pricePerPerson" : "totalPrice"]: Math.max(0, value) })} placeholder="Informe o valor" className="mt-1 h-9 bg-white text-sm font-semibold" /></div>{tour.pricingMode === "perPerson" && <span className="pb-2 text-xs text-slate-500">por adulto</span>}</div>}
           {!isCollapsed && <div className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <div><Label>Título do dia</Label><Input value={day.title} onChange={(event) => updateItineraryDay(day.id, { title: event.target.value })} placeholder="Ex.: Chegada em Santiago" className="mt-1 bg-white" /></div>

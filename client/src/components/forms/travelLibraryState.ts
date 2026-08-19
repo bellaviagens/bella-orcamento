@@ -4,7 +4,7 @@ export const TRAVEL_LIBRARY_CATEGORY_LABELS: Record<TravelLibraryCategory, strin
   hotel: "Hotéis",
   tour: "Passeios",
   restaurant: "Restaurantes",
-  transfer: "Transfers",
+  transfer: "Transfer",
 };
 
 type TravelLibraryItemLike = {

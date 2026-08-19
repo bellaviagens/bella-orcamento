@@ -693,3 +693,5 @@
 - [x] Compactar a área de pagamento da Proposta de Passeios e reduzir o campo de detalhes
 - [x] Incluir uma frase breve de orientação sobre a condição de pagamento
 - [x] Permitir recolher novamente a lista de propostas/clientes depois de aberta
+- [x] Manter o filtro Transfer na mesma linha dos demais filtros da Biblioteca
+- [x] Padronizar campos monetários editáveis para aceitar valores inteiros e exibir reais com duas casas decimais
