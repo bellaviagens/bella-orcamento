@@ -685,3 +685,6 @@
 - [x] Corrigir a Biblioteca para ocultar grupos e itens que não atendem aos filtros ativos
 - [x] Permitir editar os detalhes do restaurante diretamente após salvá-lo na Biblioteca
 - [x] Adicionar filtro de origem para visualizar separadamente itens da Biblioteca e restaurantes favoritos
+- [x] Iniciar recolhida a seção Abertura e pagamento da proposta de passeios
+- [x] Reorganizar os botões Nova proposta e Salvar passeios na Biblioteca nessa seção
+- [x] Adicionar ação Limpar proposta de passeios com confirmação de segurança

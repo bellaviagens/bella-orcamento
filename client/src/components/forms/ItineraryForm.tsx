@@ -67,6 +67,7 @@ export function ItineraryForm() {
   const [favoritePriceRangeDrafts, setFavoritePriceRangeDrafts] = useState<Record<string, string>>({});
   const [favoritePersonalNoteDrafts, setFavoritePersonalNoteDrafts] = useState<Record<string, string>>({});
   const [sharedFavoritesUrl, setSharedFavoritesUrl] = useState("");
+  const [proposalOpeningCollapsed, setProposalOpeningCollapsed] = useState(true);
   const [gastronomySectionCollapsed, setGastronomySectionCollapsed] = useState(false);
   const [gastronomyOptionsCollapsed, setGastronomyOptionsCollapsed] = useState(false);
   const [restaurantLibraryEditId, setRestaurantLibraryEditId] = useState<string | null>(null);
@@ -391,6 +392,7 @@ export function ItineraryForm() {
 
   const handleNewProposal = () => {
     resetTourProposal();
+    setProposalOpeningCollapsed(true);
     setCollapsedDayIds(new Set());
     setCollapsedActivityIds(new Set());
     knownDayIdsRef.current = new Set();
@@ -402,6 +404,23 @@ export function ItineraryForm() {
     setGastronomyLocation(emptyGastronomySearch.location);
     setGastronomyTargetDays(emptyGastronomySearch.targetDays);
     toast.success("Nova proposta iniciada. O Roteiro Final e as propostas salvas foram preservados.");
+  };
+
+  const handleClearProposalOpening = () => {
+    updateTourProposal({
+      title: "Proposta de passeios",
+      introMessage: "",
+      paymentDetails: "",
+      clientName: "",
+      installments: 1,
+      paymentMethod: undefined,
+      paymentMethodOtherLabel: "",
+      hasEntry: false,
+      entryAmount: 0,
+      coverSummaryFontSize: "medium",
+      coverSummaryDayIds: undefined,
+    });
+    toast.success("Campos de abertura e pagamento foram limpos. Os passeios e dias foram preservados.");
   };
 
   const createTourForActivity = (dayId: string, activity: { id: string; title: string; description: string; linkUrl: string; photoUrl: string }) => {
@@ -441,16 +460,18 @@ export function ItineraryForm() {
       </div>
 
       <div className="rounded-lg border border-[#1a2e4a]/15 bg-blue-50/60 p-3">
-        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h4 className="text-sm font-bold text-[#1a2e4a]">Abertura e pagamento da proposta</h4>
-            <p className="mt-1 text-xs text-slate-500">Essas informações aparecem antes e depois dos passeios no documento de aprovação.</p>
+        <div className="mb-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h4 className="text-sm font-bold text-[#1a2e4a]">Abertura e pagamento da proposta</h4>
+              <p className="mt-1 text-xs text-slate-500">Essas informações aparecem antes e depois dos passeios no documento de aprovação.</p>
+            </div>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setProposalOpeningCollapsed((current) => !current)} aria-expanded={!proposalOpeningCollapsed} className="h-10 min-w-24 shrink-0 px-3 text-xs text-slate-600 hover:bg-white hover:text-[#1a2e4a]"><ChevronDown className={`mr-1.5 h-4 w-4 transition-transform ${proposalOpeningCollapsed ? "" : "rotate-180"}`} />{proposalOpeningCollapsed ? "Abrir" : "Recolher"}</Button>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={() => void saveCurrentToursToLibrary()} disabled={saveToLibraryMutation.isPending || budget.tours.length === 0} className="h-9 shrink-0 bg-white text-xs font-bold"><FolderPlus className="mr-1.5 h-4 w-4" />Salvar passeios na Biblioteca</Button>
+          <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button type="button" variant="outline" className="h-9 shrink-0 bg-white text-xs font-bold"><FilePlus2 className="mr-1.5 h-4 w-4" />Nova proposta</Button>
+                <Button type="button" variant="outline" className="h-9 bg-white text-xs font-bold"><FilePlus2 className="mr-1.5 h-4 w-4" />Nova proposta</Button>
               </AlertDialogTrigger>
               <AlertDialogContent className="border-amber-200 bg-white">
                 <AlertDialogHeader>
@@ -465,8 +486,27 @@ export function ItineraryForm() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+            <Button type="button" variant="outline" onClick={() => void saveCurrentToursToLibrary()} disabled={saveToLibraryMutation.isPending || budget.tours.length === 0} className="h-9 bg-white text-xs font-bold"><FolderPlus className="mr-1.5 h-4 w-4" />Salvar passeios na Biblioteca</Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button type="button" variant="outline" className="h-9 border-red-200 bg-red-50 text-xs font-bold text-red-600 hover:bg-red-100 hover:text-red-700"><Trash2 className="mr-1.5 h-4 w-4" />Limpar campos</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="border-red-200 bg-white">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-[#1a2e4a]">Limpar abertura e pagamento?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Cliente, título, mensagem inicial e condições de pagamento serão limpos. Os passeios e dias cadastrados permanecerão preservados.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleClearProposalOpening} className="bg-red-600 text-white hover:bg-red-700">Limpar campos</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
+        {!proposalOpeningCollapsed && <>
         <div className="grid gap-3 sm:grid-cols-2">
           <div><Label htmlFor="proposal-client">Cliente</Label><Input id="proposal-client" value={budget.tourProposal.clientName || ""} onChange={(event) => updateTourProposal({ clientName: event.target.value })} placeholder="Ex.: Suelen Vieira" className="mt-1 bg-white" /></div>
           <div><Label htmlFor="proposal-title">Título da proposta</Label><Input id="proposal-title" value={budget.tourProposal.title} onChange={(event) => updateTourProposal({ title: event.target.value })} placeholder="Ex.: Passeios em Santiago" className="mt-1 bg-white" /></div>
@@ -522,8 +562,9 @@ export function ItineraryForm() {
               {!savedProposalsQuery.isLoading && filteredSavedProposals.length === 0 && <p className="px-1 py-2 text-xs text-slate-500">Nenhuma proposta encontrada para este cliente.</p>}
             </div></>}
           </div>
-          <AlertDialog open={Boolean(proposalToDelete)} onOpenChange={(open) => { if (!open) setProposalToDelete(null); }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Excluir proposta de passeios?</AlertDialogTitle><AlertDialogDescription>{proposalToDelete ? `A proposta de ${proposalToDelete.clientName} será removida permanentemente. Essa ação não altera o orçamento que está aberto agora.` : ""}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => void handleDeleteProposal()} className="bg-red-600 hover:bg-red-700">Excluir proposta</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
         </div>
+          <AlertDialog open={Boolean(proposalToDelete)} onOpenChange={(open) => { if (!open) setProposalToDelete(null); }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Excluir proposta de passeios?</AlertDialogTitle><AlertDialogDescription>{proposalToDelete ? `A proposta de ${proposalToDelete.clientName} será removida permanentemente. Essa ação não altera o orçamento que está aberto agora.` : ""}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => void handleDeleteProposal()} className="bg-red-600 hover:bg-red-700">Excluir proposta</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+        </>}
       </div>
 
       <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
