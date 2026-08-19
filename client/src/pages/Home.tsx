@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BudgetProvider, useBudget } from "@/contexts/BudgetContext";
 import { TripInfoForm } from "@/components/forms/TripInfoForm";
 import { FlightForm } from "@/components/forms/FlightForm";
@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Plane, Building2, Settings, FileText, Download, Eye, EyeOff, CalendarDays, MapPinned, FolderOpen, Save, Pencil, Search, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { filterSavedTourProposals } from "@/components/forms/tourProposalListState";
 
 function BuilderContent() {
   const { budget, replaceBudget, updateTripInfo } = useBudget();
@@ -40,17 +41,33 @@ function BuilderContent() {
   const [currentDraftId, setCurrentDraftId] = useState<string | undefined>();
   const [budgetLoadKey, setBudgetLoadKey] = useState(0);
   const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
+  const [selectedTourProposalId, setSelectedTourProposalId] = useState<string | null>(null);
+  const [draftKind, setDraftKind] = useState<"complete-budget" | "tour-proposal" | "final-itinerary">("complete-budget");
   const [draftSearch, setDraftSearch] = useState("");
+  const [tourProposalSearch, setTourProposalSearch] = useState("");
+  const [finalItineraryDraftSearch, setFinalItineraryDraftSearch] = useState("");
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
   const [editingDraftLabel, setEditingDraftLabel] = useState("");
   const draftsQuery = trpc.budgetDrafts.list.useQuery({ search: draftSearch });
+  const finalItineraryDraftsQuery = trpc.budgetDrafts.list.useQuery({ search: finalItineraryDraftSearch });
+  const tourProposalsQuery = trpc.tourProposals.list.useQuery();
   const selectedDraftQuery = trpc.budgetDrafts.get.useQuery(
     { id: selectedDraftId || "00000000-0000-0000-0000-000000000000" },
     { enabled: Boolean(selectedDraftId) },
   );
+  const selectedTourProposalQuery = trpc.tourProposals.get.useQuery(
+    { id: selectedTourProposalId || "00000000-0000-0000-0000-000000000000" },
+    { enabled: Boolean(selectedTourProposalId) },
+  );
   const saveDraftMutation = trpc.budgetDrafts.save.useMutation();
   const renameDraftMutation = trpc.budgetDrafts.rename.useMutation();
   const deleteDraftMutation = trpc.budgetDrafts.delete.useMutation();
+  const completeBudgetDrafts = (draftsQuery.data || []).filter((draft) => draft.kind !== "final-itinerary");
+  const finalItineraryDrafts = (finalItineraryDraftsQuery.data || []).filter((draft) => draft.kind === "final-itinerary");
+  const filteredTourProposals = useMemo(
+    () => filterSavedTourProposals(tourProposalsQuery.data || [], tourProposalSearch),
+    [tourProposalSearch, tourProposalsQuery.data],
+  );
   const showingItinerary = sideView === "budget" && activeTab === "itinerary";
   const showingFinalItinerary = showingItinerary && itineraryMode === "final";
 
@@ -70,10 +87,35 @@ function BuilderContent() {
     }
   }, [replaceBudget, selectedDraftId, selectedDraftQuery.data]);
 
+  useEffect(() => {
+    if (!selectedTourProposalId || !selectedTourProposalQuery.data) return;
+    try {
+      const restored = JSON.parse(selectedTourProposalQuery.data.snapshot);
+      if (!restored || typeof restored !== "object" || !Array.isArray(restored.tours) || !Array.isArray(restored.itinerary)) {
+        throw new Error("O arquivo salvo desta proposta está inválido.");
+      }
+      replaceBudget(restored);
+      setCurrentDraftId(undefined);
+      setDraftLabel("");
+      setBudgetLoadKey((currentKey) => currentKey + 1);
+      setSideView("budget");
+      setActiveTab("itinerary");
+      setItineraryMode("proposal");
+      setSelectedTourProposalId(null);
+      setDraftDialogOpen(false);
+      toast.success(`Proposta de ${selectedTourProposalQuery.data.clientName} carregada.`);
+    } catch (error) {
+      console.error("Load tour proposal from drafts error:", error);
+      toast.error(error instanceof Error ? error.message : "Não foi possível abrir esta proposta de passeios.");
+      setSelectedTourProposalId(null);
+    }
+  }, [replaceBudget, selectedTourProposalId, selectedTourProposalQuery.data]);
+
   const openDrafts = () => {
     if (!draftLabel.trim()) {
       setDraftLabel(budget.tripInfo.destination ? `Orçamento — ${budget.tripInfo.destination}` : "Orçamento em rascunho");
     }
+    setDraftKind("complete-budget");
     setDraftDialogOpen(true);
   };
 
@@ -197,66 +239,109 @@ function BuilderContent() {
       </header>
 
       <Dialog open={draftDialogOpen} onOpenChange={setDraftDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle className="text-[#1a2e4a]">Salvar ou abrir orçamento completo</DialogTitle>
-            <DialogDescription>O rascunho guarda todo o orçamento — cliente, viagem, voos, hotéis, tarifas, pagamentos e roteiro — para você continuar editando depois.</DialogDescription>
+            <DialogTitle className="text-[#1a2e4a]">Abrir ou salvar rascunhos</DialogTitle>
+            <DialogDescription>Escolha o tipo que deseja consultar. Cada lista mantém sua própria busca e abre diretamente no ponto correto do sistema.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="draft-label" className="text-xs font-semibold text-slate-600">Nome do rascunho</Label>
-            <Input id="draft-label" value={draftLabel} onChange={(event) => setDraftLabel(event.target.value)} placeholder="Ex.: Orçamento — Santiago" />
-            <Button type="button" className="w-full bg-[#1a2e4a] text-white hover:bg-[#243c62]" onClick={saveDraft} disabled={saveDraftMutation.isPending}>
-              <Save className="mr-2 h-4 w-4" />
-              {saveDraftMutation.isPending ? "Salvando..." : "Salvar orçamento completo (rascunho)"}
-            </Button>
-            <p className="text-[11px] leading-relaxed text-slate-500">A opção <strong>“Salvar proposta de passeios”</strong>, dentro de Roteiro, salva apenas a proposta de passeios para aprovação. Ela não substitui este orçamento completo.</p>
-          </div>
-          <div className="border-t border-slate-200 pt-4">
-            <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#1a2e4a]"><FolderOpen className="h-4 w-4" /> Rascunhos salvos</div>
-            <div className="relative mb-3">
-              <Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
-              <Input
-                value={draftSearch}
-                onChange={(event) => setDraftSearch(event.target.value)}
-                placeholder="Buscar por cliente, destino ou nome"
-                className="h-9 pl-8 text-xs"
-              />
-            </div>
-            {draftsQuery.isLoading ? (
-              <p className="text-xs text-slate-500">Carregando rascunhos...</p>
-            ) : draftsQuery.data?.length ? (
-              <div className="max-h-48 space-y-2 overflow-y-auto pr-1">
-                {draftsQuery.data.map((draft) => (
-                  <div key={draft.id} className="flex w-full items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-2.5 text-left transition-colors hover:border-amber-300 hover:bg-amber-50">
-                    <div className="min-w-0 flex-1">
-                      {editingDraftId === draft.id ? (
-                        <Input value={editingDraftLabel} onChange={(event) => setEditingDraftLabel(event.target.value)} className="h-8 text-xs" autoFocus />
-                      ) : (
-                        <span className="block truncate text-xs font-semibold text-[#1a2e4a]">{draft.label}</span>
-                      )}
-                      <span className="mt-1 block text-[10px] text-slate-500">
-                        {[draft.clientName && `Cliente: ${draft.clientName}`, draft.destination && `Destino: ${draft.destination}`].filter(Boolean).join(" • ") || "Cliente e destino não informados"}
-                      </span>
-                      <span className="block text-[10px] text-slate-500">Atualizado em {new Date(draft.updatedAt).toLocaleString("pt-BR")}</span>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-1">
-                      {editingDraftId === draft.id ? (
-                        <Button type="button" size="sm" className="h-7 bg-[#1a2e4a] px-2 text-[10px] text-white hover:bg-[#243c62]" onClick={renameDraft} disabled={renameDraftMutation.isPending}>Salvar</Button>
-                      ) : (
-                        <>
-                          <Button type="button" variant="outline" size="sm" className="h-7 px-2 text-[10px]" onClick={() => setSelectedDraftId(draft.id)}>Abrir</Button>
-                          <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-slate-500 hover:text-[#1a2e4a]" aria-label={`Renomear ${draft.label}`} onClick={() => { setEditingDraftId(draft.id); setEditingDraftLabel(draft.label); }}><Pencil className="h-3.5 w-3.5" /></Button>
-                        </>
-                      )}
-                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={`Excluir ${draft.label}`} onClick={() => deleteDraft(draft.id, draft.label)} disabled={deleteDraftMutation.isPending}><Trash2 className="h-3.5 w-3.5" /></Button>
-                    </div>
-                  </div>
-                ))}
+          <Tabs value={draftKind} onValueChange={(value) => setDraftKind(value as "complete-budget" | "tour-proposal" | "final-itinerary")}>
+            <TabsList className="grid h-auto w-full grid-cols-3 bg-slate-100 p-1">
+              <TabsTrigger value="complete-budget" className="px-2 py-2 text-[11px] leading-tight data-[state=active]:text-[#1a2e4a]">Orçamento completo</TabsTrigger>
+              <TabsTrigger value="tour-proposal" className="px-2 py-2 text-[11px] leading-tight data-[state=active]:text-[#1a2e4a]">Proposta de passeios</TabsTrigger>
+              <TabsTrigger value="final-itinerary" className="px-2 py-2 text-[11px] leading-tight data-[state=active]:text-[#1a2e4a]">Roteiro final</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="complete-budget" className="mt-4 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="draft-label" className="text-xs font-semibold text-slate-600">Nome do rascunho</Label>
+                <Input id="draft-label" value={draftLabel} onChange={(event) => setDraftLabel(event.target.value)} placeholder="Ex.: Orçamento — Santiago" />
+                <Button type="button" className="w-full bg-[#1a2e4a] text-white hover:bg-[#243c62]" onClick={saveDraft} disabled={saveDraftMutation.isPending}>
+                  <Save className="mr-2 h-4 w-4" />
+                  {saveDraftMutation.isPending ? "Salvando..." : "Salvar orçamento completo (rascunho)"}
+                </Button>
+                <p className="text-[11px] leading-relaxed text-slate-500">Este tipo guarda todo o orçamento — cliente, viagem, voos, hotéis, tarifas e pagamentos. Propostas de passeios e roteiros finais aparecem nas abas ao lado.</p>
               </div>
-            ) : (
-              <p className="text-xs text-slate-500">{draftSearch ? "Nenhum rascunho encontrado." : "Nenhum rascunho salvo ainda."}</p>
-            )}
-          </div>
+              <div className="border-t border-slate-200 pt-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#1a2e4a]"><FolderOpen className="h-4 w-4" /> Orçamentos completos salvos</div>
+                <div className="relative mb-3">
+                  <Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                  <Input value={draftSearch} onChange={(event) => setDraftSearch(event.target.value)} placeholder="Buscar por cliente, destino ou nome" className="h-9 pl-8 text-xs" />
+                </div>
+                {draftsQuery.isLoading ? (
+                  <p className="text-xs text-slate-500">Carregando orçamentos...</p>
+                ) : completeBudgetDrafts.length ? (
+                  <div className="max-h-48 space-y-2 overflow-y-auto pr-1">
+                    {completeBudgetDrafts.map((draft) => (
+                      <div key={draft.id} className="flex w-full items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-2.5 text-left transition-colors hover:border-amber-300 hover:bg-amber-50">
+                        <div className="min-w-0 flex-1">
+                          {editingDraftId === draft.id ? <Input value={editingDraftLabel} onChange={(event) => setEditingDraftLabel(event.target.value)} className="h-8 text-xs" autoFocus /> : <span className="block truncate text-xs font-semibold text-[#1a2e4a]">{draft.label}</span>}
+                          <span className="mt-1 block text-[10px] text-slate-500">{[draft.clientName && `Cliente: ${draft.clientName}`, draft.destination && `Destino: ${draft.destination}`].filter(Boolean).join(" • ") || "Cliente e destino não informados"}</span>
+                          <span className="block text-[10px] text-slate-500">Atualizado em {new Date(draft.updatedAt).toLocaleString("pt-BR")}</span>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1">
+                          {editingDraftId === draft.id ? <Button type="button" size="sm" className="h-7 bg-[#1a2e4a] px-2 text-[10px] text-white hover:bg-[#243c62]" onClick={renameDraft} disabled={renameDraftMutation.isPending}>Salvar</Button> : <><Button type="button" variant="outline" size="sm" className="h-7 px-2 text-[10px]" onClick={() => setSelectedDraftId(draft.id)}>Abrir</Button><Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-slate-500 hover:text-[#1a2e4a]" aria-label={`Renomear ${draft.label}`} onClick={() => { setEditingDraftId(draft.id); setEditingDraftLabel(draft.label); }}><Pencil className="h-3.5 w-3.5" /></Button></>}
+                          <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={`Excluir ${draft.label}`} onClick={() => deleteDraft(draft.id, draft.label)} disabled={deleteDraftMutation.isPending}><Trash2 className="h-3.5 w-3.5" /></Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : <p className="text-xs text-slate-500">{draftSearch ? "Nenhum orçamento completo encontrado." : "Nenhum orçamento completo salvo ainda."}</p>}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="tour-proposal" className="mt-4 space-y-3">
+              <div>
+                <div className="flex items-center gap-2 text-sm font-semibold text-[#1a2e4a]"><CalendarDays className="h-4 w-4" /> Propostas de passeios salvas</div>
+                <p className="mt-1 text-[11px] leading-relaxed text-slate-500">Abre somente a proposta de passeios no modo Proposta, sem confundir com o orçamento completo.</p>
+              </div>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                <Input value={tourProposalSearch} onChange={(event) => setTourProposalSearch(event.target.value)} placeholder="Buscar pelo nome do cliente" className="h-9 pl-8 text-xs" />
+              </div>
+              {tourProposalsQuery.isLoading ? (
+                <p className="text-xs text-slate-500">Carregando propostas de passeios...</p>
+              ) : filteredTourProposals.length ? (
+                <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                  {filteredTourProposals.map((proposal) => (
+                    <div key={proposal.id} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-2.5 transition-colors hover:border-amber-300 hover:bg-amber-50">
+                      <div className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-[#1a2e4a]">{proposal.proposalTitle || "Proposta de passeios"}</span><span className="mt-1 block truncate text-[10px] text-slate-500">Cliente: {proposal.clientName}</span><span className="block text-[10px] text-slate-500">{proposal.status === "approved" ? "Aprovada" : proposal.status === "sent" ? "Enviada" : "Pendente"} • Atualizada em {new Date(proposal.updatedAt).toLocaleString("pt-BR")}</span></div>
+                      <Button type="button" variant="outline" size="sm" className="h-7 shrink-0 px-2 text-[10px]" onClick={() => setSelectedTourProposalId(proposal.id)}>Abrir</Button>
+                    </div>
+                  ))}
+                </div>
+              ) : <p className="text-xs text-slate-500">{tourProposalSearch ? "Nenhuma proposta de passeios encontrada." : "Nenhuma proposta de passeios salva ainda."}</p>}
+            </TabsContent>
+
+            <TabsContent value="final-itinerary" className="mt-4 space-y-3">
+              <div>
+                <div className="flex items-center gap-2 text-sm font-semibold text-[#1a2e4a]"><MapPinned className="h-4 w-4" /> Roteiros finais salvos</div>
+                <p className="mt-1 text-[11px] leading-relaxed text-slate-500">Aqui aparecem os rascunhos completos que já possuem informações no Roteiro Final. Ao abrir, você segue direto para o modo Roteiro Final.</p>
+              </div>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                <Input value={finalItineraryDraftSearch} onChange={(event) => setFinalItineraryDraftSearch(event.target.value)} placeholder="Buscar por cliente, destino ou nome" className="h-9 pl-8 text-xs" />
+              </div>
+              {finalItineraryDraftsQuery.isLoading ? (
+                <p className="text-xs text-slate-500">Carregando roteiros finais...</p>
+              ) : finalItineraryDrafts.length ? (
+                <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                  {finalItineraryDrafts.map((draft) => (
+                    <div key={draft.id} className="flex w-full items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-2.5 text-left transition-colors hover:border-amber-300 hover:bg-amber-50">
+                      <div className="min-w-0 flex-1">
+                        {editingDraftId === draft.id ? <Input value={editingDraftLabel} onChange={(event) => setEditingDraftLabel(event.target.value)} className="h-8 text-xs" autoFocus /> : <span className="block truncate text-xs font-semibold text-[#1a2e4a]">{draft.label}</span>}
+                        <span className="mt-1 block text-[10px] text-slate-500">{[draft.clientName && `Cliente: ${draft.clientName}`, draft.destination && `Destino: ${draft.destination}`].filter(Boolean).join(" • ") || "Cliente e destino não informados"}</span>
+                        <span className="block text-[10px] text-slate-500">Atualizado em {new Date(draft.updatedAt).toLocaleString("pt-BR")}</span>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1">
+                        {editingDraftId === draft.id ? <Button type="button" size="sm" className="h-7 bg-[#1a2e4a] px-2 text-[10px] text-white hover:bg-[#243c62]" onClick={renameDraft} disabled={renameDraftMutation.isPending}>Salvar</Button> : <><Button type="button" variant="outline" size="sm" className="h-7 px-2 text-[10px]" onClick={() => { setSelectedDraftId(draft.id); setSideView("budget"); setActiveTab("itinerary"); setItineraryMode("final"); }}>Abrir</Button><Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-slate-500 hover:text-[#1a2e4a]" aria-label={`Renomear ${draft.label}`} onClick={() => { setEditingDraftId(draft.id); setEditingDraftLabel(draft.label); }}><Pencil className="h-3.5 w-3.5" /></Button></>}
+                        <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={`Excluir ${draft.label}`} onClick={() => deleteDraft(draft.id, draft.label)} disabled={deleteDraftMutation.isPending}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : <p className="text-xs text-slate-500">{finalItineraryDraftSearch ? "Nenhum roteiro final encontrado." : "Nenhum roteiro final salvo ainda."}</p>}
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
 

@@ -1,6 +1,7 @@
 import { and, desc, eq, isNull, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { favoriteRestaurants, InsertUser, savedBudgetDrafts, savedTourProposals, sharedFavoriteLists, sharedItineraries, travelClients, travelLibraryItems, users } from "../drizzle/schema";
+import { getBudgetDraftKind } from "../shared/budgetDraftKind";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -116,9 +117,10 @@ function getBudgetDraftMetadata(snapshot: string) {
     return {
       destination: data.tripInfo?.destination?.trim() || "",
       clientName: data.tourProposal?.clientName?.trim() || "",
+      kind: getBudgetDraftKind(snapshot),
     };
   } catch {
-    return { destination: "", clientName: "" };
+    return { destination: "", clientName: "", kind: "complete-budget" as const };
   }
 }
 
