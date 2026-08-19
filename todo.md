@@ -725,3 +725,5 @@
 - [x] Adicionar data de retorno persistente aos rascunhos pendentes
 - [x] Criar aba Todos com busca única para orçamentos, propostas e roteiros
 - [x] Exibir contadores de pendentes, enviadas e aprovadas na gestão de rascunhos
+- [x] Adicionar botão Limpar orçamento com confirmação para Viagem, Voos, Tarifas, Hotéis, Bagagens e Parcelamento
+- [x] Renomear o atalho lateral Cliente e viagem para Orçamento

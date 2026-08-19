@@ -57,6 +57,7 @@ interface BudgetContextType {
   updatePaymentMethods: (methods: string[]) => void;
   updateHotelPaymentMethods: (methods: string[]) => void;
   updatePageBreaks: (field: "flights" | "hotels" | "baggage" | "payment", value: boolean) => void;
+  clearBudgetOnly: () => void;
   resetBudget: () => void;
 }
 
@@ -503,6 +504,26 @@ export function clearFinalItineraryWithRegisteredDataInBudget(budget: BudgetData
     flights: [],
     hotels: [],
   }));
+}
+
+/** Limpa somente as abas do orçamento de viagem, preservando a Proposta de passeios e o Roteiro Final. */
+export function clearBudgetOnlyInBudget(budget: BudgetData): BudgetData {
+  return {
+    ...budget,
+    tripInfo: {
+      destination: "",
+      period: "",
+      passengers: "",
+      airline: "",
+      introText: "",
+    },
+    flights: [],
+    fareComparison: { tiers: [] },
+    baggage: [],
+    hotels: [],
+    installments: {},
+    pageBreaks: undefined,
+  };
 }
 
 function nextFinalItineraryDay(events: FinalItineraryEvent[]) {
@@ -985,6 +1006,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const clearBudgetOnly = useCallback(() => {
+    setBudget((prev) => clearBudgetOnlyInBudget(prev));
+  }, []);
+
   const resetBudget = useCallback(() => {
     setBudget(defaultBudgetData);
   }, []);
@@ -1044,6 +1069,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         updatePaymentMethods,
         updateHotelPaymentMethods,
         updatePageBreaks,
+        clearBudgetOnly,
         resetBudget,
       }}
     >

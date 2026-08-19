@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clearFinalItineraryWithRegisteredDataInBudget, rehydrateBudgetDraft, reorderFinalItineraryDaysInBudget, restoreLastBudgetFromStorage, updateFareTierInBudget, updateFinalItineraryDayDateInBudget } from "./BudgetContext";
+import { clearBudgetOnlyInBudget, clearFinalItineraryWithRegisteredDataInBudget, rehydrateBudgetDraft, reorderFinalItineraryDaysInBudget, restoreLastBudgetFromStorage, updateFareTierInBudget, updateFinalItineraryDayDateInBudget } from "./BudgetContext";
 import { defaultBudgetData } from "@shared/budgetTypes";
 
 describe("updateFareTierInBudget", () => {
@@ -150,5 +150,48 @@ describe("limpeza do Roteiro Final", () => {
     expect(cleared.hotels).toEqual([]);
     expect(cleared.tours).toEqual([]);
     expect(cleared.itinerary).toEqual([]);
+  });
+});
+
+describe("limpeza do orçamento de viagem", () => {
+  it("limpa somente as abas de orçamento e preserva passeios e roteiro", () => {
+    const budget = {
+      ...defaultBudgetData,
+      tripInfo: { ...defaultBudgetData.tripInfo, destination: "Lisboa" },
+      flights: [{ ...defaultBudgetData.flights[0], id: "voo-do-orcamento" }],
+      fareComparison: { tiers: [{ ...defaultBudgetData.fareComparison.tiers[0], id: "tarifa-do-orcamento" }] },
+      hotels: [{ ...defaultBudgetData.hotels[0], id: "hotel-do-orcamento" }],
+      baggage: [{ type: "Mala extra", weight: "20kg", priceAdvance: 120, priceAirport: 180 }],
+      installments: { flight: 8, hotel: 6, observations: "Condição do orçamento" },
+      pageBreaks: { flights: true, hotels: true },
+      tours: [{
+        id: "passeio-preservado",
+        name: "Passeio preservado",
+        location: "Lisboa",
+        duration: "2 horas",
+        description: "",
+        totalPrice: 200,
+      }],
+      itinerary: [{ id: "dia-preservado", day: 1, title: "Dia 1", notes: "", activities: [] }],
+      tourProposal: { ...defaultBudgetData.tourProposal, title: "Proposta preservada" },
+      finalItinerary: {
+        ...defaultBudgetData.finalItinerary,
+        events: [{ id: "evento-preservado", day: 1, proposalDayDate: "2026-08-30", kind: "tour" as const, title: "Evento preservado", time: "", description: "", linkUrl: "", addressUrl: "", photoUrl: "", attachments: [] }],
+      },
+    };
+
+    const cleared = clearBudgetOnlyInBudget(budget);
+
+    expect(cleared.tripInfo).toEqual({ destination: "", period: "", passengers: "", airline: "", introText: "" });
+    expect(cleared.flights).toEqual([]);
+    expect(cleared.fareComparison.tiers).toEqual([]);
+    expect(cleared.hotels).toEqual([]);
+    expect(cleared.baggage).toEqual([]);
+    expect(cleared.installments).toEqual({});
+    expect(cleared.pageBreaks).toBeUndefined();
+    expect(cleared.tours).toEqual(budget.tours);
+    expect(cleared.itinerary).toEqual(budget.itinerary);
+    expect(cleared.tourProposal).toEqual(budget.tourProposal);
+    expect(cleared.finalItinerary).toEqual(budget.finalItinerary);
   });
 });

@@ -16,6 +16,7 @@ import { ItineraryPreview } from "@/components/itinerary/ItineraryPreview";
 import { FinalItineraryPreview } from "@/components/itinerary/FinalItineraryPreview";
 import { usePdfGenerator } from "@/hooks/usePdfGenerator";
 import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,7 +35,7 @@ const SAVED_ITEM_STATUS_OPTIONS = [
 ] as const;
 
 function BuilderContent() {
-  const { budget, replaceBudget, updateTripInfo } = useBudget();
+  const { budget, replaceBudget, updateTripInfo, clearBudgetOnly } = useBudget();
   const { generatePdf } = usePdfGenerator();
   const utils = trpc.useUtils();
   const [showPreview, setShowPreview] = useState(true);
@@ -422,7 +423,7 @@ function BuilderContent() {
         <aside className="hidden w-48 shrink-0 flex-col border-r border-slate-200 bg-white p-3 lg:flex">
           <div className="mb-3 border-b border-slate-100 pb-3"><p className="text-xs font-bold text-[#1a2e4a]">Acesso rápido</p><p className="mt-1 text-[11px] leading-relaxed text-slate-500">Cadastros e atalhos do orçamento.</p></div>
           <div className="space-y-1">
-            <Button type="button" variant="ghost" onClick={() => { setSideView("budget"); setActiveTab("trip"); }} className={`h-9 w-full justify-start px-2 text-xs ${sideView === "budget" && activeTab === "trip" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><Users className="mr-2 h-4 w-4" />Cliente e viagem</Button>
+            <Button type="button" variant="ghost" onClick={() => { setSideView("budget"); setActiveTab("trip"); }} className={`h-9 w-full justify-start px-2 text-xs ${sideView === "budget" && activeTab === "trip" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><Users className="mr-2 h-4 w-4" />Orçamento</Button>
             <Button type="button" variant="ghost" onClick={() => { setSideView("clients"); }} className={`h-9 w-full justify-start px-2 text-xs ${sideView === "clients" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><Users className="mr-2 h-4 w-4" />Clientes</Button>
             <Button type="button" variant="ghost" onClick={() => { setSideView("budget"); setActiveTab("hotels"); }} className={`h-9 w-full justify-start px-2 text-xs ${sideView === "budget" && activeTab === "hotels" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><Building2 className="mr-2 h-4 w-4" />Hotéis</Button>
             <Button type="button" variant="ghost" onClick={() => setSideView("library")} className={`h-9 w-full justify-start px-2 text-xs ${sideView === "library" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><FolderOpen className="mr-2 h-4 w-4" />Biblioteca</Button>
@@ -472,6 +473,31 @@ function BuilderContent() {
                     Roteiro
                   </TabsTrigger>
                   </TabsList>
+                </div>
+
+                <div className="mb-4 flex justify-end">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button type="button" variant="outline" className="min-h-10 border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900">
+                        <Trash2 className="mr-1.5 h-4 w-4" />
+                        Limpar orçamento
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Limpar orçamento de viagem?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Esta ação removerá os dados das abas Viagem, Voos, Tarifas, Hotéis, Bagagens e Parcelamento. A Proposta de passeios e o Roteiro final serão preservados.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => { clearBudgetOnly(); setBudgetLoadKey((currentKey) => currentKey + 1); setActiveTab("trip"); toast.success("Orçamento de viagem limpo."); }}>
+                          Limpar orçamento
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
 
                 <TabsContent value="trip" className="mt-0">
