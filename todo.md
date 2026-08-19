@@ -732,3 +732,7 @@
 - [x] Permitir desfazer a limpeza do orçamento logo após a confirmação
 - [x] Permitir selecionar hotel já cadastrado no orçamento para exibir na Proposta de passeios
 - [x] Incluir na Proposta de passeios a referência de chegada do voo e hospedagem para apoiar o planejamento dos horários
+- [x] Permitir expandir uma proposta no Acompanhamento para visualizar os dados sem abrir a tela de lançamento
+- [x] Oferecer encaminhamento guiado ao marcar uma Proposta de passeios como aprovada
+- [x] Permitir incluir o transfer entre aeroporto e hotel na Proposta de passeios
+- [x] Permitir informar check-in e check-out do hotel selecionado na Proposta de passeios

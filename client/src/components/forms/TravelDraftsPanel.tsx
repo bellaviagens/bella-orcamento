@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, FileText, FolderOpen, MapPinned, Pencil, Save, Search, Trash2 } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronUp, FileText, FolderOpen, Hotel, MapPinned, Pencil, Save, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useBudget } from "@/contexts/BudgetContext";
 import { trpc } from "@/lib/trpc";
@@ -13,6 +13,8 @@ import {
   type SavedTourProposalStatusFilter,
 } from "./tourProposalListState";
 import { followUpDateToInput, followUpInputToDate, formatFollowUpDate } from "./travelDraftFollowUpDate";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import type { BudgetData } from "@shared/budgetTypes";
 
 type SavedItemStatus = Exclude<SavedTourProposalStatusFilter, "all">;
 type DraftTab = "all" | "complete-budget" | "tour-proposal" | "final-itinerary";
@@ -24,6 +26,7 @@ type TravelDraftsPanelProps = {
   onDraftLabelChange: (label: string) => void;
   onOpenTravelBudget: (id: string) => void;
   onOpenTourProposal: (id: string) => void;
+  onOpenTourProposalInFinalItinerary: (id: string) => void;
   onOpenFinalItinerary: (id: string) => void;
 };
 
@@ -59,6 +62,8 @@ type UnifiedDraftItem = {
   status: SavedItemStatus;
   followUpAt?: Date | string | null;
 };
+
+type ApprovedProposalPrompt = { id: string; title: string; step: "proposal" | "final" };
 
 const STATUS_OPTIONS: readonly [SavedItemStatus, string][] = [
   ["pending", "Pendente"],
@@ -142,6 +147,44 @@ function countStatusItems(items: { status: SavedItemStatus }[]) {
   }, { pending: 0, sent: 0, approved: 0 });
 }
 
+function ExpandedTourProposalDetails({ proposalId }: { proposalId: string }) {
+  const proposalQuery = trpc.tourProposals.get.useQuery({ id: proposalId });
+  if (proposalQuery.isLoading) return <div className="border-t border-slate-200 pt-3 text-xs text-slate-500">Carregando detalhes da proposta...</div>;
+  if (!proposalQuery.data) return <div className="border-t border-slate-200 pt-3 text-xs text-slate-500">Não foi possível carregar os detalhes desta proposta.</div>;
+
+  let snapshot: BudgetData;
+  try {
+    snapshot = JSON.parse(proposalQuery.data.snapshot) as BudgetData;
+  } catch {
+    return <div className="border-t border-slate-200 pt-3 text-xs text-slate-500">Os detalhes deste documento salvo não estão disponíveis.</div>;
+  }
+
+  const proposal = snapshot.tourProposal;
+  const selectedHotel = proposal.includedHotelId ? snapshot.hotels?.find((hotel) => hotel.id === proposal.includedHotelId) : undefined;
+  const days = [...(snapshot.itinerary || [])].sort((left, right) => left.day - right.day);
+  return <div className="mt-1 border-t border-slate-200 pt-3">
+    <div className="grid gap-3 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+      <div className="rounded-md border border-blue-100 bg-blue-50/60 p-3">
+        <p className="flex items-center gap-1.5 text-xs font-bold text-[#1a2e4a]"><Hotel className="h-3.5 w-3.5" />Chegada e hospedagem</p>
+        {selectedHotel ? <div className="mt-2 space-y-1 text-xs text-slate-600">
+          <p className="font-semibold text-[#1a2e4a]">{selectedHotel.name || "Hospedagem"}</p>
+          {proposal.airportHotelTransfer && <p><span className="font-semibold text-[#1a2e4a]">Transfer:</span> {proposal.airportHotelTransfer}{proposal.airportHotelTransferTime ? ` • ${proposal.airportHotelTransferTime}` : ""}</p>}
+          {proposal.hotelArrivalTime && <p><span className="font-semibold text-[#1a2e4a]">Chegada estimada:</span> {proposal.hotelArrivalTime}</p>}
+          {(proposal.hotelCheckInTime || proposal.hotelCheckOutTime) && <p><span className="font-semibold text-[#1a2e4a]">Hospedagem:</span> {proposal.hotelCheckInTime ? `Check-in ${proposal.hotelCheckInTime}` : ""}{proposal.hotelCheckInTime && proposal.hotelCheckOutTime ? " • " : ""}{proposal.hotelCheckOutTime ? `Check-out ${proposal.hotelCheckOutTime}` : ""}</p>}
+          {selectedHotel.address && <p>{selectedHotel.address}</p>}
+        </div> : <p className="mt-2 text-xs text-slate-500">Nenhuma hospedagem foi incluída nesta proposta.</p>}
+      </div>
+      <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+        <p className="flex items-center gap-1.5 text-xs font-bold text-[#1a2e4a]"><CalendarDays className="h-3.5 w-3.5" />Passeios e programação</p>
+        {days.length ? <div className="mt-2 space-y-2">{days.map((day) => {
+          const activities = day.activities?.length ? day.activities : day.tourId ? [{ id: day.tourId, title: snapshot.tours?.find((tour) => tour.id === day.tourId)?.name || "Passeio", time: "" }] : [];
+          return <div key={day.id} className="border-l-2 border-amber-300 pl-2 text-xs text-slate-600"><p className="font-semibold text-[#1a2e4a]">Dia {day.day}{day.date ? ` • ${day.date}` : ""}{day.title ? ` — ${day.title}` : ""}</p>{activities.length ? <p className="mt-0.5">{activities.map((activity) => `${activity.time ? `${activity.time} • ` : ""}${activity.title || "Compromisso"}`).join(" · ")}</p> : <p className="mt-0.5 text-slate-500">Dia livre</p>}</div>;
+        })}</div> : <p className="mt-2 text-xs text-slate-500">Nenhum passeio cadastrado nesta proposta.</p>}
+      </div>
+    </div>
+  </div>;
+}
+
 export function TravelDraftsPanel({
   currentDraftId,
   draftLabel,
@@ -149,6 +192,7 @@ export function TravelDraftsPanel({
   onDraftLabelChange,
   onOpenTravelBudget,
   onOpenTourProposal,
+  onOpenTourProposalInFinalItinerary,
   onOpenFinalItinerary,
 }: TravelDraftsPanelProps) {
   const { budget } = useBudget();
@@ -164,6 +208,8 @@ export function TravelDraftsPanel({
   const [allStatusFilter, setAllStatusFilter] = useState<SavedTourProposalStatusFilter>("all");
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
   const [editingDraftLabel, setEditingDraftLabel] = useState("");
+  const [expandedTourProposalId, setExpandedTourProposalId] = useState<string | null>(null);
+  const [approvedProposalPrompt, setApprovedProposalPrompt] = useState<ApprovedProposalPrompt | null>(null);
 
   const budgetDraftsQuery = trpc.budgetDrafts.list.useQuery({ search: "" });
   const tourProposalsQuery = trpc.tourProposals.list.useQuery();
@@ -279,7 +325,13 @@ export function TravelDraftsPanel({
     try {
       await updateTourStatusMutation.mutateAsync({ id, status });
       await utils.tourProposals.list.invalidate();
-      toast.success("Status atualizado.");
+      const currentProposal = savedTourProposals.find((proposal) => proposal.id === id);
+      if (status === "approved" && currentProposal?.status !== "approved") {
+        setApprovedProposalPrompt({ id, title: currentProposal?.proposalTitle || "Proposta de passeios", step: "proposal" });
+        toast.success("Proposta marcada como aprovada.");
+      } else {
+        toast.success("Status atualizado.");
+      }
     } catch {
       toast.error("Não foi possível atualizar o status.");
     }
@@ -344,19 +396,23 @@ export function TravelDraftsPanel({
   );
 
   const tourProposalCard = (proposal: TourProposalListItem, typeLabel?: string) => (
-    <div key={proposal.id} className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition-colors hover:border-amber-300 hover:bg-amber-50/40 md:flex-row md:items-center md:justify-between">
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2"><p className="truncate text-sm font-semibold text-[#1a2e4a]">{proposal.proposalTitle || "Proposta de passeios"}</p>{typeLabel ? <TypeBadge typeLabel={typeLabel} /> : null}</div>
-        <p className="mt-1 text-xs text-slate-600">Cliente: {proposal.clientName}{proposal.destination ? ` • Destino: ${proposal.destination}` : ""}</p>
-        <p className="mt-1 text-[11px] text-slate-500">Atualizada em {new Date(proposal.updatedAt).toLocaleString("pt-BR")}{proposal.status === "pending" && formatFollowUpDate(proposal.followUpAt) ? ` • Retorno: ${formatFollowUpDate(proposal.followUpAt)}` : ""}</p>
+    <div key={proposal.id} className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition-colors hover:border-amber-300 hover:bg-amber-50/40">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2"><p className="truncate text-sm font-semibold text-[#1a2e4a]">{proposal.proposalTitle || "Proposta de passeios"}</p>{typeLabel ? <TypeBadge typeLabel={typeLabel} /> : null}</div>
+          <p className="mt-1 text-xs text-slate-600">Cliente: {proposal.clientName}{proposal.destination ? ` • Destino: ${proposal.destination}` : ""}</p>
+          <p className="mt-1 text-[11px] text-slate-500">Atualizada em {new Date(proposal.updatedAt).toLocaleString("pt-BR")}{proposal.status === "pending" && formatFollowUpDate(proposal.followUpAt) ? ` • Retorno: ${formatFollowUpDate(proposal.followUpAt)}` : ""}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 md:justify-end">
+          <select aria-label={`Status de ${proposal.proposalTitle || "proposta de passeios"}`} value={proposal.status} onChange={(event) => updateTourStatus(proposal.id, event.target.value as SavedItemStatus)} disabled={updateTourStatusMutation.isPending} className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-[#1a2e4a]">
+            {STATUS_OPTIONS.map(([status, label]) => <option key={status} value={status}>{label}</option>)}
+          </select>
+          {followUpField({ id: proposal.id, label: proposal.proposalTitle || "Proposta de passeios", status: proposal.status, followUpAt: proposal.followUpAt }, (value) => updateTourFollowUp(proposal.id, value), updateTourFollowUpMutation.isPending)}
+          <Button type="button" variant="outline" size="sm" className="h-9 px-3 text-xs" onClick={() => setExpandedTourProposalId((currentId) => currentId === proposal.id ? null : proposal.id)}>{expandedTourProposalId === proposal.id ? <ChevronUp className="mr-1.5 h-3.5 w-3.5" /> : <ChevronDown className="mr-1.5 h-3.5 w-3.5" />}{expandedTourProposalId === proposal.id ? "Recolher" : "Ver proposta"}</Button>
+          <Button type="button" variant="outline" size="sm" className="h-9 px-3 text-xs" onClick={() => onOpenTourProposal(proposal.id)}>Abrir</Button>
+        </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2 md:justify-end">
-        <select aria-label={`Status de ${proposal.proposalTitle || "proposta de passeios"}`} value={proposal.status} onChange={(event) => updateTourStatus(proposal.id, event.target.value as SavedItemStatus)} disabled={updateTourStatusMutation.isPending} className="h-9 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 outline-none focus:border-[#1a2e4a]">
-          {STATUS_OPTIONS.map(([status, label]) => <option key={status} value={status}>{label}</option>)}
-        </select>
-        {followUpField({ id: proposal.id, label: proposal.proposalTitle || "Proposta de passeios", status: proposal.status, followUpAt: proposal.followUpAt }, (value) => updateTourFollowUp(proposal.id, value), updateTourFollowUpMutation.isPending)}
-        <Button type="button" variant="outline" size="sm" className="h-9 px-3 text-xs" onClick={() => onOpenTourProposal(proposal.id)}>Abrir</Button>
-      </div>
+      {expandedTourProposalId === proposal.id && <ExpandedTourProposalDetails proposalId={proposal.id} />}
     </div>
   );
 
@@ -370,6 +426,7 @@ export function TravelDraftsPanel({
   const listState = (loading: boolean, itemCount: number, emptyMessage: string, children: React.ReactNode) => loading ? <p className="py-8 text-center text-sm text-slate-500">Carregando documentos...</p> : itemCount ? <div className="space-y-2">{children}</div> : <p className="rounded-md bg-white py-8 text-center text-sm text-slate-500">{emptyMessage}</p>;
 
   return (
+    <>
     <section className="rounded-xl border border-slate-200 bg-slate-50 shadow-sm">
       <div className="flex flex-col gap-3 border-b border-slate-200 bg-white px-4 py-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-start gap-2.5"><FolderOpen className="mt-0.5 h-5 w-5 text-[#1a2e4a]" /><div><h2 className="text-sm font-bold text-[#1a2e4a]">Acompanhamento de propostas</h2><p className="mt-0.5 text-[11px] text-slate-500">Organize orçamentos de viagem, propostas de passeios e roteiros finais em uma única tela.</p></div></div>
@@ -407,5 +464,34 @@ export function TravelDraftsPanel({
         </Tabs>
       </div>
     </section>
+    <Dialog open={Boolean(approvedProposalPrompt)} onOpenChange={(open) => { if (!open) setApprovedProposalPrompt(null); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{approvedProposalPrompt?.step === "final" ? "Abrir Roteiro final?" : "Abrir Proposta de passeios?"}</DialogTitle>
+          <DialogDescription>
+            {approvedProposalPrompt?.step === "final"
+              ? `Deseja abrir o Roteiro final de “${approvedProposalPrompt?.title}” para complementar a viagem?`
+              : `“${approvedProposalPrompt?.title}” foi aprovada. Deseja abrir a Proposta de passeios para revisar os detalhes?`}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => {
+            if (approvedProposalPrompt?.step === "proposal") setApprovedProposalPrompt((current) => current ? { ...current, step: "final" } : null);
+            else setApprovedProposalPrompt(null);
+          }}>
+            {approvedProposalPrompt?.step === "proposal" ? "Não, seguir para Roteiro final" : "Não agora"}
+          </Button>
+          <Button type="button" className="bg-[#1a2e4a] text-white hover:bg-[#243c62]" onClick={() => {
+            if (!approvedProposalPrompt) return;
+            if (approvedProposalPrompt.step === "proposal") onOpenTourProposal(approvedProposalPrompt.id);
+            else onOpenTourProposalInFinalItinerary(approvedProposalPrompt.id);
+            setApprovedProposalPrompt(null);
+          }}>
+            {approvedProposalPrompt?.step === "proposal" ? "Sim, abrir proposta" : "Sim, abrir Roteiro final"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

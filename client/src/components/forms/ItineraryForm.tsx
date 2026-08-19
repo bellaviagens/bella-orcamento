@@ -563,9 +563,9 @@ export function ItineraryForm() {
 	              </div>
 	              {arrivalSegment?.arrivalTime && <span className="shrink-0 rounded bg-blue-50 px-2 py-1 text-[11px] font-semibold text-[#1a2e4a]">Voo chega {arrivalSegment.arrivalTime}</span>}
 	            </div>
-	            <div className="mt-2 grid gap-2 sm:grid-cols-2">
-	              <div>
-	                <Label htmlFor="proposal-hotel">Hotel incluído na proposta</Label>
+		            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+		              <div>
+		                <Label htmlFor="proposal-hotel">Hotel incluído na proposta</Label>
 	                <Select value={budget.tourProposal.includedHotelId || "none"} onValueChange={(value) => updateTourProposal({ includedHotelId: value === "none" ? undefined : value, hotelArrivalTime: value === "none" ? undefined : budget.tourProposal.hotelArrivalTime })}>
 	                  <SelectTrigger id="proposal-hotel" className="mt-1 bg-white"><SelectValue placeholder="Selecionar hotel" /></SelectTrigger>
 	                  <SelectContent>
@@ -575,12 +575,30 @@ export function ItineraryForm() {
 	                </Select>
 	                {budget.hotels.length === 0 && <p className="mt-1 text-[11px] text-slate-500">Cadastre uma hospedagem na aba Hotéis para selecioná-la aqui.</p>}
 	              </div>
-	              {selectedProposalHotel && <div>
-	                <Label htmlFor="proposal-hotel-arrival">Previsão de chegada ao hotel</Label>
-	                <Input id="proposal-hotel-arrival" type="time" value={budget.tourProposal.hotelArrivalTime || ""} onChange={(event) => updateTourProposal({ hotelArrivalTime: event.target.value })} className="mt-1 bg-white" />
-	                <p className="mt-1 text-[11px] text-slate-500">Informe o horário estimado após aeroporto e transfer.</p>
-	              </div>}
-	            </div>
+		              {selectedProposalHotel && <>
+		                <div>
+		                  <Label htmlFor="proposal-hotel-arrival">Previsão de chegada ao hotel</Label>
+		                  <Input id="proposal-hotel-arrival" type="time" value={budget.tourProposal.hotelArrivalTime || ""} onChange={(event) => updateTourProposal({ hotelArrivalTime: event.target.value })} className="mt-1 bg-white" />
+		                  <p className="mt-1 text-[11px] text-slate-500">Informe o horário estimado após aeroporto e transfer.</p>
+		                </div>
+		                <div>
+		                  <Label htmlFor="proposal-transfer-time">Horário do transfer</Label>
+		                  <Input id="proposal-transfer-time" type="time" value={budget.tourProposal.airportHotelTransferTime || ""} onChange={(event) => updateTourProposal({ airportHotelTransferTime: event.target.value })} className="mt-1 bg-white" />
+		                </div>
+		                <div className="sm:col-span-2">
+		                  <Label htmlFor="proposal-transfer">Transfer aeroporto → hotel</Label>
+		                  <Input id="proposal-transfer" value={budget.tourProposal.airportHotelTransfer || ""} onChange={(event) => updateTourProposal({ airportHotelTransfer: event.target.value })} placeholder="Ex.: Transfer privativo confirmado com a agência" className="mt-1 bg-white" />
+		                </div>
+		                <div>
+		                  <Label htmlFor="proposal-hotel-check-in">Check-in do hotel</Label>
+		                  <Input id="proposal-hotel-check-in" type="time" value={budget.tourProposal.hotelCheckInTime || ""} onChange={(event) => updateTourProposal({ hotelCheckInTime: event.target.value })} className="mt-1 bg-white" />
+		                </div>
+		                <div>
+		                  <Label htmlFor="proposal-hotel-check-out">Check-out do hotel</Label>
+		                  <Input id="proposal-hotel-check-out" type="time" value={budget.tourProposal.hotelCheckOutTime || ""} onChange={(event) => updateTourProposal({ hotelCheckOutTime: event.target.value })} className="mt-1 bg-white" />
+		                </div>
+		              </>}
+		            </div>
 	            {selectedProposalHotel && <p className="mt-2 text-[11px] text-slate-600"><span className="font-semibold text-[#1a2e4a]">{selectedProposalHotel.name}</span>{selectedProposalHotel.address ? ` • ${selectedProposalHotel.address}` : ""}</p>}
 	          </div>
 	          <div className="sm:col-span-2 rounded-md border border-slate-200 bg-white/70 p-2.5">

@@ -50,6 +50,7 @@ function BuilderContent() {
   const [budgetLoadKey, setBudgetLoadKey] = useState(0);
   const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
   const [selectedTourProposalId, setSelectedTourProposalId] = useState<string | null>(null);
+  const [selectedTourProposalTarget, setSelectedTourProposalTarget] = useState<"proposal" | "final">("proposal");
   const [draftKind, setDraftKind] = useState<"complete-budget" | "tour-proposal" | "final-itinerary">("complete-budget");
   const [draftSearch, setDraftSearch] = useState("");
   const [tourProposalSearch, setTourProposalSearch] = useState("");
@@ -117,8 +118,9 @@ function BuilderContent() {
       setBudgetLoadKey((currentKey) => currentKey + 1);
       setSideView("budget");
       setActiveTab("itinerary");
-      setItineraryMode("proposal");
+      setItineraryMode(selectedTourProposalTarget);
       setSelectedTourProposalId(null);
+      setSelectedTourProposalTarget("proposal");
       setDraftDialogOpen(false);
       toast.success(`Proposta de ${selectedTourProposalQuery.data.clientName} carregada.`);
     } catch (error) {
@@ -126,7 +128,7 @@ function BuilderContent() {
       toast.error(error instanceof Error ? error.message : "Não foi possível abrir esta proposta de passeios.");
       setSelectedTourProposalId(null);
     }
-  }, [replaceBudget, selectedTourProposalId, selectedTourProposalQuery.data]);
+  }, [replaceBudget, selectedTourProposalId, selectedTourProposalQuery.data, selectedTourProposalTarget]);
 
   const prepareDraftLabel = () => {
     if (!draftLabel.trim()) {
@@ -400,7 +402,7 @@ function BuilderContent() {
                   {filteredTourProposals.map((proposal) => (
                     <div key={proposal.id} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-2.5 transition-colors hover:border-amber-300 hover:bg-amber-50">
                         <div className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-[#1a2e4a]">{proposal.proposalTitle || "Proposta de passeios"}</span><span className="mt-1 block truncate text-[10px] text-slate-500">Cliente: {proposal.clientName}{proposal.destination ? ` • Destino: ${proposal.destination}` : ""}</span><span className="block text-[10px] text-slate-500">Atualizada em {new Date(proposal.updatedAt).toLocaleString("pt-BR")}</span></div>
-                      <div className="flex shrink-0 flex-wrap items-center justify-end gap-1"><select aria-label={`Status de ${proposal.proposalTitle}`} value={proposal.status} onChange={(event) => updateTourProposalStatus(proposal.id, event.target.value as Exclude<SavedTourProposalStatusFilter, "all">)} disabled={updateTourProposalStatusMutation.isPending} className="h-7 max-w-24 rounded-md border border-slate-300 bg-white px-1.5 text-[10px] text-slate-600 outline-none focus:border-[#1a2e4a]">{SAVED_ITEM_STATUS_OPTIONS.map(([status, label]) => <option key={status} value={status}>{label}</option>)}</select><Button type="button" variant="outline" size="sm" className="h-7 px-2 text-[10px]" onClick={() => setSelectedTourProposalId(proposal.id)}>Abrir</Button></div>
+                      <div className="flex shrink-0 flex-wrap items-center justify-end gap-1"><select aria-label={`Status de ${proposal.proposalTitle}`} value={proposal.status} onChange={(event) => updateTourProposalStatus(proposal.id, event.target.value as Exclude<SavedTourProposalStatusFilter, "all">)} disabled={updateTourProposalStatusMutation.isPending} className="h-7 max-w-24 rounded-md border border-slate-300 bg-white px-1.5 text-[10px] text-slate-600 outline-none focus:border-[#1a2e4a]">{SAVED_ITEM_STATUS_OPTIONS.map(([status, label]) => <option key={status} value={status}>{label}</option>)}</select><Button type="button" variant="outline" size="sm" className="h-7 px-2 text-[10px]" onClick={() => { setSelectedTourProposalTarget("proposal"); setSelectedTourProposalId(proposal.id); }}>Abrir</Button></div>
                     </div>
                   ))}
                 </div>
@@ -626,7 +628,8 @@ function BuilderContent() {
                 onCurrentDraftIdChange={setCurrentDraftId}
                 onDraftLabelChange={setDraftLabel}
                 onOpenTravelBudget={(id) => { setSideView("budget"); setActiveTab("trip"); setSelectedDraftId(id); }}
-                onOpenTourProposal={(id) => { setSideView("budget"); setActiveTab("itinerary"); setItineraryMode("proposal"); setSelectedTourProposalId(id); }}
+                onOpenTourProposal={(id) => { setSideView("budget"); setActiveTab("itinerary"); setItineraryMode("proposal"); setSelectedTourProposalTarget("proposal"); setSelectedTourProposalId(id); }}
+                onOpenTourProposalInFinalItinerary={(id) => { setSideView("budget"); setActiveTab("itinerary"); setItineraryMode("final"); setSelectedTourProposalTarget("final"); setSelectedTourProposalId(id); }}
                 onOpenFinalItinerary={(id) => { setSideView("budget"); setActiveTab("itinerary"); setItineraryMode("final"); setSelectedDraftId(id); }}
               />}
             </div>

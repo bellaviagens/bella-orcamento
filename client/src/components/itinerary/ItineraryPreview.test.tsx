@@ -111,6 +111,23 @@ describe("ItineraryPreview — agenda de dia extenso", () => {
     expect(markup).toContain('data-pdf-link="https://example.com/hotel"');
   });
 
+  it("inclui transfer e horários de check-in e check-out da hospedagem", () => {
+    const data = {
+      tripInfo: { passengers: "2", destination: "Santiago" },
+      hotels: [{ id: "hotel-selected", name: "Hotel Lastarria", address: "Calle Lastarria 50", description: "", photoUrl: "" }],
+      tours: [],
+      itinerary: [],
+      tourProposal: { title: "Proposta de passeios", introMessage: "", paymentDetails: "", includedHotelId: "hotel-selected", airportHotelTransfer: "Transfer privativo", airportHotelTransferTime: "15:30", hotelCheckInTime: "15:00", hotelCheckOutTime: "11:00" },
+    } as unknown as BudgetData;
+
+    const markup = renderToStaticMarkup(<ItineraryPreview data={data} />);
+
+    expect(markup).toContain("Transfer aeroporto → hotel:");
+    expect(markup).toContain("Transfer privativo");
+    expect(markup).toContain("Check-in 15:00");
+    expect(markup).toContain("Check-out 11:00");
+  });
+
   it("compacta a foto do passeio ao lado dos detalhes para aproveitar melhor a página", () => {
     const data = {
       tripInfo: { passengers: "2", destination: "Santiago" },

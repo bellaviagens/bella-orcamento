@@ -111,6 +111,14 @@ export interface TourProposal {
   includedHotelId?: string;
   /** Horário estimado de chegada à hospedagem, informado pela consultora. */
   hotelArrivalTime?: string;
+  /** Serviço ou orientação do transfer entre aeroporto e hotel. */
+  airportHotelTransfer?: string;
+  /** Horário previsto para saída do transfer do aeroporto. */
+  airportHotelTransferTime?: string;
+  /** Horário de check-in informado pela hospedagem. */
+  hotelCheckInTime?: string;
+  /** Horário de check-out informado pela hospedagem. */
+  hotelCheckOutTime?: string;
   installments?: number;
   /** Meio de pagamento selecionado para a proposta de passeios. */
   paymentMethod?: "card" | "cash" | "pix" | "other";
