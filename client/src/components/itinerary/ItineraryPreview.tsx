@@ -72,6 +72,11 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
   const balanceAfterEntry = Math.max(0, totalTours - entryAmount);
   const installment = calculateTourProposalInstallment(balanceAfterEntry, proposal.installments);
   const paymentMethodLabel = getTourProposalPaymentMethodLabel(proposal.paymentMethod, proposal.paymentMethodOtherLabel);
+  const hotels = data.hotels || [];
+  const flights = data.flights || [];
+  const selectedHotel = proposal.includedHotelId ? hotels.find((hotel) => hotel.id === proposal.includedHotelId) : undefined;
+  const outboundFlight = flights.find((flight) => flight.type === "ida");
+  const arrivalSegment = outboundFlight?.segments[outboundFlight.segments.length - 1];
   const coverSummaryDays = days.map((day) => ({
     id: day.id,
     day: day.day,
@@ -115,6 +120,20 @@ export function ItineraryPreview({ data }: { data: BudgetData }) {
           <div><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Viajantes</p><p className="font-semibold text-[#1a2e4a]">{data.tripInfo.passengers || "A confirmar"}</p></div>
         </div>
         {proposal.introMessage && <div className="border-b border-slate-200 px-3 py-3"><p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">{proposal.introMessage}</p></div>}
+        {selectedHotel && <section className="border-b border-slate-200 bg-blue-50/55 px-3 py-3" data-pdf-keep-together="true">
+          <div className="mb-2 flex items-center gap-2"><Hotel className="h-4 w-4 text-[#1a2e4a]" /><p className="text-xs font-bold uppercase tracking-[0.12em] text-[#1a2e4a]">Chegada e hospedagem</p></div>
+          <div className={`grid gap-3 ${selectedHotel.photoUrl ? "sm:grid-cols-[104px_minmax(0,1fr)]" : ""}`}>
+            {selectedHotel.photoUrl && <img src={selectedHotel.photoUrl} alt={`Hospedagem ${selectedHotel.name}`} className="h-20 w-full rounded-md border border-slate-200 bg-white object-cover" crossOrigin="anonymous" />}
+            <div className="min-w-0 space-y-1.5">
+              {arrivalSegment?.arrivalTime && <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-slate-600"><PlaneTakeoff className="h-3.5 w-3.5 text-[#1a2e4a]" /><span className="font-semibold text-[#1a2e4a]">Chegada do voo:</span> {arrivalSegment.arrivalTime}{arrivalSegment.arrivalCity || arrivalSegment.arrivalAirport ? ` — ${arrivalSegment.arrivalCity || arrivalSegment.arrivalAirport}` : ""}</p>}
+              {proposal.hotelArrivalTime && <p className="text-xs text-slate-600"><span className="font-semibold text-[#1a2e4a]">Previsão de chegada ao hotel:</span> {proposal.hotelArrivalTime}</p>}
+              <p className="text-sm font-bold text-[#1a2e4a]">{selectedHotel.name || "Hospedagem"}</p>
+              {selectedHotel.address && <p className="flex items-start gap-1 text-xs text-slate-600"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />{selectedHotel.address}</p>}
+              {selectedHotel.description && <p className="text-xs leading-relaxed text-slate-600">{selectedHotel.description}</p>}
+              {selectedHotel.hotelUrl && <a href={selectedHotel.hotelUrl} target="_blank" rel="noreferrer" data-pdf-link={selectedHotel.hotelUrl} className="inline-flex items-center gap-1 text-xs font-semibold text-[#1a2e4a] underline underline-offset-2"><ExternalLink className="h-3 w-3" />Ver hospedagem</a>}
+            </div>
+          </div>
+        </section>}
         {visibleCoverSummaryDays.length > 0 && <div className="border-b border-slate-200 px-3 py-3" data-pdf-keep-together="true" data-cover-summary-font={proposal.coverSummaryFontSize || "medium"}>
           <div className="mb-2 flex items-center gap-2"><CalendarDays className="h-4 w-4 text-amber-600" /><p className="text-xs font-bold uppercase tracking-[0.12em] text-[#1a2e4a]">Resumo da proposta</p></div>
           <div className="grid gap-2 sm:grid-cols-2">{visibleCoverSummaryDays.map((day) => <section key={day.id} data-pdf-keep-together="true" className="overflow-hidden rounded-md border border-l-4 border-[#1a2e4a] bg-[#f3f7fb] shadow-sm">

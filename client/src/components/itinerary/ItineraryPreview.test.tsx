@@ -85,6 +85,32 @@ describe("ItineraryPreview — agenda de dia extenso", () => {
     expect(markup).not.toContain("Duração: 2 dias");
   });
 
+  it("inclui o hotel escolhido e a previsão de chegada na proposta de passeios", () => {
+    const data = {
+      tripInfo: { passengers: "2", destination: "Santiago", period: "10/09 a 17/09" },
+      flights: [{
+        id: "flight-outbound",
+        type: "ida",
+        segments: [{ departureAirport: "GRU", departureTime: "09:00", arrivalAirport: "SCL", arrivalCity: "Santiago", arrivalTime: "13:30" }],
+      }],
+      hotels: [{ id: "hotel-selected", name: "Hotel Lastarria", address: "Calle Lastarria 50, Santiago", description: "Hospedagem no bairro Lastarria", photoUrl: "https://example.com/hotel.jpg", hotelUrl: "https://example.com/hotel" }],
+      tours: [],
+      itinerary: [],
+      tourProposal: { title: "Proposta de passeios", introMessage: "", paymentDetails: "", includedHotelId: "hotel-selected", hotelArrivalTime: "15:00" },
+    } as unknown as BudgetData;
+
+    const markup = renderToStaticMarkup(<ItineraryPreview data={data} />);
+
+    expect(markup).toContain("Chegada e hospedagem");
+    expect(markup).toContain("Chegada do voo:");
+    expect(markup).toContain("13:30 — Santiago");
+    expect(markup).toContain("Previsão de chegada ao hotel:");
+    expect(markup).toContain("15:00");
+    expect(markup).toContain("Hotel Lastarria");
+    expect(markup).toContain("Calle Lastarria 50, Santiago");
+    expect(markup).toContain('data-pdf-link="https://example.com/hotel"');
+  });
+
   it("compacta a foto do passeio ao lado dos detalhes para aproveitar melhor a página", () => {
     const data = {
       tripInfo: { passengers: "2", destination: "Santiago" },

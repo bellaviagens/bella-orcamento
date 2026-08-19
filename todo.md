@@ -730,3 +730,5 @@
 - [x] Transformar o acesso Rascunhos do cabeçalho em seletor compacto para abrir documentos sem sair da tela atual
 - [x] Renomear o acesso lateral Rascunhos para Acompanhamento de propostas, mantendo a tela ampla atual
 - [x] Permitir desfazer a limpeza do orçamento logo após a confirmação
+- [x] Permitir selecionar hotel já cadastrado no orçamento para exibir na Proposta de passeios
+- [x] Incluir na Proposta de passeios a referência de chegada do voo e hospedagem para apoiar o planejamento dos horários

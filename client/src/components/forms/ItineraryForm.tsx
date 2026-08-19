@@ -57,6 +57,9 @@ export function ItineraryForm() {
   const { budget, addGastronomyToDay, addGastronomyToUsefulTips, addItineraryDay, addItineraryActivity, addTour, importItineraryFromQuotation, moveItineraryActivity, removeGastronomyOption, removeItineraryActivity, reorderItineraryActivities, replaceBudget, resetTourProposal, saveGastronomyOption, updateItineraryActivity, updateTour, updateTourProposal, updateItineraryDay, removeItineraryDay, reorderItineraryDays } = useBudget();
   const itinerary = budget.itinerary;
   const defaultTravelerCount = Math.max(1, Number.parseInt(budget.tripInfo.passengers, 10) || 1);
+  const selectedProposalHotel = budget.hotels.find((hotel) => hotel.id === budget.tourProposal.includedHotelId);
+  const outboundFlight = budget.flights.find((flight) => flight.type === "ida");
+  const arrivalSegment = outboundFlight?.segments[outboundFlight.segments.length - 1];
   const [quotationUrl, setQuotationUrl] = useState("");
   const [draggedDayId, setDraggedDayId] = useState<string | null>(null);
   const [dragOverDayId, setDragOverDayId] = useState<string | null>(null);
@@ -548,10 +551,38 @@ export function ItineraryForm() {
           </div>
         </div>
         {!proposalOpeningCollapsed && <>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div><Label htmlFor="proposal-client">Cliente</Label><Input id="proposal-client" value={budget.tourProposal.clientName || ""} onChange={(event) => updateTourProposal({ clientName: event.target.value })} placeholder="Ex.: Suelen Vieira" className="mt-1 bg-white" /></div>
-          <div><Label htmlFor="proposal-title">Título da proposta</Label><Input id="proposal-title" value={budget.tourProposal.title} onChange={(event) => updateTourProposal({ title: event.target.value })} placeholder="Ex.: Passeios em Santiago" className="mt-1 bg-white" /></div>
-          <div className="sm:col-span-2"><Label htmlFor="proposal-intro">Mensagem inicial</Label><Textarea id="proposal-intro" value={budget.tourProposal.introMessage} onChange={(event) => updateTourProposal({ introMessage: event.target.value })} placeholder="Olá! Preparamos estas opções de passeios para a sua viagem..." className="mt-1 min-h-16 bg-white" /></div>
+	        <div className="grid gap-3 sm:grid-cols-2">
+	          <div><Label htmlFor="proposal-client">Cliente</Label><Input id="proposal-client" value={budget.tourProposal.clientName || ""} onChange={(event) => updateTourProposal({ clientName: event.target.value })} placeholder="Ex.: Suelen Vieira" className="mt-1 bg-white" /></div>
+	          <div><Label htmlFor="proposal-title">Título da proposta</Label><Input id="proposal-title" value={budget.tourProposal.title} onChange={(event) => updateTourProposal({ title: event.target.value })} placeholder="Ex.: Passeios em Santiago" className="mt-1 bg-white" /></div>
+	          <div className="sm:col-span-2"><Label htmlFor="proposal-intro">Mensagem inicial</Label><Textarea id="proposal-intro" value={budget.tourProposal.introMessage} onChange={(event) => updateTourProposal({ introMessage: event.target.value })} placeholder="Olá! Preparamos estas opções de passeios para a sua viagem..." className="mt-1 min-h-16 bg-white" /></div>
+	          <div className="sm:col-span-2 rounded-md border border-slate-200 bg-white/70 p-2.5">
+	            <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+	              <div>
+	                <p className="text-xs font-bold text-[#1a2e4a]">Chegada e hospedagem do orçamento</p>
+	                <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">Selecione o hotel já cadastrado para incluí-lo nesta proposta. Assim, a cliente consegue avaliar se os horários dos passeios encaixam após a chegada.</p>
+	              </div>
+	              {arrivalSegment?.arrivalTime && <span className="shrink-0 rounded bg-blue-50 px-2 py-1 text-[11px] font-semibold text-[#1a2e4a]">Voo chega {arrivalSegment.arrivalTime}</span>}
+	            </div>
+	            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+	              <div>
+	                <Label htmlFor="proposal-hotel">Hotel incluído na proposta</Label>
+	                <Select value={budget.tourProposal.includedHotelId || "none"} onValueChange={(value) => updateTourProposal({ includedHotelId: value === "none" ? undefined : value, hotelArrivalTime: value === "none" ? undefined : budget.tourProposal.hotelArrivalTime })}>
+	                  <SelectTrigger id="proposal-hotel" className="mt-1 bg-white"><SelectValue placeholder="Selecionar hotel" /></SelectTrigger>
+	                  <SelectContent>
+	                    <SelectItem value="none">Não incluir hospedagem</SelectItem>
+	                    {budget.hotels.map((hotel) => <SelectItem key={hotel.id} value={hotel.id}>{hotel.name || "Hotel sem nome"}</SelectItem>)}
+	                  </SelectContent>
+	                </Select>
+	                {budget.hotels.length === 0 && <p className="mt-1 text-[11px] text-slate-500">Cadastre uma hospedagem na aba Hotéis para selecioná-la aqui.</p>}
+	              </div>
+	              {selectedProposalHotel && <div>
+	                <Label htmlFor="proposal-hotel-arrival">Previsão de chegada ao hotel</Label>
+	                <Input id="proposal-hotel-arrival" type="time" value={budget.tourProposal.hotelArrivalTime || ""} onChange={(event) => updateTourProposal({ hotelArrivalTime: event.target.value })} className="mt-1 bg-white" />
+	                <p className="mt-1 text-[11px] text-slate-500">Informe o horário estimado após aeroporto e transfer.</p>
+	              </div>}
+	            </div>
+	            {selectedProposalHotel && <p className="mt-2 text-[11px] text-slate-600"><span className="font-semibold text-[#1a2e4a]">{selectedProposalHotel.name}</span>{selectedProposalHotel.address ? ` • ${selectedProposalHotel.address}` : ""}</p>}
+	          </div>
 	          <div className="sm:col-span-2 rounded-md border border-slate-200 bg-white/70 p-2.5">
 	            <p className="text-xs font-bold text-[#1a2e4a]">Pagamento da proposta</p>
 	            <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">Sugestão: selecione a forma e registre abaixo somente as condições que precisam aparecer para o cliente.</p>

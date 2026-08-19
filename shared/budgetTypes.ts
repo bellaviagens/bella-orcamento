@@ -107,6 +107,10 @@ export interface TourProposal {
   introMessage: string;
   paymentDetails: string;
   clientName?: string;
+  /** Hotel do orçamento de viagem selecionado para aparecer na proposta de passeios. */
+  includedHotelId?: string;
+  /** Horário estimado de chegada à hospedagem, informado pela consultora. */
+  hotelArrivalTime?: string;
   installments?: number;
   /** Meio de pagamento selecionado para a proposta de passeios. */
   paymentMethod?: "card" | "cash" | "pix" | "other";
