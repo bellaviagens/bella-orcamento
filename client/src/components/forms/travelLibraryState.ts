@@ -66,3 +66,15 @@ export function sortTravelLibraryItems<T extends TravelLibraryItemLike>(items: T
 export function getTravelLibraryFolders<T extends TravelLibraryItemLike>(items: T[]) {
   return Array.from(new Set(items.map((item) => item.folderName))).sort((first, second) => first.localeCompare(second, "pt-BR"));
 }
+
+/** Agrupa exclusivamente os itens que já passaram pelos filtros ativos. */
+export function getTravelLibraryDestinationGroups<T extends TravelLibraryItemLike>(items: T[]) {
+  const groups = new Map<string, T[]>();
+  for (const item of items) {
+    const destination = item.destination?.trim() || "Sem destino definido";
+    groups.set(destination, [...(groups.get(destination) || []), item]);
+  }
+  return Array.from(groups.entries())
+    .sort(([first], [second]) => first.localeCompare(second, "pt-BR"))
+    .map(([destination, destinationItems]) => ({ destination, items: destinationItems }));
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterTravelLibraryItems, getTravelLibraryFolders, sortTravelLibraryItems } from "./travelLibraryState";
+import { filterTravelLibraryItems, getTravelLibraryDestinationGroups, getTravelLibraryFolders, sortTravelLibraryItems } from "./travelLibraryState";
 
 describe("Biblioteca de Viagem", () => {
   const items = [
@@ -28,6 +28,16 @@ describe("Biblioteca de Viagem", () => {
 
   it("agrupa pastas únicas em ordem de leitura", () => {
     expect(getTravelLibraryFolders(items)).toEqual(["Hotéis Chile", "Passeios Chile", "Restaurantes Chile", "Transfers"]);
+  });
+
+  it("forma grupos de destino somente a partir dos itens já filtrados", () => {
+    const localizedItems = [
+      { id: "santiago-hotel", category: "hotel" as const, folderName: "Hotéis", name: "Hotel Santiago", destination: "Santiago, Chile", country: "Chile", city: "Santiago", contactName: null, phone: null, linkUrl: null, imageUrl: null, notes: null },
+      { id: "lisbon-hotel", category: "hotel" as const, folderName: "Hotéis", name: "Hotel Lisboa", destination: "Lisboa, Portugal", country: "Portugal", city: "Lisboa", contactName: null, phone: null, linkUrl: null, imageUrl: null, notes: null },
+    ];
+
+    const filtered = filterTravelLibraryItems(localizedItems, { category: "hotel", country: "Portugal", city: "Lisboa", neighborhood: "" });
+    expect(getTravelLibraryDestinationGroups(filtered).map((group) => group.destination)).toEqual(["Lisboa, Portugal"]);
   });
 
   it("filtra hotéis por bairro", () => {

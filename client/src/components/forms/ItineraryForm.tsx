@@ -69,6 +69,7 @@ export function ItineraryForm() {
   const [sharedFavoritesUrl, setSharedFavoritesUrl] = useState("");
   const [gastronomySectionCollapsed, setGastronomySectionCollapsed] = useState(false);
   const [gastronomyOptionsCollapsed, setGastronomyOptionsCollapsed] = useState(false);
+  const [restaurantLibraryEditId, setRestaurantLibraryEditId] = useState<string | null>(null);
   const selectedProposalQuery = trpc.tourProposals.get.useQuery(
     { id: selectedProposalId || "00000000-0000-0000-0000-000000000000" },
     { enabled: Boolean(selectedProposalId) },
@@ -98,7 +99,7 @@ export function ItineraryForm() {
     try {
       const destination = budget.tripInfo.destination.trim() || restaurant.location.trim();
       const location = travelLibraryLocationFromDestination(destination);
-      await saveToLibraryMutation.mutateAsync({
+      const savedLibraryItem = await saveToLibraryMutation.mutateAsync({
         category: "restaurant",
         folderName: destination || "Restaurantes",
         destination: destination || undefined,
@@ -110,7 +111,8 @@ export function ItineraryForm() {
         notes: [restaurant.address, restaurant.description, restaurant.rating ? `Avaliação: ${restaurant.rating}` : ""].filter(Boolean).join("\n"),
       });
       await utils.travelLibrary.list.invalidate();
-      toast.success(`${restaurant.name} foi salvo na Biblioteca de Viagem.`);
+      setRestaurantLibraryEditId(savedLibraryItem.id);
+      toast.success(`${restaurant.name} foi salvo. Complete os detalhes no editor da Biblioteca.`);
     } catch (error) {
       console.error("Save restaurant to library error:", error);
       toast.error(error instanceof Error ? error.message : "Não foi possível salvar este restaurante na Biblioteca de Viagem.");
@@ -594,14 +596,13 @@ export function ItineraryForm() {
           <div className="space-y-2">{(budget.gastronomyOptions || []).map((option) => <div key={option.id} className="rounded-md border border-amber-100 bg-white p-2.5">
             {option.photoUrl && <img src={option.photoUrl} alt={`Foto de ${option.name}`} className="mb-2 h-24 w-full rounded-md border border-slate-100 object-cover sm:hidden" />}
             <div className="min-w-0"><p className="text-sm font-bold text-[#1a2e4a]">{option.name}</p><p className="text-xs text-slate-600">{option.description || option.address}</p></div>
-            <div className="mt-2 flex flex-wrap gap-1.5 border-t border-slate-100 pt-2"><Button type="button" variant="outline" size="sm" asChild className="h-8 bg-white px-2 text-xs"><a href={option.mapsUrl} target="_blank" rel="noreferrer">Ver endereço</a></Button>{option.website && <Button type="button" variant="outline" size="sm" asChild className="h-8 bg-white px-2 text-xs"><a href={option.website} target="_blank" rel="noreferrer">Site / fotos</a></Button>}<Button type="button" variant="outline" size="sm" onClick={() => void handleSaveRestaurantToLibrary(option)} disabled={saveToLibraryMutation.isPending} className="h-8 bg-white px-2 text-xs font-semibold text-[#1a2e4a]"><FolderPlus className="mr-1 h-3.5 w-3.5" />Salvar na Biblioteca</Button><Button type="button" variant="outline" size="sm" className="h-8 border-red-200 bg-red-50 px-2 text-xs font-semibold text-red-600 hover:bg-red-100 hover:text-red-700" onClick={() => removeGastronomyOption(option.id)} title={`Excluir ${option.name}`} aria-label={`Excluir restaurante ${option.name}`}><Trash2 className="mr-1 h-3.5 w-3.5" />Excluir</Button></div>
-            <div className="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]"><Select value={gastronomyTargetDays[option.id] || "none"} onValueChange={(dayId) => setGastronomyTargetDays((current) => ({ ...current, [option.id]: dayId }))}><SelectTrigger className="h-8 bg-slate-50 text-xs"><SelectValue placeholder="Escolher dia para incluir" /></SelectTrigger><SelectContent><SelectItem value="none">Escolher dia para incluir</SelectItem>{itinerary.map((day) => <SelectItem key={day.id} value={day.id}>Dia {day.day} — {day.title || "Dia livre"}</SelectItem>)}</SelectContent></Select><Button type="button" variant="outline" size="sm" disabled={!gastronomyTargetDays[option.id] || gastronomyTargetDays[option.id] === "none"} onClick={() => { addGastronomyToDay(gastronomyTargetDays[option.id], option.id); toast.success(`${option.name} foi incluído na agenda do dia.`); }} className="h-8 bg-white text-xs font-semibold">Incluir no dia</Button><Button type="button" variant="outline" size="sm" onClick={() => { addGastronomyToUsefulTips(option.id); toast.success(`${option.name} foi incluído nas Dicas e Links Úteis.`); }} className="h-8 bg-white text-xs font-semibold">Enviar para dicas</Button></div>
+            <div className="mt-2 flex flex-nowrap items-center gap-1 overflow-x-auto border-t border-slate-100 pt-2 pb-0.5"><Button type="button" variant="outline" size="sm" asChild className="h-8 shrink-0 bg-white px-1.5 text-[11px]"><a href={option.mapsUrl} target="_blank" rel="noreferrer">Ver endereço</a></Button>{option.website && <Button type="button" variant="outline" size="sm" asChild className="h-8 shrink-0 bg-white px-1.5 text-[11px]"><a href={option.website} target="_blank" rel="noreferrer">Site / fotos</a></Button>}<Button type="button" variant="outline" size="sm" onClick={() => void handleSaveRestaurantToLibrary(option)} disabled={saveToLibraryMutation.isPending} className="h-8 shrink-0 bg-white px-1.5 text-[11px] font-semibold text-[#1a2e4a]"><FolderPlus className="mr-1 h-3.5 w-3.5" />Salvar na Biblioteca</Button><Select value={gastronomyTargetDays[option.id] || "none"} onValueChange={(dayId) => setGastronomyTargetDays((current) => ({ ...current, [option.id]: dayId }))}><SelectTrigger className="h-8 w-40 shrink-0 bg-slate-50 text-[11px]"><SelectValue placeholder="Escolher dia" /></SelectTrigger><SelectContent><SelectItem value="none">Escolher dia para incluir</SelectItem>{itinerary.map((day) => <SelectItem key={day.id} value={day.id}>Dia {day.day} — {day.title || "Dia livre"}</SelectItem>)}</SelectContent></Select><Button type="button" variant="outline" size="sm" disabled={!gastronomyTargetDays[option.id] || gastronomyTargetDays[option.id] === "none"} onClick={() => { addGastronomyToDay(gastronomyTargetDays[option.id], option.id); toast.success(`${option.name} foi incluído na agenda do dia.`); }} className="h-8 shrink-0 bg-white px-1.5 text-[11px] font-semibold">Incluir no dia</Button><Button type="button" variant="outline" size="sm" onClick={() => { addGastronomyToUsefulTips(option.id); toast.success(`${option.name} foi incluído nas Dicas e Links Úteis.`); }} className="h-8 shrink-0 bg-white px-1.5 text-[11px] font-semibold">Enviar para dicas</Button><Button type="button" variant="outline" size="sm" className="h-8 shrink-0 border-red-200 bg-red-50 px-1.5 text-[11px] font-semibold text-red-600 hover:bg-red-100 hover:text-red-700" onClick={() => removeGastronomyOption(option.id)} title={`Excluir ${option.name}`} aria-label={`Excluir restaurante ${option.name}`}><Trash2 className="mr-1 h-3.5 w-3.5" />Excluir</Button></div>
           </div>)}</div>
         </div> : null}
         </>}
       </div>
 
-      <TravelLibraryPanel />
+      <TravelLibraryPanel restaurantEditId={restaurantLibraryEditId} onRestaurantEditOpened={() => setRestaurantLibraryEditId(null)} />
 
       {itinerary.map((day) => {
         const activities = getItineraryDayActivities(day);

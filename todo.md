@@ -681,3 +681,7 @@
 - [x] Aplicar entrada e formatação em reais aos valores à vista da aba Parcelamentos
 - [x] Salvar restaurantes validados somente na Biblioteca, sem criar favorito automático
 - [x] Ignorar links de foto inválidos ou vazios ao salvar restaurante na Biblioteca
+- [x] Organizar as ações do restaurante validado em uma única sequência lógica na mesma linha
+- [x] Corrigir a Biblioteca para ocultar grupos e itens que não atendem aos filtros ativos
+- [x] Permitir editar os detalhes do restaurante diretamente após salvá-lo na Biblioteca
+- [x] Adicionar filtro de origem para visualizar separadamente itens da Biblioteca e restaurantes favoritos
