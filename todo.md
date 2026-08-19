@@ -719,3 +719,6 @@
 - [x] Adicionar status persistente para orçamentos de viagem e roteiros finais
 - [x] Centralizar filtros de cliente, destino, tipo e status na tela de rascunhos
 - [x] Permitir alterar o status de cada item diretamente na tela de rascunhos
+- [x] Substituir a janela de rascunhos por uma tela ampla no padrão da Biblioteca
+- [x] Manter busca, status, abertura, edição e exclusão na nova tela de rascunhos
+- [x] Manter o acesso à gestão de rascunhos pelo botão superior e pelo menu lateral

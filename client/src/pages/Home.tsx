@@ -7,6 +7,7 @@ import { ItineraryForm } from "@/components/forms/ItineraryForm";
 import { FinalItineraryForm } from "@/components/forms/FinalItineraryForm";
 import { TravelClientsPanel } from "@/components/forms/TravelClientsPanel";
 import { TravelLibraryPanel } from "@/components/forms/TravelLibraryPanel";
+import { TravelDraftsPanel } from "@/components/forms/TravelDraftsPanel";
 import { FareForm } from "@/components/forms/FareForm";
 import { BaggageForm } from "@/components/forms/BaggageForm";
 import { InstallmentsForm } from "@/components/forms/InstallmentsForm";
@@ -40,7 +41,7 @@ function BuilderContent() {
   const [includeAirfare, setIncludeAirfare] = useState(true);
   const [includeHotel, setIncludeHotel] = useState(true);
   const [activeTab, setActiveTab] = useState("trip");
-  const [sideView, setSideView] = useState<"budget" | "library" | "clients">("budget");
+  const [sideView, setSideView] = useState<"budget" | "library" | "clients" | "drafts">("budget");
   const [itineraryMode, setItineraryMode] = useState<"proposal" | "final">("proposal");
   const [draftDialogOpen, setDraftDialogOpen] = useState(false);
   const [draftLabel, setDraftLabel] = useState("");
@@ -129,8 +130,7 @@ function BuilderContent() {
     if (!draftLabel.trim()) {
       setDraftLabel(budget.tripInfo.destination ? `Orçamento de viagem — ${budget.tripInfo.destination}` : "Orçamento de viagem em rascunho");
     }
-    setDraftKind("complete-budget");
-    setDraftDialogOpen(true);
+    setSideView("drafts");
   };
 
   const saveDraft = async () => {
@@ -426,7 +426,7 @@ function BuilderContent() {
             <Button type="button" variant="ghost" onClick={() => { setSideView("clients"); }} className={`h-9 w-full justify-start px-2 text-xs ${sideView === "clients" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><Users className="mr-2 h-4 w-4" />Clientes</Button>
             <Button type="button" variant="ghost" onClick={() => { setSideView("budget"); setActiveTab("hotels"); }} className={`h-9 w-full justify-start px-2 text-xs ${sideView === "budget" && activeTab === "hotels" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><Building2 className="mr-2 h-4 w-4" />Hotéis</Button>
             <Button type="button" variant="ghost" onClick={() => setSideView("library")} className={`h-9 w-full justify-start px-2 text-xs ${sideView === "library" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><FolderOpen className="mr-2 h-4 w-4" />Biblioteca</Button>
-            <Button type="button" variant="ghost" onClick={openDrafts} className="h-9 w-full justify-start px-2 text-xs text-slate-600"><Save className="mr-2 h-4 w-4" />Rascunhos</Button>
+            <Button type="button" variant="ghost" onClick={openDrafts} className={`h-9 w-full justify-start px-2 text-xs ${sideView === "drafts" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}><Save className="mr-2 h-4 w-4" />Rascunhos</Button>
           </div>
           <div className="mt-auto rounded-md border border-blue-100 bg-blue-50 p-2.5 text-[11px] leading-relaxed text-[#1a2e4a]">A <strong>Biblioteca</strong> reúne hotéis, passeios, restaurantes e transfers por destino. A aba <strong>Roteiro</strong> continua dedicada às propostas e ao roteiro final.</div>
         </aside>
@@ -436,6 +436,7 @@ function BuilderContent() {
             <Button type="button" variant="ghost" size="sm" onClick={() => setSideView("budget")} className={`h-10 shrink-0 px-3 text-xs ${sideView === "budget" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}>Orçamento</Button>
             <Button type="button" variant="ghost" size="sm" onClick={() => setSideView("clients")} className={`h-10 shrink-0 px-3 text-xs ${sideView === "clients" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}>Clientes</Button>
             <Button type="button" variant="ghost" size="sm" onClick={() => setSideView("library")} className={`h-10 shrink-0 px-3 text-xs ${sideView === "library" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}>Biblioteca</Button>
+            <Button type="button" variant="ghost" size="sm" onClick={openDrafts} className={`h-10 shrink-0 px-3 text-xs ${sideView === "drafts" ? "bg-blue-50 font-semibold text-[#1a2e4a]" : "text-slate-600"}`}>Rascunhos</Button>
           </div>
           <ScrollArea className="flex-1">
             <div className="p-6">
@@ -559,6 +560,15 @@ function BuilderContent() {
               </Tabs>}
               {sideView === "library" && <TravelLibraryPanel initiallyOpen />}
               {sideView === "clients" && <TravelClientsPanel onUseClient={(name) => { updateTripInfo("clientName", name); setSideView("budget"); setActiveTab("trip"); toast.success("Cliente aplicado ao orçamento atual."); }} />}
+              {sideView === "drafts" && <TravelDraftsPanel
+                currentDraftId={currentDraftId}
+                draftLabel={draftLabel}
+                onCurrentDraftIdChange={setCurrentDraftId}
+                onDraftLabelChange={setDraftLabel}
+                onOpenTravelBudget={(id) => { setSideView("budget"); setActiveTab("trip"); setSelectedDraftId(id); }}
+                onOpenTourProposal={(id) => { setSideView("budget"); setActiveTab("itinerary"); setItineraryMode("proposal"); setSelectedTourProposalId(id); }}
+                onOpenFinalItinerary={(id) => { setSideView("budget"); setActiveTab("itinerary"); setItineraryMode("final"); setSelectedDraftId(id); }}
+              />}
             </div>
           </ScrollArea>
         </div>
