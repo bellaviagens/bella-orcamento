@@ -690,3 +690,6 @@
 - [x] Adicionar ação Limpar proposta de passeios com confirmação de segurança
 - [x] Adicionar área de rolagem ao editor longo da Biblioteca de Viagem
 - [x] Adicionar ação Favoritar na sequência de botões de cada item da Biblioteca
+- [x] Compactar a área de pagamento da Proposta de Passeios e reduzir o campo de detalhes
+- [x] Incluir uma frase breve de orientação sobre a condição de pagamento
+- [x] Permitir recolher novamente a lista de propostas/clientes depois de aberta
