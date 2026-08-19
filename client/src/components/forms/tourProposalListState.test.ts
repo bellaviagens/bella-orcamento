@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { filterSavedTourProposals, filterSavedTourProposalsByStatus } from "./tourProposalListState";
 
 const proposals = [
-  { clientName: "Suelen Vieira", proposalTitle: "Santiago", status: "pending" as const },
+  { clientName: "Suelen Vieira", proposalTitle: "Santiago", destination: "Chile", status: "pending" as const },
   { clientName: "Família Anderson", proposalTitle: "Vale Nevado", status: "approved" as const },
 ];
 
@@ -14,6 +14,11 @@ describe("filterSavedTourProposals", () => {
 
   it("mantém todas as propostas quando a busca está vazia", () => {
     expect(filterSavedTourProposals(proposals, "   ")).toEqual(proposals);
+  });
+
+  it("encontra a proposta também pelo destino ou pelo título", () => {
+    expect(filterSavedTourProposals(proposals, "chiLE")).toEqual([proposals[0]]);
+    expect(filterSavedTourProposals(proposals, "vale nevado")).toEqual([proposals[1]]);
   });
 
   it("filtra as propostas pelo status selecionado sem afetar a busca por cliente", () => {

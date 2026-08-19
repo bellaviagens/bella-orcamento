@@ -1,0 +1,1 @@
+ALTER TABLE `saved_budget_drafts` ADD `status` enum('pending','sent','approved') DEFAULT 'pending' NOT NULL;

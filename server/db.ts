@@ -90,21 +90,21 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-type TourProposalStatus = "pending" | "sent" | "approved";
+type SavedItemStatus = "pending" | "sent" | "approved";
 
-export async function saveBudgetDraft(input: { ownerOpenId: string; label: string; snapshot: string; id?: string }) {
+export async function saveBudgetDraft(input: { ownerOpenId: string; label: string; snapshot: string; id?: string; status?: SavedItemStatus }) {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível para salvar o rascunho.");
 
   if (input.id) {
     const result = await db.update(savedBudgetDrafts)
-      .set({ label: input.label, snapshot: input.snapshot, updatedAt: new Date() })
+      .set({ label: input.label, snapshot: input.snapshot, ...(input.status ? { status: input.status } : {}), updatedAt: new Date() })
       .where(and(eq(savedBudgetDrafts.id, input.id), eq(savedBudgetDrafts.ownerOpenId, input.ownerOpenId)));
     if ((result[0]?.affectedRows ?? 0) > 0) return input.id;
   }
 
   const id = crypto.randomUUID();
-  await db.insert(savedBudgetDrafts).values({ id, ownerOpenId: input.ownerOpenId, label: input.label, snapshot: input.snapshot });
+  await db.insert(savedBudgetDrafts).values({ id, ownerOpenId: input.ownerOpenId, label: input.label, snapshot: input.snapshot, ...(input.status ? { status: input.status } : {}) });
   return id;
 }
 
@@ -124,6 +124,15 @@ function getBudgetDraftMetadata(snapshot: string) {
   }
 }
 
+function getTourProposalMetadata(snapshot: string) {
+  try {
+    const data = JSON.parse(snapshot) as { tripInfo?: { destination?: string } };
+    return { destination: data.tripInfo?.destination?.trim() || "" };
+  } catch {
+    return { destination: "" };
+  }
+}
+
 export async function listBudgetDrafts(ownerOpenId: string, search = "") {
   const db = await getDb();
   if (!db) return [];
@@ -131,6 +140,7 @@ export async function listBudgetDrafts(ownerOpenId: string, search = "") {
   const drafts = await db.select({
     id: savedBudgetDrafts.id,
     label: savedBudgetDrafts.label,
+    status: savedBudgetDrafts.status,
     snapshot: savedBudgetDrafts.snapshot,
     updatedAt: savedBudgetDrafts.updatedAt,
   }).from(savedBudgetDrafts)
@@ -142,6 +152,7 @@ export async function listBudgetDrafts(ownerOpenId: string, search = "") {
     .map((draft) => ({
       id: draft.id,
       label: draft.label,
+      status: draft.status,
       updatedAt: draft.updatedAt,
       ...getBudgetDraftMetadata(draft.snapshot),
     }))
@@ -169,6 +180,16 @@ export async function renameBudgetDraft(ownerOpenId: string, id: string, label: 
   return (result[0]?.affectedRows ?? 0) > 0;
 }
 
+export async function updateBudgetDraftStatus(ownerOpenId: string, id: string, status: SavedItemStatus) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para atualizar o status do rascunho.");
+
+  const result = await db.update(savedBudgetDrafts)
+    .set({ status, updatedAt: new Date() })
+    .where(and(eq(savedBudgetDrafts.id, id), eq(savedBudgetDrafts.ownerOpenId, ownerOpenId)));
+  return (result[0]?.affectedRows ?? 0) > 0;
+}
+
 export async function deleteBudgetDraft(ownerOpenId: string, id: string) {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível para excluir o rascunho.");
@@ -178,7 +199,7 @@ export async function deleteBudgetDraft(ownerOpenId: string, id: string) {
   return (result[0]?.affectedRows ?? 0) > 0;
 }
 
-export async function saveTourProposal(input: { ownerOpenId: string; clientName: string; proposalTitle: string; snapshot: string; status?: TourProposalStatus }) {
+export async function saveTourProposal(input: { ownerOpenId: string; clientName: string; proposalTitle: string; snapshot: string; status?: SavedItemStatus }) {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível para salvar a proposta.");
 
@@ -209,15 +230,21 @@ export async function listTourProposals(ownerOpenId: string, search = "") {
     ? and(eq(savedTourProposals.ownerOpenId, ownerOpenId), or(like(savedTourProposals.clientName, `%${term}%`), like(savedTourProposals.proposalTitle, `%${term}%`)))
     : eq(savedTourProposals.ownerOpenId, ownerOpenId);
 
-  return db.select({
+  const proposals = await db.select({
     id: savedTourProposals.id,
     clientName: savedTourProposals.clientName,
     proposalTitle: savedTourProposals.proposalTitle,
     status: savedTourProposals.status,
+    snapshot: savedTourProposals.snapshot,
     updatedAt: savedTourProposals.updatedAt,
   }).from(savedTourProposals)
     .where(whereClause)
     .orderBy(desc(savedTourProposals.updatedAt));
+
+  return proposals.map(({ snapshot, ...proposal }) => ({
+    ...proposal,
+    ...getTourProposalMetadata(snapshot),
+  }));
 }
 
 export async function getTourProposal(ownerOpenId: string, id: string) {
@@ -261,7 +288,7 @@ export async function duplicateTourProposal(ownerOpenId: string, id: string) {
   return copyId;
 }
 
-export async function updateTourProposalStatus(ownerOpenId: string, id: string, status: TourProposalStatus) {
+export async function updateTourProposalStatus(ownerOpenId: string, id: string, status: SavedItemStatus) {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível para atualizar a proposta.");
 

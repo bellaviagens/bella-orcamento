@@ -43,6 +43,7 @@ export const savedBudgetDrafts = mysqlTable("saved_budget_drafts", {
   id: varchar("id", { length: 36 }).primaryKey(),
   ownerOpenId: varchar("ownerOpenId", { length: 64 }).notNull(),
   label: varchar("label", { length: 255 }).notNull(),
+  status: mysqlEnum("status", ["pending", "sent", "approved"]).default("pending").notNull(),
   snapshot: text("snapshot").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

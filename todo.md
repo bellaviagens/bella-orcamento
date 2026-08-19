@@ -716,3 +716,6 @@
 - [x] Adicionar busca própria para cada tipo de rascunho
 - [x] Renomear Orçamento completo para Orçamento de viagem no seletor de rascunhos
 - [x] Adicionar filtro por status nas propostas de passeios do seletor de rascunhos
+- [x] Adicionar status persistente para orçamentos de viagem e roteiros finais
+- [x] Centralizar filtros de cliente, destino, tipo e status na tela de rascunhos
+- [x] Permitir alterar o status de cada item diretamente na tela de rascunhos

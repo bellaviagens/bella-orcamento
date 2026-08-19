@@ -4,7 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { buildImportDocumentContent } from "./importDocument";
-import { createSharedFavoriteList, createSharedItinerary, createTravelClient, createTravelLibraryItem, deleteBudgetDraft, deleteFavoriteRestaurant, deleteTourProposal, deleteTravelClient, deleteTravelLibraryItem, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, getTravelClientHistory, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, listTravelClients, listTravelLibraryItems, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, setTravelLibraryItemFavorite, updateFavoriteRestaurantDetails, updateFavoriteRestaurantTags, updateTourProposalStatus, updateTravelLibraryItem } from "./db";
+import { createSharedFavoriteList, createSharedItinerary, createTravelClient, createTravelLibraryItem, deleteBudgetDraft, deleteFavoriteRestaurant, deleteTourProposal, deleteTravelClient, deleteTravelLibraryItem, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, getTravelClientHistory, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, listTravelClients, listTravelLibraryItems, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, setTravelLibraryItemFavorite, updateBudgetDraftStatus, updateFavoriteRestaurantDetails, updateFavoriteRestaurantTags, updateTourProposalStatus, updateTravelLibraryItem } from "./db";
 import { storagePut } from "./storage";
 import { fetchPlacePhoto, makeRequest, type PlacesSearchResult } from "./_core/map";
 import { TRPCError } from "@trpc/server";
@@ -514,6 +514,13 @@ export const appRouter = router({
       .input(z.object({ id: z.string().uuid(), label: z.string().trim().min(1, "Informe um nome para o rascunho.").max(255) }))
       .mutation(async ({ ctx, input }) => {
         const updated = await renameBudgetDraft(ctx.user.openId, input.id, input.label);
+        if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Rascunho não encontrado." });
+        return { success: true };
+      }),
+    updateStatus: protectedProcedure
+      .input(z.object({ id: z.string().uuid(), status: z.enum(["pending", "sent", "approved"]) }))
+      .mutation(async ({ ctx, input }) => {
+        const updated = await updateBudgetDraftStatus(ctx.user.openId, input.id, input.status);
         if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Rascunho não encontrado." });
         return { success: true };
       }),

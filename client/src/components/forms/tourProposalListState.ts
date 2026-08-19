@@ -1,6 +1,7 @@
 export type SavedTourProposalSearchItem = {
   clientName: string;
   proposalTitle: string;
+  destination?: string;
   status?: "pending" | "sent" | "approved";
 };
 
@@ -18,7 +19,8 @@ export function filterSavedTourProposals<T extends SavedTourProposalSearchItem>(
   const query = normalizedSearchText(search);
   if (!query) return proposals;
 
-  return proposals.filter((proposal) => normalizedSearchText(proposal.clientName).includes(query));
+  return proposals.filter((proposal) => [proposal.clientName, proposal.proposalTitle, proposal.destination]
+    .some((value) => normalizedSearchText(value || "").includes(query)));
 }
 
 export function filterSavedTourProposalsByStatus<T extends SavedTourProposalSearchItem>(

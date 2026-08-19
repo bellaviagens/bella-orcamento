@@ -26,6 +26,12 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { filterSavedTourProposals, filterSavedTourProposalsByStatus, type SavedTourProposalStatusFilter } from "@/components/forms/tourProposalListState";
 
+const SAVED_ITEM_STATUS_OPTIONS = [
+  ["pending", "Pendente"],
+  ["sent", "Enviada"],
+  ["approved", "Aprovada"],
+] as const;
+
 function BuilderContent() {
   const { budget, replaceBudget, updateTripInfo } = useBudget();
   const { generatePdf } = usePdfGenerator();
@@ -47,6 +53,8 @@ function BuilderContent() {
   const [tourProposalSearch, setTourProposalSearch] = useState("");
   const [tourProposalStatusFilter, setTourProposalStatusFilter] = useState<SavedTourProposalStatusFilter>("all");
   const [finalItineraryDraftSearch, setFinalItineraryDraftSearch] = useState("");
+  const [travelBudgetStatusFilter, setTravelBudgetStatusFilter] = useState<SavedTourProposalStatusFilter>("all");
+  const [finalItineraryStatusFilter, setFinalItineraryStatusFilter] = useState<SavedTourProposalStatusFilter>("all");
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
   const [editingDraftLabel, setEditingDraftLabel] = useState("");
   const draftsQuery = trpc.budgetDrafts.list.useQuery({ search: draftSearch });
@@ -63,8 +71,10 @@ function BuilderContent() {
   const saveDraftMutation = trpc.budgetDrafts.save.useMutation();
   const renameDraftMutation = trpc.budgetDrafts.rename.useMutation();
   const deleteDraftMutation = trpc.budgetDrafts.delete.useMutation();
-  const completeBudgetDrafts = (draftsQuery.data || []).filter((draft) => draft.kind !== "final-itinerary");
-  const finalItineraryDrafts = (finalItineraryDraftsQuery.data || []).filter((draft) => draft.kind === "final-itinerary");
+  const updateBudgetDraftStatusMutation = trpc.budgetDrafts.updateStatus.useMutation();
+  const updateTourProposalStatusMutation = trpc.tourProposals.updateStatus.useMutation();
+  const completeBudgetDrafts = (draftsQuery.data || []).filter((draft) => draft.kind !== "final-itinerary" && (travelBudgetStatusFilter === "all" || draft.status === travelBudgetStatusFilter));
+  const finalItineraryDrafts = (finalItineraryDraftsQuery.data || []).filter((draft) => draft.kind === "final-itinerary" && (finalItineraryStatusFilter === "all" || draft.status === finalItineraryStatusFilter));
   const filteredTourProposals = useMemo(
     () => filterSavedTourProposalsByStatus(
       filterSavedTourProposals(tourProposalsQuery.data || [], tourProposalSearch),
@@ -166,6 +176,26 @@ function BuilderContent() {
       toast.success("Rascunho excluído.");
     } catch {
       toast.error("Não foi possível excluir o rascunho.");
+    }
+  };
+
+  const updateBudgetDraftStatus = async (id: string, status: Exclude<SavedTourProposalStatusFilter, "all">) => {
+    try {
+      await updateBudgetDraftStatusMutation.mutateAsync({ id, status });
+      await utils.budgetDrafts.list.invalidate();
+      toast.success("Status do rascunho atualizado.");
+    } catch {
+      toast.error("Não foi possível atualizar o status do rascunho.");
+    }
+  };
+
+  const updateTourProposalStatus = async (id: string, status: Exclude<SavedTourProposalStatusFilter, "all">) => {
+    try {
+      await updateTourProposalStatusMutation.mutateAsync({ id, status });
+      await utils.tourProposals.list.invalidate();
+      toast.success("Status da proposta atualizado.");
+    } catch {
+      toast.error("Não foi possível atualizar o status da proposta.");
     }
   };
 
@@ -271,6 +301,12 @@ function BuilderContent() {
                   <Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
                   <Input value={draftSearch} onChange={(event) => setDraftSearch(event.target.value)} placeholder="Buscar por cliente, destino ou nome" className="h-9 pl-8 text-xs" />
                 </div>
+                <div className="mb-3 flex flex-wrap items-center gap-1.5">
+                  <span className="mr-1 text-[11px] font-semibold text-slate-600">Status:</span>
+                  {([ ["all", "Todos"], ["pending", "Pendentes"], ["sent", "Enviados"], ["approved", "Aprovados"] ] as const).map(([status, label]) => (
+                    <Button key={status} type="button" variant="outline" size="sm" onClick={() => setTravelBudgetStatusFilter(status)} className={`h-7 px-2.5 text-[10px] ${travelBudgetStatusFilter === status ? "border-[#1a2e4a] bg-[#1a2e4a] text-white hover:bg-[#243c62] hover:text-white" : "border-slate-300 bg-white text-slate-600 hover:border-[#1a2e4a] hover:text-[#1a2e4a]"}`}>{label}</Button>
+                  ))}
+                </div>
                 {draftsQuery.isLoading ? (
                   <p className="text-xs text-slate-500">Carregando orçamentos de viagem...</p>
                 ) : completeBudgetDrafts.length ? (
@@ -282,14 +318,17 @@ function BuilderContent() {
                           <span className="mt-1 block text-[10px] text-slate-500">{[draft.clientName && `Cliente: ${draft.clientName}`, draft.destination && `Destino: ${draft.destination}`].filter(Boolean).join(" • ") || "Cliente e destino não informados"}</span>
                           <span className="block text-[10px] text-slate-500">Atualizado em {new Date(draft.updatedAt).toLocaleString("pt-BR")}</span>
                         </div>
-                        <div className="flex shrink-0 items-center gap-1">
+                        <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
+                          <select aria-label={`Status de ${draft.label}`} value={draft.status} onChange={(event) => updateBudgetDraftStatus(draft.id, event.target.value as Exclude<SavedTourProposalStatusFilter, "all">)} disabled={updateBudgetDraftStatusMutation.isPending} className="h-7 max-w-24 rounded-md border border-slate-300 bg-white px-1.5 text-[10px] text-slate-600 outline-none focus:border-[#1a2e4a]">
+                            {SAVED_ITEM_STATUS_OPTIONS.map(([status, label]) => <option key={status} value={status}>{label}</option>)}
+                          </select>
                           {editingDraftId === draft.id ? <Button type="button" size="sm" className="h-7 bg-[#1a2e4a] px-2 text-[10px] text-white hover:bg-[#243c62]" onClick={renameDraft} disabled={renameDraftMutation.isPending}>Salvar</Button> : <><Button type="button" variant="outline" size="sm" className="h-7 px-2 text-[10px]" onClick={() => setSelectedDraftId(draft.id)}>Abrir</Button><Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-slate-500 hover:text-[#1a2e4a]" aria-label={`Renomear ${draft.label}`} onClick={() => { setEditingDraftId(draft.id); setEditingDraftLabel(draft.label); }}><Pencil className="h-3.5 w-3.5" /></Button></>}
                           <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={`Excluir ${draft.label}`} onClick={() => deleteDraft(draft.id, draft.label)} disabled={deleteDraftMutation.isPending}><Trash2 className="h-3.5 w-3.5" /></Button>
                         </div>
                       </div>
                     ))}
                   </div>
-                ) : <p className="text-xs text-slate-500">{draftSearch ? "Nenhum orçamento de viagem encontrado." : "Nenhum orçamento de viagem salvo ainda."}</p>}
+                ) : <p className="text-xs text-slate-500">{draftSearch || travelBudgetStatusFilter !== "all" ? "Nenhum orçamento de viagem encontrado com os filtros selecionados." : "Nenhum orçamento de viagem salvo ainda."}</p>}
               </div>
             </TabsContent>
 
@@ -300,7 +339,7 @@ function BuilderContent() {
               </div>
               <div className="relative">
                 <Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
-                <Input value={tourProposalSearch} onChange={(event) => setTourProposalSearch(event.target.value)} placeholder="Buscar pelo nome do cliente" className="h-9 pl-8 text-xs" />
+                <Input value={tourProposalSearch} onChange={(event) => setTourProposalSearch(event.target.value)} placeholder="Buscar por cliente, destino ou proposta" className="h-9 pl-8 text-xs" />
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="mr-1 text-[11px] font-semibold text-slate-600">Status:</span>
@@ -328,8 +367,8 @@ function BuilderContent() {
                 <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
                   {filteredTourProposals.map((proposal) => (
                     <div key={proposal.id} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-2.5 transition-colors hover:border-amber-300 hover:bg-amber-50">
-                      <div className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-[#1a2e4a]">{proposal.proposalTitle || "Proposta de passeios"}</span><span className="mt-1 block truncate text-[10px] text-slate-500">Cliente: {proposal.clientName}</span><span className="block text-[10px] text-slate-500">{proposal.status === "approved" ? "Aprovada" : proposal.status === "sent" ? "Enviada" : "Pendente"} • Atualizada em {new Date(proposal.updatedAt).toLocaleString("pt-BR")}</span></div>
-                      <Button type="button" variant="outline" size="sm" className="h-7 shrink-0 px-2 text-[10px]" onClick={() => setSelectedTourProposalId(proposal.id)}>Abrir</Button>
+                        <div className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-[#1a2e4a]">{proposal.proposalTitle || "Proposta de passeios"}</span><span className="mt-1 block truncate text-[10px] text-slate-500">Cliente: {proposal.clientName}{proposal.destination ? ` • Destino: ${proposal.destination}` : ""}</span><span className="block text-[10px] text-slate-500">Atualizada em {new Date(proposal.updatedAt).toLocaleString("pt-BR")}</span></div>
+                      <div className="flex shrink-0 flex-wrap items-center justify-end gap-1"><select aria-label={`Status de ${proposal.proposalTitle}`} value={proposal.status} onChange={(event) => updateTourProposalStatus(proposal.id, event.target.value as Exclude<SavedTourProposalStatusFilter, "all">)} disabled={updateTourProposalStatusMutation.isPending} className="h-7 max-w-24 rounded-md border border-slate-300 bg-white px-1.5 text-[10px] text-slate-600 outline-none focus:border-[#1a2e4a]">{SAVED_ITEM_STATUS_OPTIONS.map(([status, label]) => <option key={status} value={status}>{label}</option>)}</select><Button type="button" variant="outline" size="sm" className="h-7 px-2 text-[10px]" onClick={() => setSelectedTourProposalId(proposal.id)}>Abrir</Button></div>
                     </div>
                   ))}
                 </div>
@@ -345,6 +384,12 @@ function BuilderContent() {
                 <Search className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
                 <Input value={finalItineraryDraftSearch} onChange={(event) => setFinalItineraryDraftSearch(event.target.value)} placeholder="Buscar por cliente, destino ou nome" className="h-9 pl-8 text-xs" />
               </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="mr-1 text-[11px] font-semibold text-slate-600">Status:</span>
+                {([ ["all", "Todos"], ["pending", "Pendentes"], ["sent", "Enviados"], ["approved", "Aprovados"] ] as const).map(([status, label]) => (
+                  <Button key={status} type="button" variant="outline" size="sm" onClick={() => setFinalItineraryStatusFilter(status)} className={`h-7 px-2.5 text-[10px] ${finalItineraryStatusFilter === status ? "border-[#1a2e4a] bg-[#1a2e4a] text-white hover:bg-[#243c62] hover:text-white" : "border-slate-300 bg-white text-slate-600 hover:border-[#1a2e4a] hover:text-[#1a2e4a]"}`}>{label}</Button>
+                ))}
+              </div>
               {finalItineraryDraftsQuery.isLoading ? (
                 <p className="text-xs text-slate-500">Carregando roteiros finais...</p>
               ) : finalItineraryDrafts.length ? (
@@ -356,14 +401,17 @@ function BuilderContent() {
                         <span className="mt-1 block text-[10px] text-slate-500">{[draft.clientName && `Cliente: ${draft.clientName}`, draft.destination && `Destino: ${draft.destination}`].filter(Boolean).join(" • ") || "Cliente e destino não informados"}</span>
                         <span className="block text-[10px] text-slate-500">Atualizado em {new Date(draft.updatedAt).toLocaleString("pt-BR")}</span>
                       </div>
-                      <div className="flex shrink-0 items-center gap-1">
+                      <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
+                        <select aria-label={`Status de ${draft.label}`} value={draft.status} onChange={(event) => updateBudgetDraftStatus(draft.id, event.target.value as Exclude<SavedTourProposalStatusFilter, "all">)} disabled={updateBudgetDraftStatusMutation.isPending} className="h-7 max-w-24 rounded-md border border-slate-300 bg-white px-1.5 text-[10px] text-slate-600 outline-none focus:border-[#1a2e4a]">
+                          {SAVED_ITEM_STATUS_OPTIONS.map(([status, label]) => <option key={status} value={status}>{label}</option>)}
+                        </select>
                         {editingDraftId === draft.id ? <Button type="button" size="sm" className="h-7 bg-[#1a2e4a] px-2 text-[10px] text-white hover:bg-[#243c62]" onClick={renameDraft} disabled={renameDraftMutation.isPending}>Salvar</Button> : <><Button type="button" variant="outline" size="sm" className="h-7 px-2 text-[10px]" onClick={() => { setSelectedDraftId(draft.id); setSideView("budget"); setActiveTab("itinerary"); setItineraryMode("final"); }}>Abrir</Button><Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-slate-500 hover:text-[#1a2e4a]" aria-label={`Renomear ${draft.label}`} onClick={() => { setEditingDraftId(draft.id); setEditingDraftLabel(draft.label); }}><Pencil className="h-3.5 w-3.5" /></Button></>}
                         <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={`Excluir ${draft.label}`} onClick={() => deleteDraft(draft.id, draft.label)} disabled={deleteDraftMutation.isPending}><Trash2 className="h-3.5 w-3.5" /></Button>
                       </div>
                     </div>
                   ))}
                 </div>
-              ) : <p className="text-xs text-slate-500">{finalItineraryDraftSearch ? "Nenhum roteiro final encontrado." : "Nenhum roteiro final salvo ainda."}</p>}
+              ) : <p className="text-xs text-slate-500">{finalItineraryDraftSearch || finalItineraryStatusFilter !== "all" ? "Nenhum roteiro final encontrado com os filtros selecionados." : "Nenhum roteiro final salvo ainda."}</p>}
             </TabsContent>
           </Tabs>
         </DialogContent>
