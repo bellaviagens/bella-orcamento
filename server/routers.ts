@@ -4,7 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { buildImportDocumentContent } from "./importDocument";
-import { createSharedFavoriteList, createSharedItinerary, createTravelClient, createTravelLibraryItem, deleteBudgetDraft, deleteFavoriteRestaurant, deleteTourProposal, deleteTravelClient, deleteTravelLibraryItem, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, getTravelClientHistory, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, listTravelClients, listTravelLibraryItems, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, updateFavoriteRestaurantDetails, updateFavoriteRestaurantTags, updateTourProposalStatus, updateTravelLibraryItem } from "./db";
+import { createSharedFavoriteList, createSharedItinerary, createTravelClient, createTravelLibraryItem, deleteBudgetDraft, deleteFavoriteRestaurant, deleteTourProposal, deleteTravelClient, deleteTravelLibraryItem, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, getTravelClientHistory, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, listTravelClients, listTravelLibraryItems, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, setTravelLibraryItemFavorite, updateFavoriteRestaurantDetails, updateFavoriteRestaurantTags, updateTourProposalStatus, updateTravelLibraryItem } from "./db";
 import { storagePut } from "./storage";
 import { fetchPlacePhoto, makeRequest, type PlacesSearchResult } from "./_core/map";
 import { TRPCError } from "@trpc/server";
@@ -402,6 +402,13 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         const updated = await updateTravelLibraryItem({ ...input, ownerOpenId: ctx.user.openId });
+        if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Item da biblioteca não encontrado." });
+        return { success: true };
+      }),
+    setFavorite: protectedProcedure
+      .input(z.object({ id: z.string().uuid(), isFavorite: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        const updated = await setTravelLibraryItemFavorite(ctx.user.openId, input.id, input.isFavorite);
         if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Item da biblioteca não encontrado." });
         return { success: true };
       }),

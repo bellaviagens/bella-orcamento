@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -106,6 +106,7 @@ export const travelLibraryItems = mysqlTable("travel_library_items", {
   imageUrl: varchar("imageUrl", { length: 2048 }),
   documentUrl: varchar("documentUrl", { length: 2048 }),
   notes: text("notes"),
+  isFavorite: boolean("isFavorite").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

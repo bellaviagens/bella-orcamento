@@ -23,6 +23,7 @@ type TravelLibraryItemLike = {
   linkUrl: string | null;
   imageUrl: string | null;
   notes: string | null;
+  isFavorite?: boolean;
 };
 
 export type TravelLibraryFilters = {
@@ -61,6 +62,11 @@ export function sortTravelLibraryItems<T extends TravelLibraryItemLike>(items: T
     const neighborhoodOrder = normalizedText(first.neighborhood).localeCompare(normalizedText(second.neighborhood), "pt-BR");
     return neighborhoodOrder || normalizedText(first.name).localeCompare(normalizedText(second.name), "pt-BR");
   });
+}
+
+/** Mantém na aba Favoritos somente os itens marcados pelo usuário na Biblioteca. */
+export function filterFavoriteTravelLibraryItems<T extends TravelLibraryItemLike>(items: T[]) {
+  return items.filter((item) => item.isFavorite === true);
 }
 
 export function getTravelLibraryFolders<T extends TravelLibraryItemLike>(items: T[]) {

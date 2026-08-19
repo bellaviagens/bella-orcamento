@@ -509,6 +509,16 @@ export async function updateTravelLibraryItem(input: TravelLibraryItemInput & { 
   return (result[0]?.affectedRows ?? 0) > 0;
 }
 
+export async function setTravelLibraryItemFavorite(ownerOpenId: string, id: string, isFavorite: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para atualizar a biblioteca.");
+
+  const result = await db.update(travelLibraryItems)
+    .set({ isFavorite, updatedAt: new Date() })
+    .where(and(eq(travelLibraryItems.id, id), eq(travelLibraryItems.ownerOpenId, ownerOpenId)));
+  return (result[0]?.affectedRows ?? 0) > 0;
+}
+
 export async function listTravelLibraryItems(ownerOpenId: string, category?: TravelLibraryCategory) {
   const db = await getDb();
   if (!db) return [];

@@ -688,3 +688,5 @@
 - [x] Iniciar recolhida a seção Abertura e pagamento da proposta de passeios
 - [x] Reorganizar os botões Nova proposta e Salvar passeios na Biblioteca nessa seção
 - [x] Adicionar ação Limpar proposta de passeios com confirmação de segurança
+- [x] Adicionar área de rolagem ao editor longo da Biblioteca de Viagem
+- [x] Adicionar ação Favoritar na sequência de botões de cada item da Biblioteca

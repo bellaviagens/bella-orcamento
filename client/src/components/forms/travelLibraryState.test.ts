@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterTravelLibraryItems, getTravelLibraryDestinationGroups, getTravelLibraryFolders, sortTravelLibraryItems } from "./travelLibraryState";
+import { filterFavoriteTravelLibraryItems, filterTravelLibraryItems, getTravelLibraryDestinationGroups, getTravelLibraryFolders, sortTravelLibraryItems } from "./travelLibraryState";
 
 describe("Biblioteca de Viagem", () => {
   const items = [
@@ -74,6 +74,15 @@ describe("Biblioteca de Viagem", () => {
       { id: "hotel-1", category: "hotel" as const, folderName: "Hotéis", name: "Andes", destination: "Santiago, Chile", country: "Chile", city: "Santiago", neighborhood: "Las Condes", contactName: null, phone: null, linkUrl: null, imageUrl: null, notes: null },
     ];
     expect(sortTravelLibraryItems(detailedItems, "neighborhood").map((item) => item.id)).toEqual(["hotel-1", "hotel-2"]);
+  });
+
+  it("separa os itens marcados como favoritos na Biblioteca", () => {
+    const detailedItems = [
+      { id: "hotel-1", category: "hotel" as const, folderName: "Hotéis", isFavorite: true },
+      { id: "tour-1", category: "tour" as const, folderName: "Passeios", isFavorite: false },
+      { id: "transfer-1", category: "transfer" as const, folderName: "Transfers" },
+    ];
+    expect(filterFavoriteTravelLibraryItems(detailedItems).map((item) => item.id)).toEqual(["hotel-1"]);
   });
 
   it("pesquisa passeios e transfers por dados cadastrados", () => {
