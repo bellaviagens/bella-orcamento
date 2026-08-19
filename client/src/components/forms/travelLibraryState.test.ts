@@ -94,4 +94,13 @@ describe("Biblioteca de Viagem", () => {
     expect(filterTravelLibraryItems(detailedItems, { category: "tour", country: "Chile", city: "Santiago", neighborhood: "", searchQuery: "08:00" }).map((item) => item.id)).toEqual(["tour-1"]);
     expect(filterTravelLibraryItems(detailedItems, { category: "transfer", country: "Chile", city: "Santiago", neighborhood: "", searchQuery: "carlos" }).map((item) => item.id)).toEqual(["transfer-1"]);
   });
+
+  it("pesquisa na Biblioteca inteira quando Todos estiver selecionado", () => {
+    const detailedItems = [
+      { id: "hotel-1", category: "hotel" as const, folderName: "Hotéis", name: "Manquehue Apart Hotel", destination: "Santiago, Chile", country: "Chile", city: "Santiago", neighborhood: null, contactName: null, phone: null, linkUrl: null, imageUrl: null, notes: null },
+      { id: "restaurant-1", category: "restaurant" as const, folderName: "Restaurantes", name: "Restaurante Andino", destination: "Santiago, Chile", country: "Chile", city: "Santiago", neighborhood: null, contactName: "Reserva Andina", phone: null, linkUrl: null, imageUrl: null, notes: null },
+    ];
+
+    expect(filterTravelLibraryItems(detailedItems, { category: "all", country: "", city: "", neighborhood: "", searchQuery: "andina" }).map((item) => item.id)).toEqual(["restaurant-1"]);
+  });
 });

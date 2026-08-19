@@ -706,3 +706,5 @@
 - [x] Manter o campo Valor da entrada na mesma linha dos campos de pagamento da proposta
 - [x] Posicionar Fonte do resumo da capa ao lado de Nova proposta
 - [x] Alinhar os controles de salvar, abrir e listar propostas de passeios
+- [x] Organizar os botões e filtros da Biblioteca de Viagem
+- [x] Adicionar campo de busca com ícone de lupa na Biblioteca de Viagem
