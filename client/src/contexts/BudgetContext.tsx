@@ -36,6 +36,7 @@ interface BudgetContextType {
   replaceBudget: (budget: BudgetData) => void;
   updateFinalItinerary: (updates: Partial<FinalItinerary>) => void;
   clearFinalItinerary: () => void;
+  clearFinalItineraryWithRegisteredData: () => void;
   addFinalItineraryEvent: (event?: Partial<FinalItineraryEvent>) => void;
   updateFinalItineraryEvent: (id: string, updates: Partial<FinalItineraryEvent>) => void;
   updateFinalItineraryDayDate: (day: number, proposalDayDate: string) => void;
@@ -495,6 +496,15 @@ export function clearFinalItineraryInBudget(budget: BudgetData): BudgetData {
   };
 }
 
+/** Limpa o Roteiro Final e os cadastros do orçamento atual usados para montá-lo, sem apagar propostas salvas. */
+export function clearFinalItineraryWithRegisteredDataInBudget(budget: BudgetData): BudgetData {
+  return resetTourProposalInBudget(clearFinalItineraryInBudget({
+    ...budget,
+    flights: [],
+    hotels: [],
+  }));
+}
+
 function nextFinalItineraryDay(events: FinalItineraryEvent[]) {
   return Math.max(0, ...events.map((event) => event.day)) + 1;
 }
@@ -854,6 +864,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     setBudget((prev) => clearFinalItineraryInBudget(prev));
   }, []);
 
+  const clearFinalItineraryWithRegisteredData = useCallback(() => {
+    setBudget((prev) => clearFinalItineraryWithRegisteredDataInBudget(prev));
+  }, []);
+
   const addFinalItineraryEvent = useCallback((event?: Partial<FinalItineraryEvent>) => {
     setBudget((prev) => addFinalItineraryEventToBudget(prev, event));
   }, []);
@@ -1009,6 +1023,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         replaceBudget,
         updateFinalItinerary,
         clearFinalItinerary,
+        clearFinalItineraryWithRegisteredData,
         addFinalItineraryEvent,
         updateFinalItineraryEvent,
         updateFinalItineraryDayDate,

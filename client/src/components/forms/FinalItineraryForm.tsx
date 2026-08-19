@@ -77,8 +77,7 @@ export function FinalItineraryForm() {
   const {
     budget,
     updateFinalItinerary,
-    clearFinalItinerary,
-    resetTourProposal,
+    clearFinalItineraryWithRegisteredData,
     addFinalItineraryEvent,
     updateFinalItineraryEvent,
     updateFinalItineraryDayDate,
@@ -114,6 +113,7 @@ export function FinalItineraryForm() {
   const [showSavedProposalPicker, setShowSavedProposalPicker] = useState(false);
   const [selectedSavedProposalId, setSelectedSavedProposalId] = useState("");
   const [savedProposalImportMessage, setSavedProposalImportMessage] = useState("");
+  const [isRegisteredInformationCollapsed, setIsRegisteredInformationCollapsed] = useState(true);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(() => initialCollapsedSections(budget.finalItinerary.events));
   const knownCollapsedSectionIds = useRef<Set<string>>(new Set(initialCollapsedSections(budget.finalItinerary.events)));
   const [savedLibraryEventIds, setSavedLibraryEventIds] = useState<Set<string>>(() => new Set());
@@ -168,8 +168,7 @@ export function FinalItineraryForm() {
   };
 
   const handleClearFinalItinerary = () => {
-    clearFinalItinerary();
-    resetTourProposal();
+    clearFinalItineraryWithRegisteredData();
     setDraggedEventId(null);
     setDragOverEventId(null);
     setDraggedDay(null);
@@ -187,6 +186,7 @@ export function FinalItineraryForm() {
     setShowSavedProposalPicker(false);
     setSelectedSavedProposalId("");
     setSavedProposalImportMessage("");
+    setIsRegisteredInformationCollapsed(true);
     const defaultCollapsedSections = initialCollapsedSections([]);
     setCollapsedSections(defaultCollapsedSections);
     knownCollapsedSectionIds.current = new Set(defaultCollapsedSections);
@@ -534,8 +534,11 @@ export function FinalItineraryForm() {
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-3">
-        <div className="mb-3"><h4 className="text-sm font-bold text-[#1a2e4a]">Adicionar informações já cadastradas</h4><p className="mt-1 text-xs text-slate-500">Após abrir o orçamento salvo e selecionar <strong>Roteiro final</strong>, os passeios aprovados podem ser copiados abaixo sem redigitar. Dia, horário, descrição, endereço, foto e alertas são aproveitados; os cadastros originais permanecem intactos.</p></div>
-        <div className="space-y-3">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0"><h4 className="text-sm font-bold text-[#1a2e4a]">Adicionar informações já cadastradas</h4><p className="mt-1 text-xs text-slate-500">Após abrir o orçamento salvo e selecionar <strong>Roteiro final</strong>, os passeios aprovados podem ser copiados abaixo sem redigitar. Dia, horário, descrição, endereço, foto e alertas são aproveitados; os cadastros originais permanecem intactos.</p></div>
+          <Button type="button" variant="ghost" size="sm" onClick={() => setIsRegisteredInformationCollapsed((current) => !current)} aria-expanded={!isRegisteredInformationCollapsed} className="h-11 min-w-24 px-3 text-xs text-slate-500 hover:bg-slate-50 hover:text-[#1a2e4a] sm:h-8 sm:min-w-0 sm:px-2"><ChevronDown className={`mr-1 h-4 w-4 transition-transform ${isRegisteredInformationCollapsed ? "" : "rotate-180"}`} />{isRegisteredInformationCollapsed ? "Abrir" : "Recolher"}</Button>
+        </div>
+        {!isRegisteredInformationCollapsed && <div className="mt-3 space-y-3">
           {budget.flights.length > 0 && <div><p className="mb-1.5 text-xs font-bold text-slate-600">Voos</p><div className="flex flex-wrap gap-2">{budget.flights.map((flight) => <Button key={flight.id} type="button" variant="outline" size="sm" onClick={() => addFlightToFinalItinerary(flight.id)} className="bg-white text-xs"><Plane className="mr-1.5 h-3.5 w-3.5" />{flight.type === "ida" ? "Adicionar voo de ida" : "Adicionar voo de retorno"}</Button>)}</div></div>}
           {budget.hotels.length > 0 && <div><p className="mb-1.5 text-xs font-bold text-slate-600">Hospedagem</p><div className="flex flex-wrap gap-2">{budget.hotels.map((hotel) => <Button key={hotel.id} type="button" variant="outline" size="sm" onClick={() => addHotelToFinalItinerary(hotel.id)} className="max-w-full bg-white text-xs"><Hotel className="mr-1.5 h-3.5 w-3.5" /><span className="truncate">{hotel.name}</span></Button>)}</div></div>}
           {(budget.tours.length > 0 || savedTourProposalsQuery.isLoading || (savedTourProposalsQuery.data?.length || 0) > 0) && <div>
@@ -561,7 +564,7 @@ export function FinalItineraryForm() {
             </div>}
             <div className="flex flex-wrap gap-2">{budget.tours.map((tour) => <Button key={tour.id} type="button" variant="outline" size="sm" onClick={() => addTourToFinalItinerary(tour.id)} className="max-w-full bg-white text-xs"><Building2 className="mr-1.5 h-3.5 w-3.5" /><span className="truncate">{tour.name}</span></Button>)}</div>
           </div>}
-        </div>
+        </div>}
       </section>
 
       {events.length > 1 && <p className="rounded-md border border-dashed border-slate-200 bg-white px-3 py-2 text-xs leading-relaxed text-slate-500"><GripVertical className="mr-1 inline h-3.5 w-3.5 text-[#1a2e4a]" />Arraste os compromissos para reorganizá-los <strong className="font-semibold text-[#1a2e4a]">dentro do mesmo dia</strong> ou use o ícone no cabeçalho para mover o <strong className="font-semibold text-[#1a2e4a]">dia inteiro</strong>. A data acompanha a nova posição no roteiro e no PDF.</p>}

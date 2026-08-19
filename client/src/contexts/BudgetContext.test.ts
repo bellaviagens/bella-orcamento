@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clearFinalItineraryInBudget, rehydrateBudgetDraft, reorderFinalItineraryDaysInBudget, resetTourProposalInBudget, restoreLastBudgetFromStorage, updateFareTierInBudget, updateFinalItineraryDayDateInBudget } from "./BudgetContext";
+import { clearFinalItineraryWithRegisteredDataInBudget, rehydrateBudgetDraft, reorderFinalItineraryDaysInBudget, restoreLastBudgetFromStorage, updateFareTierInBudget, updateFinalItineraryDayDateInBudget } from "./BudgetContext";
 import { defaultBudgetData } from "@shared/budgetTypes";
 
 describe("updateFareTierInBudget", () => {
@@ -116,6 +116,8 @@ describe("limpeza do Roteiro Final", () => {
         ...defaultBudgetData.finalItinerary,
         events: [{ id: "evento-atual", day: 1, proposalDayDate: "2026-08-30", kind: "tour" as const, title: "Evento atual", time: "", description: "", linkUrl: "", addressUrl: "", photoUrl: "", attachments: [] }],
       },
+      flights: [{ ...defaultBudgetData.flights[0], id: "voo-atual" }],
+      hotels: [{ ...defaultBudgetData.hotels[0], id: "hotel-atual" }],
       tours: [{
         id: "passeio-cadastrado",
         name: "Passeio cadastrado",
@@ -141,9 +143,11 @@ describe("limpeza do Roteiro Final", () => {
       }],
     };
 
-    const cleared = resetTourProposalInBudget(clearFinalItineraryInBudget(budget));
+    const cleared = clearFinalItineraryWithRegisteredDataInBudget(budget);
 
     expect(cleared.finalItinerary.events).toEqual([]);
+    expect(cleared.flights).toEqual([]);
+    expect(cleared.hotels).toEqual([]);
     expect(cleared.tours).toEqual([]);
     expect(cleared.itinerary).toEqual([]);
   });

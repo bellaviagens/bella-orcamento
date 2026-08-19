@@ -701,3 +701,5 @@
 - [x] Simplificar o cabeçalho diário para Dia, dia da semana e data completa, sem “Compromissos do dia”
 - [x] Aplicar pequeno recuo visual aos compromissos dentro de cada dia aberto do Roteiro Final
 - [x] Corrigir Limpar roteiro para remover também os passeios importados da proposta
+- [x] Fazer Limpar roteiro remover também voos e hospedagens do orçamento atual
+- [x] Iniciar recolhida a seção Adicionar informações já cadastradas após limpar o roteiro
