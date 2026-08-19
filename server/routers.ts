@@ -4,7 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { buildImportDocumentContent } from "./importDocument";
-import { createSharedFavoriteList, createSharedItinerary, createTravelClient, createTravelLibraryItem, deleteBudgetDraft, deleteFavoriteRestaurant, deleteTourProposal, deleteTravelClient, deleteTravelLibraryItem, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, getTravelClientHistory, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, listTravelClients, listTravelLibraryItems, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, setTravelLibraryItemFavorite, updateBudgetDraftFollowUp, updateBudgetDraftStatus, updateFavoriteRestaurantDetails, updateFavoriteRestaurantTags, updateTourProposalFollowUp, updateTourProposalStatus, updateTravelLibraryItem } from "./db";
+import { createSharedFavoriteList, createSharedItinerary, createTravelClient, createTravelLibraryItem, deleteBudgetDraft, deleteFavoriteRestaurant, deleteTourProposal, deleteTravelClient, deleteTravelLibraryItem, duplicateTourProposal, getBudgetDraft, getSharedFavoriteList, getSharedItinerary, getTourProposal, getTravelClientHistory, listBudgetDrafts, listFavoriteRestaurants, listTourProposals, listTravelClients, listTravelLibraryItems, renameBudgetDraft, revokeSharedItinerary, saveBudgetDraft, saveFavoriteRestaurant, saveTourProposal, setTravelLibraryItemFavorite, updateBudgetDraftFollowUp, updateBudgetDraftStatus, updateFavoriteRestaurantDetails, updateFavoriteRestaurantTags, updateTourProposalFollowUp, updateTourProposalStatus, updateTravelClient, updateTravelLibraryItem } from "./db";
 import { storagePut } from "./storage";
 import { fetchPlacePhoto, makeRequest, type PlacesSearchResult } from "./_core/map";
 import { TRPCError } from "@trpc/server";
@@ -423,8 +423,22 @@ export const appRouter = router({
   travelClients: router({
     list: protectedProcedure.query(({ ctx }) => listTravelClients(ctx.user.openId)),
     create: protectedProcedure
-      .input(z.object({ name: z.string().trim().min(1, "Informe o nome do cliente.").max(255), whatsapp: z.string().trim().max(80).optional(), email: z.string().trim().email("Informe um e-mail válido.").max(320).optional(), document: z.string().trim().max(40).optional(), notes: z.string().trim().max(4000).optional() }))
+      .input(z.object({ name: z.string().trim().min(1, "Informe o nome do cliente.").max(255), whatsapp: z.string().trim().max(80).optional(), email: z.string().trim().email("Informe um e-mail válido.").max(320).optional(), document: z.string().trim().max(40).optional(), passportNumber: z.string().trim().max(100).optional(), passportExpiresAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), rgNumber: z.string().trim().max(100).optional(), rgExpiresAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), visaNumber: z.string().trim().max(100).optional(), visaExpiresAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), documentsJson: z.string().max(300000).optional(), notes: z.string().trim().max(4000).optional() }))
       .mutation(async ({ ctx, input }) => ({ id: await createTravelClient({ ...input, ownerOpenId: ctx.user.openId }) })),
+    update: protectedProcedure
+      .input(z.object({ id: z.string().uuid(), name: z.string().trim().min(1, "Informe o nome do cliente.").max(255), whatsapp: z.string().trim().max(80).optional(), email: z.string().trim().email("Informe um e-mail válido.").max(320).optional(), document: z.string().trim().max(40).optional(), passportNumber: z.string().trim().max(100).optional(), passportExpiresAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), rgNumber: z.string().trim().max(100).optional(), rgExpiresAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), visaNumber: z.string().trim().max(100).optional(), visaExpiresAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), documentsJson: z.string().max(300000).optional(), notes: z.string().trim().max(4000).optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...payload } = input;
+        const updated = await updateTravelClient(ctx.user.openId, id, payload);
+        if (!updated) throw new TRPCError({ code: "NOT_FOUND", message: "Cliente não encontrado." });
+        return { success: true };
+      }),
+    import: protectedProcedure
+      .input(z.object({ clients: z.array(z.object({ name: z.string().trim().min(1).max(255), whatsapp: z.string().trim().max(80).optional(), email: z.string().trim().email().max(320).optional(), document: z.string().trim().max(40).optional(), passportNumber: z.string().trim().max(100).optional(), passportExpiresAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), rgNumber: z.string().trim().max(100).optional(), rgExpiresAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), visaNumber: z.string().trim().max(100).optional(), visaExpiresAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), notes: z.string().trim().max(4000).optional() })).min(1).max(500) }))
+      .mutation(async ({ ctx, input }) => {
+        for (const client of input.clients) await createTravelClient({ ...client, ownerOpenId: ctx.user.openId });
+        return { imported: input.clients.length };
+      }),
     history: protectedProcedure
       .input(z.object({ clientName: z.string().trim().min(1).max(255) }))
       .query(({ ctx, input }) => getTravelClientHistory(ctx.user.openId, input.clientName)),

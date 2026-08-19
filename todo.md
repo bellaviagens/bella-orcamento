@@ -742,3 +742,7 @@
 - [x] Permitir categorizar modelos de transfer salvos por destino na Biblioteca de Viagem
 - [x] Tornar o WhatsApp do motorista clicável na proposta e no PDF
 - [x] Permitir informar a duração estimada do transfer entre aeroporto e hotel
+- [x] Ampliar o cadastro de clientes com dados de passaporte, RG e visto, incluindo datas de validade
+- [x] Permitir anexar documentos de viagem ao cadastro de cada cliente
+- [x] Permitir importar e exportar dados de clientes em formato estruturado
+- [x] Exibir alertas de documentos vencidos ou próximos do vencimento em relação às datas de ida e volta

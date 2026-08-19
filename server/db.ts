@@ -596,6 +596,13 @@ export interface TravelClientInput {
   whatsapp?: string;
   email?: string;
   document?: string;
+  passportNumber?: string;
+  passportExpiresAt?: string;
+  rgNumber?: string;
+  rgExpiresAt?: string;
+  visaNumber?: string;
+  visaExpiresAt?: string;
+  documentsJson?: string;
   notes?: string;
 }
 
@@ -610,6 +617,13 @@ export async function createTravelClient(input: TravelClientInput) {
     whatsapp: input.whatsapp?.trim() || null,
     email: input.email?.trim() || null,
     document: input.document?.trim() || null,
+    passportNumber: input.passportNumber?.trim() || null,
+    passportExpiresAt: input.passportExpiresAt?.trim() || null,
+    rgNumber: input.rgNumber?.trim() || null,
+    rgExpiresAt: input.rgExpiresAt?.trim() || null,
+    visaNumber: input.visaNumber?.trim() || null,
+    visaExpiresAt: input.visaExpiresAt?.trim() || null,
+    documentsJson: input.documentsJson || null,
     notes: input.notes?.trim() || null,
   });
   return id;
@@ -619,6 +633,26 @@ export async function listTravelClients(ownerOpenId: string) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(travelClients).where(eq(travelClients.ownerOpenId, ownerOpenId)).orderBy(desc(travelClients.updatedAt));
+}
+
+export async function updateTravelClient(ownerOpenId: string, id: string, input: Omit<TravelClientInput, "ownerOpenId">) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível para atualizar o cliente.");
+  const result = await db.update(travelClients).set({
+    name: input.name.trim(),
+    whatsapp: input.whatsapp?.trim() || null,
+    email: input.email?.trim() || null,
+    document: input.document?.trim() || null,
+    passportNumber: input.passportNumber?.trim() || null,
+    passportExpiresAt: input.passportExpiresAt?.trim() || null,
+    rgNumber: input.rgNumber?.trim() || null,
+    rgExpiresAt: input.rgExpiresAt?.trim() || null,
+    visaNumber: input.visaNumber?.trim() || null,
+    visaExpiresAt: input.visaExpiresAt?.trim() || null,
+    documentsJson: input.documentsJson || null,
+    notes: input.notes?.trim() || null,
+  }).where(and(eq(travelClients.id, id), eq(travelClients.ownerOpenId, ownerOpenId)));
+  return (result[0]?.affectedRows ?? 0) > 0;
 }
 
 export async function deleteTravelClient(ownerOpenId: string, id: string) {

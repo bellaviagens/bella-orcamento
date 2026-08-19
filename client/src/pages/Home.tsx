@@ -621,7 +621,7 @@ function BuilderContent() {
                 </TabsContent>
               </Tabs>}
               {sideView === "library" && <TravelLibraryPanel initiallyOpen />}
-              {sideView === "clients" && <TravelClientsPanel onUseClient={(name) => { updateTripInfo("clientName", name); setSideView("budget"); setActiveTab("trip"); toast.success("Cliente aplicado ao orçamento atual."); }} />}
+              {sideView === "clients" && <TravelClientsPanel tripPeriod={budget.tripInfo.period} onUseClient={(name) => { updateTripInfo("clientName", name); setSideView("budget"); setActiveTab("trip"); toast.success("Cliente aplicado ao orçamento atual."); }} />}
               {sideView === "drafts" && <TravelDraftsPanel
                 currentDraftId={currentDraftId}
                 draftLabel={draftLabel}
