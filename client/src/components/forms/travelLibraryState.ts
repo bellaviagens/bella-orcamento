@@ -40,6 +40,13 @@ function normalizedText(value: string | null | undefined) {
   return (value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
 }
 
+function matchesCountry(item: TravelLibraryItemLike, country: string) {
+  const normalizedCountry = normalizedText(country).trim();
+  if (!normalizedCountry) return true;
+  return [item.country, ...(item.destination || "").split(",")]
+    .some((value) => normalizedText(value).trim() === normalizedCountry);
+}
+
 export function filterTravelLibraryItems<T extends TravelLibraryItemLike>(items: T[], filters: TravelLibraryFilters | TravelLibraryCategory | "all") {
   const normalizedFilters: TravelLibraryFilters = typeof filters === "string"
     ? { category: filters, country: "", city: "", neighborhood: "", searchQuery: "" }
@@ -47,7 +54,7 @@ export function filterTravelLibraryItems<T extends TravelLibraryItemLike>(items:
   const searchQuery = normalizedText(normalizedFilters.searchQuery);
   return items.filter((item) =>
     (normalizedFilters.category === "all" || item.category === normalizedFilters.category)
-    && (!normalizedFilters.country || item.country?.trim() === normalizedFilters.country)
+    && matchesCountry(item, normalizedFilters.country)
     && (!normalizedFilters.city || item.city?.trim() === normalizedFilters.city)
     && (!normalizedFilters.neighborhood || item.neighborhood?.trim() === normalizedFilters.neighborhood)
     && (!searchQuery || [item.name, item.destination, item.country, item.city, item.neighborhood, item.contactName, item.phone, item.responsibleName, item.whatsapp, item.notes].some((value) => normalizedText(value).includes(searchQuery))),

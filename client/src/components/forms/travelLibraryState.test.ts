@@ -26,6 +26,17 @@ describe("Biblioteca de Viagem", () => {
     expect(filterTravelLibraryItems(detailedItems, { category: "hotel", country: "Chile", city: "Santiago" }).map((item) => item.id)).toEqual(["hotel-scl"]);
   });
 
+  it("inclui itens cujo país foi salvo apenas no destino", () => {
+    const detailedItems = [
+      { id: "hotel-scl", category: "hotel" as const, folderName: "Hotéis", destination: "Santiago, Chile", country: "Chile" },
+      { id: "tour-scl", category: "tour" as const, folderName: "Passeios", destination: "Santiago, Chile", country: null },
+      { id: "transfer-scl", category: "transfer" as const, folderName: "Transfers", destination: "Santiago, Chile", country: "" },
+      { id: "hotel-lisboa", category: "hotel" as const, folderName: "Hotéis", destination: "Lisboa, Portugal", country: "Portugal" },
+    ];
+
+    expect(filterTravelLibraryItems(detailedItems, { category: "all", country: "Chile", city: "", neighborhood: "" }).map((item) => item.id)).toEqual(["hotel-scl", "tour-scl", "transfer-scl"]);
+  });
+
   it("agrupa pastas únicas em ordem de leitura", () => {
     expect(getTravelLibraryFolders(items)).toEqual(["Hotéis Chile", "Passeios Chile", "Restaurantes Chile", "Transfers"]);
   });
