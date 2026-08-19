@@ -679,3 +679,5 @@
 - [x] Reorganizar as ações dos restaurantes validados e exibir Favoritar e Adicionar à Biblioteca
 - [x] Remover o zero inicial travado do campo de valor adulto na Proposta de Passeios
 - [x] Aplicar entrada e formatação em reais aos valores à vista da aba Parcelamentos
+- [x] Salvar restaurantes validados somente na Biblioteca, sem criar favorito automático
+- [x] Ignorar links de foto inválidos ou vazios ao salvar restaurante na Biblioteca
